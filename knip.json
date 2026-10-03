@@ -1,0 +1,10 @@
+{
+  "$schema": "https://unpkg.com/knip@6/schema.json",
+  "entry": [
+    "open-next.config.ts",
+    "scripts/*.ts",
+    "db/client.ts",
+    "components/ui/*.tsx"
+  ],
+  "ignoreDependencies": ["ai", "@openrouter/ai-sdk-provider", "zod"]
+}

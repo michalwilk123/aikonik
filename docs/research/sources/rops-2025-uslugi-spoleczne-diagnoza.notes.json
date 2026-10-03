@@ -1,0 +1,89 @@
+{
+  "source_id": "rops-2025-uslugi-spoleczne-diagnoza",
+  "title": "Usługi społeczne w Małopolsce – deficyty, potrzeby, potencjał rozwojowy. Zaktualizowane wnioski z diagnozy",
+  "publisher": "Regionalny Ośrodek Polityki Społecznej w Krakowie",
+  "authors": [
+    "Małgorzata Szlązak",
+    "Iwona Banasiewicz",
+    "Katarzyna Porowska",
+    "Anastazja Zakusiło"
+  ],
+  "publication_year": 2025,
+  "retrieved_at_utc": "2026-10-03T14:02:26.600553+00:00",
+  "catalog_url": "https://rops.krakow.pl/badania-analizy-raporty/raporty-z-badan",
+  "download_url": "https://rops.krakow.pl/pliki-do-pobrania/wpis,2025-uslugi-spoleczne-w-malopolsce-deficyty-potrzeby-potencjal-rozwojowy-zaktualizowane-wnioski-z-diagnozy,1348",
+  "local_file": "docs/research/sources/rops-2025-uslugi-spoleczne-diagnoza.pdf",
+  "sha256": "979092ddaadc969e7e2818c252ed1ebef78095b9d2e210c6ce4bfd6b60742f97",
+  "bytes": 683147,
+  "pdf_page_count": 38,
+  "license": {
+    "name": "CC BY 4.0",
+    "url": "https://creativecommons.org/licenses/by/4.0/deed.pl",
+    "verified_at_pdf_page": 2
+  },
+  "retrieval_note": "Web browsing tool returned HTTP 403; ordinary public HTTP GET with Mozilla/5.0 User-Agent succeeded. Download endpoint directly returned application/pdf. No credentials used.",
+  "extraction_method": "pdftotext -f 25 -l 26 -layout; printed page numbers match PDF page numbers for these pages.",
+  "scope": "One report downloaded. Only five selected aggregate facts recorded. No application corpus import or runtime network integration.",
+  "facts": [
+    {
+      "id": "senior-population-2024",
+      "pdf_page": 25,
+      "section": "Seniorzy w województwie małopolskim",
+      "data_year": 2024,
+      "geography": "województwo małopolskie",
+      "text_pl": "W 2024 r. w Małopolsce mieszkało 841,5 tys. osób w wieku 60+, stanowiących 24,5% populacji regionu.",
+      "value": 841500,
+      "unit": "persons",
+      "share_percent": 24.5
+    },
+    {
+      "id": "oldest-seniors-2024",
+      "pdf_page": 25,
+      "section": "Seniorzy w województwie małopolskim",
+      "data_year": 2024,
+      "geography": "województwo małopolskie",
+      "text_pl": "Liczba mieszkańców w wieku 80+ wynosiła 147 tys., czyli 17,5% seniorów.",
+      "value": 147000,
+      "unit": "persons",
+      "share_percent": 17.5
+    },
+    {
+      "id": "municipal-care-coverage-2024",
+      "pdf_page": 26,
+      "section": "Usługi opiekuńcze",
+      "data_year": 2024,
+      "geography": "województwo małopolskie",
+      "text_pl": "Gminnymi zwykłymi i specjalistycznymi usługami opiekuńczymi objęto 7 420 mieszkańców.",
+      "value": 7420,
+      "unit": "persons"
+    },
+    {
+      "id": "municipal-care-gap-2024",
+      "pdf_page": 26,
+      "section": "Usługi opiekuńcze",
+      "data_year": 2024,
+      "geography": "województwo małopolskie",
+      "text_pl": "Własnych usług opiekuńczych nie organizowało 15 gmin, czyli 8,2% gmin regionu.",
+      "value": 15,
+      "unit": "municipalities",
+      "share_percent": 8.2
+    },
+    {
+      "id": "neighbour-care-2024",
+      "pdf_page": 26,
+      "section": "Usługi opiekuńcze",
+      "data_year": 2024,
+      "geography": "województwo małopolskie",
+      "text_pl": "Usługami sąsiedzkimi objęto 228 osób samotnie gospodarujących w 35 gminach.",
+      "value": 228,
+      "unit": "persons",
+      "municipality_count": 35
+    }
+  ],
+  "interpretation_limits": [
+    "Published in 2025; selected statistics describe 2024, not current service availability.",
+    "The report synthesizes other sources. Page 25 cites social-assistance resource assessments and GUS-BDL; page 26 cites assessments and MRiPS-03/MRiPS-06 reporting.",
+    "These aggregate figures do not establish unmet need for any particular person or municipality.",
+    "Use only these facts for a bounded local-search example; no claim that the full report or whole ROPS catalogue has been indexed."
+  ]
+}

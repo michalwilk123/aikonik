@@ -1,0 +1,2 @@
+# Secrets for local dev. Copy to .dev.vars (gitignored).
+OPENROUTER_API_KEY=
