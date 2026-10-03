@@ -166,7 +166,7 @@ export default function HomePage() {
                 </Button>
                 <a
                   href="#jak-to-dziala"
-                  className="inline-flex min-h-12 items-center justify-center rounded-md px-5 text-base font-bold text-primary underline underline-offset-4 hover:bg-primary-container"
+                  className="inline-flex min-h-12 items-center self-start rounded-md px-0 sm:self-auto sm:px-5 text-base font-bold text-primary underline underline-offset-4 hover:bg-primary-container"
                 >
                   Jak to działa?
                 </a>
@@ -297,7 +297,7 @@ export default function HomePage() {
               pytanie albo wpisać własne w polu na dole.
             </p>
             <div
-              className="mt-8 flex flex-col items-center gap-8 md:flex-row md:items-end"
+              className="mt-8 flex flex-col items-start gap-8 md:flex-row md:items-end"
               data-reveal="stagger"
             >
               <figure className="w-full md:flex-1">
