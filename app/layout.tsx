@@ -12,6 +12,7 @@ export const metadata: Metadata = {
   title: "Kraków Społeczny — Małopolski Hub Innowacji Społecznych ROPS",
   description:
     "Krakowski asystent bezpłatnego wsparcia społecznego Regionalnego Ośrodka Polityki Społecznej.",
+  generator: "hubmi",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

@@ -12,10 +12,12 @@ Keep the existing Next.js, Cloudflare Workers, D1 and Drizzle stack. Build two a
 | Current chat memory | Confirmed: remember earlier messages in the open chat. Reload starts a new conversation. |
 | Historical conversations | No user history list or restoration across reload. All accepted conversations and messages remain in D1. |
 | Search privacy | Confirmed: local search and templates; OpenRouter search evaluations use synthetic data. |
-| Idea creation | Confirmed: editable idea card and explicit submission. |
+| Idea creation | Confirmed: extract the Social Canvas from natural-language input, ask follow-up questions, then show a confirmation component. |
+| Disconnect | Confirmed: stop execution and save the interrupted turn. |
 | Deliverable | Confirmed: architecture and research first, without implementation. |
-| Creator external inference | Awaiting clarification; default proposal is local execution until explicitly allowed. |
-| Admin inbox and source dataset | Awaiting clarification; proposals below are labelled accordingly. |
+| Creator external inference | Unresolved: its model may use OpenRouter only if live creator text is permitted to leave the infrastructure; otherwise it needs approved self-hosted inference. |
+| Source dataset | Confirmed: use a small part of one report from the ROPS reports page. |
+| Confirmation destination | Confirmed: submit the reviewed Social Canvas to the admin inbox. |
 
 “Local” means inside the approved Hubmi deployment, including its Cloudflare D1 binding. It does not mean offline browser execution or privately owned hardware. This trust scope must be revisited if the hosting requirement changes.
 
@@ -32,11 +34,11 @@ Keep the existing `domain/`, `application/` and `infrastructure/` organization a
 | Agent | Behavior | Permitted operations |
 | --- | --- | --- |
 | Search and matchmaking | Understand the current need using local rules and current-chat context; retrieve relevant innovations and evidence; present matching reasons, source cards and justified charts. | Read approved corpus and statistics. No outbound query, external inference, message sending, submission or arbitrary URL fetching. |
-| Kreator pomysłów | Ask focused questions; maintain an editable idea card; suggest improvements and a prototype plan. | Read approved materials and update a private draft. Explicit user submission goes through a separate application use case. |
+| Kreator pomysłów | Extract Social Canvas fields from the initial description; ask focused follow-up questions; maintain a reviewed canvas and offer final confirmation. | Read approved materials and update a private draft. Explicit finalization/submission goes through a separate application use case. |
 
 Conversation and diagnostic writes are runtime responsibilities, not agent-granted business permissions. The read-only search agent still has its conversation saved to D1 as required.
 
-A locally hosted language model could later replace templates, but it requires a separate hosting and resource decision. Templates will be less flexible than GPT: support Polish topic/synonym normalization, municipality and beneficiary filters, clarification questions, and an explicit “no adequate source” result. Do not promise unrestricted natural-language reasoning from this implementation.
+A locally hosted language model could later replace search templates, but it requires a separate hosting and resource decision. Templates will be less flexible than GPT: support Polish topic/synonym normalization, municipality and beneficiary filters, clarification questions, and an explicit “no adequate source” result. Do not promise unrestricted natural-language reasoning from this implementation. The requested model-driven canvas extraction also requires an inference deployment decision: OpenRouter with permitted creator text, or an approved self-hosted model. A template-only search implementation does not resolve creator inference.
 
 Use an explicit agent selector. Proposed default: switching agents opens a fresh conversation, preventing accidental context sharing. A reviewed idea/source card can be deliberately carried into a new chat as typed input later. Shared infrastructure does not imply two agents run simultaneously or call one another.
 
@@ -140,23 +142,53 @@ Store reproducible context manifests containing message/part revisions, selected
 
 ## Retrieval and source grounded visualization
 
-Start with an approved corpus ingested independently of user queries. Public website access during ingestion does not authorize sending user queries to those sites. Proposed initial data: curated ROPS materials and clearly labelled synthetic examples, pending dataset confirmation.
+Start with an approved corpus ingested independently of user queries. Public website access during ingestion does not authorize sending user queries to those sites. The user selected a small part of one report from the [ROPS reports page](https://rops.krakow.pl/badania-analizy-raporty/raporty-z-badan). Keep that subset separate from synthetic test records and from an eventual verified innovation catalog.
 
 Use D1 FTS5, metadata filters and a curated Polish synonym dictionary. Normalize diacritics and word variants deliberately; build safe FTS expressions instead of accepting raw user syntax. Rank candidate innovations using topic, beneficiary, location and implementation-stage evidence. Store match reasons and limitations. Lexical relevance is not a calibrated probability.
 
 Benchmark Polish inflection, synonyms, indirect descriptions, follow-up references and geographic scope before choosing embeddings. External embedding of a user query would violate the confirmed search privacy rule. A future semantic adapter must execute inside the approved infrastructure.
 
-ROPS search results identify the [innovation library](https://rops.krakow.pl/innowacje-spoleczne/biblioteka-innowacji-spolecznych/kategorie) and [social challenges map](https://rops.krakow.pl/pliki-do-pobrania/artykul%2Cmapa-wyzwan-spolecznych%2C1048), but direct retrieval returned HTTP 403 during research. Obtain provided documents or an approved export before promising ingestion coverage. The map search excerpt says its data is national; verify geographic scope from the actual document before presenting any figures as municipality or regional statistics.
+The downloaded report is *Usługi społeczne w Małopolsce – deficyty, potrzeby, potencjał rozwojowy. Zaktualizowane wnioski z diagnozy*, published by ROPS in 2025 under CC BY 4.0. Only five facts from pages 25–26 are selected for the prototype:
+
+| Selected fact | Period and scope |
+| --- | --- |
+| 841,500 residents aged 60+, representing 24.5% of the population | 2024, Małopolska |
+| 147,000 residents aged 80+, representing 17.5% of seniors | 2024, Małopolska |
+| 7,420 recipients of municipal care services | 2024, Małopolska |
+| 15 municipalities, or 8.2%, did not organize their own care services | 2024, Małopolska |
+| Neighbour-care services reached 228 people in 35 municipalities | 2024, Małopolska |
+
+Source: [ROPS report download](https://rops.krakow.pl/pliki-do-pobrania/wpis,2025-uslugi-spoleczne-w-malopolsce-deficyty-potrzeby-potencjal-rozwojowy-zaktualizowane-wnioski-z-diagnozy,1348). The [local source notes](research/sources/rops-2025-uslugi-spoleczne-diagnoza.notes.json) preserve pages, provenance and units; the PDF is retained for verification, while only these facts are proposed for the runtime corpus. These figures do not establish present service availability, individual eligibility or a comparable denominator between demographic and service counts. Do not chart them as mutually exclusive categories.
+
+This is a small knowledge demonstration, not yet a verified catalog of matching innovations. ROPS search results also identify the [innovation library](https://rops.krakow.pl/innowacje-spoleczne/biblioteka-innowacji-spolecznych/kategorie) and [social challenges map](https://rops.krakow.pl/pliki-do-pobrania/artykul%2Cmapa-wyzwan-spolecznych%2C1048), but their actual content was not inspected. A verified innovation dataset remains necessary to prove matchmaking. Clearly labelled synthetic innovations can exercise that functionality during development.
 
 Return a closed vocabulary of typed artifacts: innovation cards, comparison tables, idea cards and bar/line charts. Chart values, units, periods, geographic coverage and source IDs come from stored facts. Validate source references and schema before rendering. Never generate executable HTML/JavaScript as a visualization. Provide textual/table alternatives and direct citations. If no numeric evidence exists, show cards rather than inventing a chart.
 
-## Idea creation and explicit submission
+## Social Canvas dialogue and confirmation
 
-Maintain a structured card containing title, problem, intended beneficiaries, essence of the solution, implementation stage, proposed pilot and open questions. Distinguish user-provided facts from suggestions. User edits are authoritative; version drafts and detect stale edits.
+Use the actual [ROPS Social Canvas](https://rops.krakow.pl/mpliki/IS/Moj_folder/INNO_AGH_-_SOCIAL_CANVAS.pdf), rather than inventing a generic idea form. It is a three-page visual worksheet, version 1.0 dated 5 May 2026, with no interactive PDF fields. The application needs its own typed schema and accessible editable review. PDF export would require overlay/rendering, not filling existing AcroForm fields. The fetch succeeded through ordinary public HTTP after the browser tool failed.
 
-Submission is a dedicated application operation invoked by a visible button after the user reviews the exact card. A conversational “yes” must not authorize submitting a different draft later. Bind submission to the displayed revision/hash and an idempotency key. Save an immutable snapshot and show a durable receipt only after D1 commits it.
+The [verified field map and dialogue contract](research/social-canvas-fields.md) defines each section and its constraints:
 
-Proposed admin path: authenticated ROPS inbox with list/detail/status and no outbound email initially. Protect all admin reads server-side; an unlinked URL is not authentication. End-user accounts are unnecessary for ephemeral public chat. Whether contact details, a return receipt, or a response channel is required remains a product decision; fresh chats cannot support asynchronous dialogue on their own.
+| Page | Sections |
+| --- | --- |
+| 1 | Problem intensity/frequency/scale; supporters and obstacles; solution value versus cost/readiness/clarity; fixed and variable costs. |
+| 2 | Users, payers and decision makers; primary and growth income; emotional and functional value, at most three priorities each. |
+| 3 | Direct/intermediary/additional channels; partners with contribution areas and relationship status; separate person/community/environment impact. |
+
+Do not replace this with a conventional nine-block business canvas. Keep independent ratings separate and suggested partners distinct from confirmed ones. The original repeats a direct-channel heading over its intermediary section; use clear application labels while retaining the source mapping.
+
+Start with the user's free description. Extract every supported field for which the description provides evidence, preserve the original message reference, and ask a small focused follow-up question for the most consequential missing or ambiguous field. Re-extract from the answer together with the current canvas state; do not restart the interview or ask for information already supplied. Distinguish explicit facts, provisional interpretations, suggestions, contradictions and unknowns. Do not invent budgets, confirmed partners, achieved impact or funding commitments.
+
+The dialogue uses typed transitions: `collecting`, `needs_clarification`, `ready_for_review`, `confirmed` and, where applicable, `submitted`. A model proposes a validated patch; application code applies it against the current draft revision. It cannot approve or submit its own proposal. Manual edits are authoritative. Show uncertainties in the review instead of hiding them behind invented numerical confidence scores.
+
+The final confirmation component presents all canvas sections with edit controls, highlights unresolved fields, describes the exact action, and provides an explicit confirm button. Changing any field invalidates the previous confirmation revision. Allow an explicitly incomplete draft where the product permits it; a valid finalized canvas and a saved draft are different outcomes.
+
+Submission is a dedicated application operation invoked by a visible button after the user reviews the exact canvas. A conversational “yes” must not authorize submitting a different draft later. Bind submission to the displayed revision/hash, scoped confirmation token and an idempotency key. Atomically save the immutable snapshot and admin inbox entry, then show a durable receipt. Identical retries return the existing receipt; altered requests or stale revisions fail.
+
+The existing `ContactDialog` is a UI mock: it flips local state to show that a coordinator received the request, but performs no persistence or delivery. Reuse its visual patterns only after implementing the real confirmation use case; do not copy that success behavior or its promised response time.
+
+Confirmed destination: a ROPS admin inbox. Proposed implementation: authenticated list/detail/status views with no outbound email initially. Protect all admin reads server-side; an unlinked URL is not authentication. End-user accounts are unnecessary for ephemeral public chat. Whether contact details, a return receipt, or a response channel is required remains a product decision; fresh chats cannot support asynchronous dialogue on their own.
 
 ## Streaming and smooth reveal
 
@@ -170,7 +202,7 @@ Provide reduced-motion behavior, preserve focus, avoid forcing scroll while the 
 
 ## Failure handling and logging
 
-Proposed MVP lifecycle: disconnect stops request-bound work; save an interrupted turn and its committed partial output. Explicit cancellation is a separate event. Do not keep generating after reload by accident. A reconciler closes runs whose persisted lease expired after a crash, with an interruption reason rather than fabricated completion.
+Confirmed MVP lifecycle: disconnect stops request-bound work; save an interrupted turn and its committed partial output. Explicit cancellation is a separate event. Do not keep generating after reload by accident. A reconciler closes runs whose persisted lease expired after a crash, with an interruption reason rather than fabricated completion.
 
 Cloudflare allows only a limited continuation window after disconnect; `waitUntil` and SDK `consumeStream` are not durable execution guarantees. If background completion becomes a requirement, add a Workflow/Queue-owned run and a separate delivery channel. [Worker lifetime](https://developers.cloudflare.com/workers/runtime-apis/context/), [SDK persistence](https://ai-sdk.dev/docs/ai-sdk-ui/chatbot-message-persistence).
 
@@ -222,7 +254,7 @@ Proposed first evaluation: 20 scenarios with three repetitions after a low-cost 
 
 ## Implementation sequence and open decisions
 
-1. Resolve creator inference/privacy, source dataset, submission destination and contact/receipt requirements. Confirm agent-switch and disconnect proposals.
+1. Resolve creator inference/privacy, confirmation destination and contact/receipt requirements. Confirm the agent-switch proposal.
 2. Build real D1 migrations, admission/idempotency operations and integration tests. Prove canonical storage before agent development.
 3. Ingest a small approved corpus; create fixed Polish retrieval cases; implement local search and grounded cards.
 4. Add current-chat context and idea drafts with schema validation and revision handling.
