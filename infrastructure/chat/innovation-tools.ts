@@ -23,7 +23,7 @@ export const innovationReadSchema = z
     question: z.string().trim().min(2).max(500).optional(),
   })
   .strict();
-export const socialChallengesSchema = z
+const socialChallengesSchema = z
   .object({ query: z.string().trim().min(2).max(500) })
   .strict();
 

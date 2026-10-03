@@ -8,9 +8,6 @@ export interface KnowledgeExcerpt {
   page?: number;
 }
 
-export const knowledgeScope =
-  "Wersja startowa: jeden raport ROPS z 2025 r., pięć wybranych fragmentów o seniorach i opiece. Dane dotyczą 2024 r. Nie potwierdzają dzisiejszej dostępności usług.";
-
 const normalize = (text: string) =>
   text
     .toLocaleLowerCase("pl")
