@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { after, before, test } from "node:test";
+import { manualDraft } from "@/agents/submission-template";
 import type { ChatAgent } from "@/application/chat/runtime";
 import { startTurn } from "@/application/chat/runtime";
 import { ChatConflict } from "@/domain/chat/types";
@@ -18,6 +19,17 @@ after(async () => {
 const artifact = {
   title: "Mój Social Canvas",
   fields: [{ label: "Odbiorcy", value: "Seniorzy" }],
+};
+// The form a user sends: every template field plus the draft, all filled in.
+const form = (source: "dodaj-pomysl" | "testuj-innowacje") => {
+  const draft = manualDraft(source, artifact);
+  return {
+    ...draft,
+    fields: draft.fields.map((field) => ({
+      ...field,
+      value: field.value || "Do ustalenia",
+    })),
+  };
 };
 const agent: ChatAgent = async function* () {
   yield {
@@ -57,7 +69,7 @@ async function conversation(
     surname: "Kowalska",
     email: "anna@example.pl",
     consent: true as const,
-    artifact,
+    artifact: form(source),
   };
 }
 
@@ -87,6 +99,53 @@ test("contact submissions require validated contact information without a consen
   );
 });
 
+test("every template field must be filled in", async () => {
+  const input = await conversation();
+  const db = fixture.db as unknown as D1Database;
+  const [first, ...rest] = input.artifact.fields;
+  for (const fields of [
+    rest,
+    [{ ...first, value: " " }, ...rest],
+    [first, first, ...rest],
+  ])
+    await assert.rejects(
+      verifyAgentSubmission(db, {
+        ...input,
+        artifact: { ...input.artifact, fields },
+      }),
+      (error) => error instanceof ChatConflict && error.status === 409,
+    );
+});
+
+test("a form filled in before the first reply is saved without a conversation", async () => {
+  const db = fixture.db as unknown as D1Database;
+  const { conversationId, capability, requestId, ...input } =
+    await conversation("testuj-innowacje");
+  const filled = {
+    ...input,
+    artifact: {
+      title: "Plan testu innowacji",
+      fields: manualDraft("testuj-innowacje", null).fields.map((field) => ({
+        ...field,
+        value: "Do ustalenia",
+      })),
+    },
+  };
+  assert.equal(submissionInputSchema.safeParse(filled).success, true);
+  assert.equal(
+    submissionInputSchema.safeParse({ ...filled, conversationId }).success,
+    false,
+  );
+  assert.deepEqual(await verifyAgentSubmission(db, filled), filled.artifact);
+  await assert.rejects(
+    verifyAgentSubmission(db, {
+      ...filled,
+      artifact: { ...filled.artifact, fields: input.artifact.fields },
+    }),
+    (error) => error instanceof ChatConflict && error.status === 409,
+  );
+});
+
 test("only the conversation owner can submit fields from the latest agent draft", async () => {
   const input = await conversation();
   assert.equal(submissionInputSchema.safeParse(input).success, true);
@@ -96,7 +155,7 @@ test("only the conversation owner can submit fields from the latest agent draft"
   );
   assert.deepEqual(
     await verifyAgentSubmission(fixture.db as unknown as D1Database, input),
-    artifact,
+    input.artifact,
   );
   await assert.rejects(
     verifyAgentSubmission(fixture.db as unknown as D1Database, {
@@ -209,7 +268,7 @@ test("immutable submission retries produce one receipt and reject altered payloa
     },
     {},
   );
-  assert.deepEqual(await verifyAgentSubmission(db, input), artifact);
+  assert.deepEqual(await verifyAgentSubmission(db, input), input.artifact);
   assert.deepEqual(await insertSubmission(db, saved), { id: input.id });
 });
 
@@ -252,7 +311,7 @@ test("a new turn between verification and insertion prevents saving a stale draf
 test("Testuj innowacje submissions use the same owned immutable snapshot flow", async () => {
   const input = await conversation("testuj-innowacje");
   const db = fixture.db as unknown as D1Database;
-  assert.deepEqual(await verifyAgentSubmission(db, input), artifact);
+  assert.deepEqual(await verifyAgentSubmission(db, input), input.artifact);
   assert.deepEqual(
     await insertSubmission(db, {
       id: input.id,
@@ -279,8 +338,12 @@ for (const source of ["dodaj-pomysl", "testuj-innowacje"] as const) {
   test(`${source} saves the user's edited draft values`, async () => {
     const input = await conversation(source);
     const edited = {
-      ...artifact,
-      fields: [{ label: "Odbiorcy", value: "Rodziny z dziećmi" }],
+      ...input.artifact,
+      fields: input.artifact.fields.map((field) =>
+        field.label === "Odbiorcy"
+          ? { ...field, value: "Rodziny z dziećmi" }
+          : field,
+      ),
     };
     const db = fixture.db as unknown as D1Database;
     const verified = await verifyAgentSubmission(db, {

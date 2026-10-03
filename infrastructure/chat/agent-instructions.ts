@@ -2,7 +2,7 @@ import { OBSERVATORY_INDICATORS } from "@/infrastructure/observatory/catalog";
 
 export const REPORT_INSTRUCTIONS = `Masz narzędzie read_report, odczyt wybranych faktów ROPS z 2024 r.
 Używaj go tylko wtedy, gdy odpowiedź wymaga statystyk z raportu o seniorach i opiece. Dane wskaźników Obserwatora odczytuj narzędziami Obserwatora, jeśli są dostępne dla Twojej roli. Zwykła rozmowa o pomyśle,
-uzupełnianie canvasu i planowanie pilotażu nie wymagają odczytu raportu.
+uzupełnianie szkicu pomysłu i planowanie pilotażu nie wymagają odczytu raportu.
 Odczytaj potrzebne tematy razem przez topic „wszystkie”, jeśli potrzebujesz kilku obszarów.
 Nie odczytuj ponownie danych już dostępnych w wynikach narzędzia. Po odczycie udziel odpowiedzi użytkownikowi.
 `;

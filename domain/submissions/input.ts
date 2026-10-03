@@ -27,11 +27,21 @@ export const submissionInputSchema = z.discriminatedUnion("source", [
       source: z.enum(["dodaj-pomysl", "testuj-innowacje"]),
       surname: z.string().trim().min(1).max(150),
       consent: z.literal(true),
-      conversationId: z.uuid(),
-      capability: z.uuid(),
-      requestId: z.uuid(),
+      // Absent when the form is filled in by hand before the first reply.
+      conversationId: z.uuid().optional(),
+      capability: z.uuid().optional(),
+      requestId: z.uuid().optional(),
       artifact: artifactSchema.refine((artifact) => artifact.fields.length > 0),
     })
-    .strict(),
+    .strict()
+    .refine(
+      (input) =>
+        [input.conversationId, input.capability, input.requestId].every(
+          (value) => value === undefined,
+        ) ||
+        [input.conversationId, input.capability, input.requestId].every(
+          (value) => value !== undefined,
+        ),
+    ),
 ]);
 export type SubmissionInput = z.infer<typeof submissionInputSchema>;

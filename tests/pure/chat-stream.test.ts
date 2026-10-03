@@ -220,7 +220,11 @@ test("all streaming agents keep their role, resolve allowed sources and restrict
               "show_bar_chart",
             ]
           : id === "wdrazanie-innowacji"
-            ? ["read_report", "show_map", "show_bar_chart"]
+            ? [
+                "search_innovations",
+                "read_innovation",
+                "read_social_challenges",
+              ]
             : [],
     );
     const messages = request.messages as { role: string; content: string }[];

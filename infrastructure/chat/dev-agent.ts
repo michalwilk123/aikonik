@@ -46,7 +46,7 @@ export function makeDevChatAgent(agentId: AgentId = "odkrywaj"): ChatAgent {
       artifact: null,
     };
 
-    if (agentId === "odkrywaj") {
+    if (agentId === "odkrywaj" || agentId === "wdrazanie-innowacji") {
       const project = innovations.find(
         (entry) => entry.title === "BaWita" && entry.videos.length > 0,
       );
@@ -60,7 +60,55 @@ export function makeDevChatAgent(agentId: AgentId = "odkrywaj"): ChatAgent {
       answer.sources = [...evidence.sources, ...challenges.sources].slice(0, 8);
       answer.videos = config.getVideos?.(evidence.sources) ?? [];
       answer.message = `**${project.title}** to tablica rehabilitacyjna dla osób z demencją. Pomaga ćwiczyć pamięć i sprawność dłoni. Film pokazuje, jak działa rozwiązanie.`;
-    } else if (agentId === "wiedza" || agentId === "wdrazanie-innowacji") {
+      if (agentId === "wdrazanie-innowacji") {
+        answer.sources = evidence.sources.slice(0, 8);
+        answer.message = `**${project.title}** to tablica rehabilitacyjna dla osób z demencją. Poniżej roboczy przykład włączenia innowacji do usługi placówki dziennej opieki, dokumentacja i film. Organizacja zajęć jest propozycją do uzgodnienia z placówką.`;
+        answer.artifact = {
+          title: `Plan usługi: ${project.title} — placówka dziennej opieki`,
+          fields: [
+            {
+              label: "Wybrana innowacja",
+              value: `${project.title} — opis i dokumentacja z Biblioteki Innowacji Społecznych ROPS. Film ilustruje działanie.`,
+            },
+            {
+              label: "Potrzeba i odbiorcy",
+              value:
+                "Przykładowy kontekst: zajęcia dla osób z demencją w placówce dziennej opieki. Potrzeby uczestników do rozpoznania.",
+            },
+            {
+              label: "Co zachować i co dostosować",
+              value:
+                "Zachować mechanizm tablicy. Propozycja adaptacji: włączyć korzystanie z niej do zajęć placówki; zakres i częstotliwość uzgodnić z zespołem.",
+            },
+            {
+              label: "Jak działa usługa",
+              value:
+                "Propozycja: zaproszenie uczestników przez zespół placówki, krótkie zajęcia z tablicą i zebranie opinii uczestników oraz opiekunów.",
+            },
+            {
+              label: "Odpowiedzialność i partnerzy",
+              value:
+                "Koordynator po stronie placówki — do ustalenia. Kontakt z autorem w sprawie warunków użycia — proponowany krok, współpraca niepotwierdzona.",
+            },
+            {
+              label: "Zasoby i koszty",
+              value:
+                "Tablica, miejsce i czas zespołu. Wymagania szkoleniowe, koszt pozyskania i prowadzenia zajęć — do ustalenia z dokumentacją i autorem.",
+            },
+            {
+              label: "Pilotaż i ocena",
+              value:
+                "Propozycja: zacząć od małej grupy, obserwować udział i zebrać opinie. Czas i kryteria oceny uzgodnić przed pilotażem.",
+            },
+            {
+              label: "Warunki i następny krok",
+              value:
+                "Sprawdzić instrukcję, warunki adaptacji i dostępność dla uczestników. Wyznaczyć osobę odpowiedzialną za przygotowanie pilotażu.",
+            },
+          ],
+        };
+      }
+    } else if (agentId === "wiedza") {
       answer.visualizations = /wykres/i.test(text)
         ? [sampleVisualization("bar")]
         : /map/i.test(text)
@@ -68,36 +116,11 @@ export function makeDevChatAgent(agentId: AgentId = "odkrywaj"): ChatAgent {
           : [sampleVisualization("map"), sampleVisualization("bar")];
       const report = readReport({ topic: "seniorzy" });
       answer.message = `${report.facts[0]?.text ?? report.title}\n\nPoniżej ${answer.visualizations.length === 2 ? "mapa i wykres" : answer.visualizations[0].kind === "map" ? "mapa" : "wykres"} z przykładowymi danymi.`;
-      if (agentId === "wdrazanie-innowacji") {
-        answer.artifact = {
-          title: "Plan wdrożenia klubu sąsiedzkiego",
-          fields: [
-            {
-              label: "Cel",
-              value: "Ograniczenie samotności seniorów.",
-            },
-            {
-              label: "Zasoby",
-              value: "Koordynator, sala spotkań i dwóch wolontariuszy.",
-            },
-            {
-              label: "Partnerzy",
-              value: "Biblioteka i ośrodek pomocy społecznej — propozycja.",
-            },
-            {
-              label: "Pierwszy krok",
-              value: "Przygotowanie spotkania organizacyjnego.",
-            },
-          ],
-        };
-        answer.message =
-          "Zacznij od małej grupy i cotygodniowych spotkań w bibliotece. Wyznacz koordynatora, zaproś wolontariuszy i po miesiącu zbierz opinie uczestników. Poniżej plan wdrożenia i przykładowe dane regionu.";
-      }
     } else if (agentId === "dodaj-pomysl") {
       answer.message =
-        "Oto szkic klubu sąsiedzkiego:\n\n- **Problem:** samotność seniorów.\n- **Rozwiązanie:** cotygodniowe spotkania z wolontariuszami w bibliotece.\n- **Cel:** regularny kontakt i nowe relacje.\n\nMożesz przekazać ten pomysł do ROPS przez formularz poniżej.";
+        "Szkic klubu sąsiedzkiego jest gotowy. Sprawdź pola poniżej i przekaż pomysł do ROPS.";
       answer.artifact = {
-        title: "Social Canvas: klub sąsiedzki",
+        title: "Klub sąsiedzki",
         ready: true,
         fields: [
           {
@@ -114,7 +137,7 @@ export function makeDevChatAgent(agentId: AgentId = "odkrywaj"): ChatAgent {
             value: "Cotygodniowe spotkania w bibliotece.",
           },
           {
-            label: "Płatnicy i decydenci",
+            label: "Kto zapłaci i kto zdecyduje",
             value: "Gmina — finansowanie do uzgodnienia.",
           },
           {
@@ -122,7 +145,7 @@ export function makeDevChatAgent(agentId: AgentId = "odkrywaj"): ChatAgent {
             value: "Nowe relacje i wzajemna pomoc.",
           },
           {
-            label: "Aktorzy zmiany",
+            label: "Kto pomoże, a kto przeszkodzi",
             value: "Seniorzy, wolontariusze i bibliotekarze.",
           },
           {
@@ -134,38 +157,38 @@ export function makeDevChatAgent(agentId: AgentId = "odkrywaj"): ChatAgent {
             value: "Dotacja gminna — do pozyskania.",
           },
           {
-            label: "Kanały dotarcia",
+            label: "Jak dotrzeć do odbiorców",
             value: "Ogłoszenia w bibliotece i ośrodku pomocy społecznej.",
           },
           {
-            label: "Konstelacja partnerów",
+            label: "Partnerzy",
             value: "Biblioteka i OPS — współpraca do uzgodnienia.",
           },
           {
-            label: "Wpływ",
+            label: "Cel",
             value: "Mniejsza samotność; ocena w ankiecie po miesiącu.",
           },
         ],
       };
     } else {
       answer.message =
-        "Przetestuj klub z 10 seniorami przez miesiąc. Zorganizuj cztery spotkania, sprawdź frekwencję i zapytaj uczestników, czy czują się mniej samotni. Na tej podstawie dopracuj kolejną edycję.";
+        "Plan pilotażu klubu jest gotowy. Sprawdź pola poniżej i przekaż go do ROPS.";
       answer.artifact = {
         title: "Plan pilotażu klubu sąsiedzkiego",
         ready: true,
         fields: [
           {
-            label: "Hipoteza",
+            label: "Co chcesz sprawdzić",
             value: "Regularne spotkania zmniejszają poczucie samotności.",
           },
           { label: "Uczestnicy", value: "10 seniorów mieszkających samotnie." },
-          { label: "Czas", value: "Cztery cotygodniowe spotkania." },
+          { label: "Termin", value: "Cztery cotygodniowe spotkania." },
           {
             label: "Miara sukcesu",
             value: "Frekwencja i anonimowa ankieta po pilotażu.",
           },
           {
-            label: "Informacja zwrotna",
+            label: "Opinie uczestników",
             value: "Rozmowa podsumowująca i propozycje zmian.",
           },
         ],
@@ -173,7 +196,8 @@ export function makeDevChatAgent(agentId: AgentId = "odkrywaj"): ChatAgent {
     }
 
     // Small progressive chunks exercise the existing streaming/reveal UI.
-    for (let end = 80; end < answer.message.length; end += 80) {
+    const chunkSize = Math.min(80, Math.ceil(answer.message.length / 2));
+    for (let end = chunkSize; end < answer.message.length; end += chunkSize) {
       signal.throwIfAborted();
       yield { type: "text", text: answer.message.slice(0, end) };
     }

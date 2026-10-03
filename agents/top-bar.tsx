@@ -42,6 +42,8 @@ export function AgentTopBar({
         ready: current.width > 0,
       }));
     measure();
+    // On narrow screens the track scrolls; keep the selected agent in view.
+    button.scrollIntoView({ block: "nearest", inline: "nearest" });
     const observer = new ResizeObserver(measure);
     observer.observe(button);
     return () => observer.disconnect();
@@ -52,7 +54,12 @@ export function AgentTopBar({
       aria-label="Wybierz agenta"
       className="sticky top-16 z-20 border-b border-outline-variant bg-background/95 px-4 py-3 backdrop-blur sm:px-6"
     >
-      <div className="relative mx-auto grid max-w-5xl grid-cols-2 gap-1 sm:grid-cols-5">
+      <div
+        className="agent-track relative mx-auto flex w-full max-w-5xl gap-0.5 overflow-x-auto rounded-2xl p-1.5"
+        style={{
+          backgroundColor: `color-mix(in srgb, ${active.tint} 45%, var(--color-surface-container))`,
+        }}
+      >
         <span
           aria-hidden="true"
           className="agent-pill"
@@ -60,10 +67,8 @@ export function AgentTopBar({
           style={{
             width: pill.width,
             height: pill.height,
-            bottom: "auto",
             transform: `translate(${pill.left}px, ${pill.top}px)`,
-            backgroundColor: active.tint,
-            boxShadow: `inset 0 0 0 1px color-mix(in srgb, ${active.color} 18%, transparent), 0 1px 2px color-mix(in srgb, ${active.color} 14%, transparent)`,
+            boxShadow: `0 0 0 1px color-mix(in srgb, ${active.color} 14%, transparent), 0 1px 2px color-mix(in srgb, ${active.color} 12%, transparent), 0 4px 12px -4px color-mix(in srgb, ${active.color} 22%, transparent)`,
             opacity: pill.width ? 1 : 0,
           }}
         />
@@ -80,10 +85,13 @@ export function AgentTopBar({
               type="button"
               onClick={() => onSwitch(id)}
               aria-pressed={isActive}
-              className="relative z-10 flex min-h-12 min-w-0 items-center justify-center gap-2 rounded-lg px-4 py-3 text-base leading-tight font-semibold transition-colors duration-500 hover:text-foreground"
-              style={{ color: isActive ? agent.color : "#5B6075" }}
+              className="agent-tab relative z-10 flex min-h-11 shrink-0 items-center justify-center rounded-md px-4 text-[15px] leading-tight font-semibold whitespace-nowrap transition-colors duration-300 focus-visible:outline-2 focus-visible:outline-offset-1 sm:flex-1 sm:px-5"
+              style={{
+                color: isActive ? agent.color : "#4F546A",
+                outlineColor: agent.color,
+              }}
             >
-              <span className="min-w-0 break-words">{agent.label}</span>
+              {agent.label}
             </button>
           );
         })}

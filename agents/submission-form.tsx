@@ -1,6 +1,6 @@
 "use client";
 
-import { type FormEvent, useRef, useState } from "react";
+import { type FormEvent, useId, useRef, useState } from "react";
 import type { AgentArtifact } from "@/agents/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,9 +16,10 @@ export function AgentSubmissionForm({
   onSubmitted,
 }: {
   source: "dodaj-pomysl" | "testuj-innowacje";
-  requestId: string;
+  // Null when the form is filled in by hand before the assistant replied.
+  requestId: string | null;
   artifact: AgentArtifact;
-  identity: { conversationId: string; capability: string };
+  identity: { conversationId: string; capability: string } | null;
   onCancel: () => void;
   onSubmitted: () => void;
 }) {
@@ -35,11 +36,17 @@ export function AgentSubmissionForm({
   const [error, setError] = useState<string | null>(null);
   const submissionId = useRef<string | null>(null);
   const submitting = useRef(false);
+  const formId = useId();
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (submitting.current) return;
     if (step === "draft") {
+      if (draft.fields.some((field) => !field.value.trim())) {
+        setError("Uzupełnij wszystkie pola.");
+        return;
+      }
+      setError(null);
       setStep("contact");
       return;
     }
@@ -54,9 +61,8 @@ export function AgentSubmissionForm({
         body: JSON.stringify({
           id: submissionId.current,
           source,
-          requestId,
           artifact: draft,
-          ...identity,
+          ...(requestId && identity ? { requestId, ...identity } : {}),
           ...contact,
         }),
       });
@@ -94,30 +100,38 @@ export function AgentSubmissionForm({
       <h2 className="font-semibold">
         {step === "draft" ? draft.title : "Dane kontaktowe"}
       </h2>
-      <p className="mt-2 text-sm leading-6 text-on-surface-variant">
-        {step === "draft"
-          ? "Sprawdź szkic przygotowany przez asystenta. Możesz zmienić każde pole, a następnie przejść do danych kontaktowych. Anuluj, aby wrócić do rozmowy."
-          : "Podaj dane do kontaktu. Wyślesz zatwierdzony szkic do ROPS Kraków. To zgłoszenie do kontaktu, bez zapisu do programu lub obietnicy finansowania."}
-      </p>
+      {step === "contact" && (
+        <p className="mt-1 text-sm leading-6 text-on-surface-variant">
+          Wyślesz szkic do ROPS Kraków w celu kontaktu. To nie jest zapis do
+          programu ani obietnica finansowania.
+        </p>
+      )}
       <form
         onSubmit={submit}
         onChange={() => {
           if (!submitting.current) submissionId.current = null;
         }}
-        className="mt-4 flex flex-col gap-4"
+        className="mt-3 flex flex-col gap-3"
       >
-        <fieldset disabled={pending} className="flex min-w-0 flex-col gap-4">
+        <fieldset disabled={pending} className="flex min-w-0 flex-col gap-3">
           {step === "draft" ? (
             draft.fields.map((field, index) => (
-              <div key={field.label} className="flex flex-col gap-2">
-                <Label htmlFor={`submission-field-${requestId}-${index}`}>
+              <div
+                key={field.label}
+                className="flex flex-col gap-1 sm:grid sm:grid-cols-[9rem_1fr] sm:items-start sm:gap-3"
+              >
+                <Label
+                  htmlFor={`submission-field-${formId}-${index}`}
+                  className="sm:pt-2"
+                >
                   {field.label}
                 </Label>
                 <Textarea
-                  id={`submission-field-${requestId}-${index}`}
+                  id={`submission-field-${formId}-${index}`}
                   required
                   maxLength={2000}
-                  rows={3}
+                  rows={1}
+                  className="min-h-0 resize-none"
                   value={field.value}
                   onChange={(event) =>
                     setDraft((current) => ({
@@ -141,12 +155,15 @@ export function AgentSubmissionForm({
                   ["email", "Adres e-mail", "email"],
                 ] as const
               ).map(([name, label, autoComplete]) => (
-                <div key={name} className="flex flex-col gap-2">
-                  <Label htmlFor={`submission-${name}-${requestId}`}>
+                <div
+                  key={name}
+                  className="flex flex-col gap-1 sm:grid sm:grid-cols-[9rem_1fr] sm:items-center sm:gap-3"
+                >
+                  <Label htmlFor={`submission-${name}-${formId}`}>
                     {label}
                   </Label>
                   <Input
-                    id={`submission-${name}-${requestId}`}
+                    id={`submission-${name}-${formId}`}
                     name={name}
                     type={name === "email" ? "email" : "text"}
                     required
@@ -187,7 +204,7 @@ export function AgentSubmissionForm({
               {error}
             </p>
           )}
-          <div className="flex justify-between gap-3">
+          <div className="flex justify-end gap-3">
             <Button
               type="button"
               variant="outline"

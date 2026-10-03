@@ -1,6 +1,6 @@
 export const canvasSource = {
   id: "social-canvas",
-  title: "ROPS / INNO AGH — Social Innovation Canvas",
+  title: "ROPS / INNO AGH — arkusz innowacji społecznej",
   url: "https://rops.krakow.pl/mpliki/IS/Moj_folder/INNO_AGH_-_SOCIAL_CANVAS.pdf",
   excerpt:
     "Arkusz obejmuje problem, odbiorców, rozwiązanie, koszty, wartość, kanały, partnerów i wpływ innowacji.",
@@ -29,7 +29,7 @@ export const canvasSteps = [
       "Jak rozwiązanie ma działać i na jakim jest etapie: pomysł, prototyp, testy czy gotowość do wdrożenia?",
   },
   {
-    label: "Płatnicy i decydenci",
+    label: "Kto zapłaci i kto zdecyduje",
     question:
       "Kto może finansować rozwiązanie, a kto decyduje o jego użyciu? Jeśli jeszcze nie wiesz, możesz tak odpowiedzieć.",
   },
@@ -39,7 +39,7 @@ export const canvasSteps = [
       "Jakie maksymalnie trzy korzyści praktyczne i trzy korzyści dla samopoczucia otrzymają odbiorcy?",
   },
   {
-    label: "Aktorzy zmiany",
+    label: "Kto pomoże, a kto przeszkodzi",
     question:
       "Jakie grupy lub instytucje wspierają zmianę, a jakie mogą ją utrudniać?",
   },
@@ -54,17 +54,17 @@ export const canvasSteps = [
       "Skąd planujesz pozyskać pieniądze na działanie i rozwój — i które źródła są już potwierdzone?",
   },
   {
-    label: "Kanały dotarcia",
+    label: "Jak dotrzeć do odbiorców",
     question:
       "Jak dotrzesz do odbiorców bezpośrednio, przez pośredników lub dodatkowymi kanałami?",
   },
   {
-    label: "Konstelacja partnerów",
+    label: "Partnerzy",
     question:
       "Kto może pomóc w realizacji i co wniesie? Zaznacz, czy to potencjalny partner, trwa rozmowa czy współpraca jest potwierdzona.",
   },
   {
-    label: "Wpływ",
+    label: "Cel",
     question:
       "Jaką zmianę przewidujesz dla osoby, społeczności i środowiska — i co już potwierdzają obserwacje lub dane?",
   },

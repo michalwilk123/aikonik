@@ -1,5 +1,6 @@
 import { ArrowUp, LockKeyhole, Square } from "lucide-react";
 import type { Ref } from "react";
+import { AgentContact } from "@/agents/contact";
 import { agents } from "@/agents/registry";
 import type { AgentId } from "@/agents/types";
 import { Button } from "@/components/ui/button";
@@ -27,7 +28,7 @@ export function AgentComposer({
   const agent = agents[agentId];
   return (
     <div className="pointer-events-none fixed inset-x-0 bottom-0 z-20">
-      <div className="pointer-events-auto mx-auto w-full max-w-5xl bg-linear-to-t from-white via-white/90 to-transparent px-4 pt-10 pb-5 sm:px-8">
+      <div className="pointer-events-auto mx-auto w-full max-w-5xl bg-linear-to-t from-white via-white/90 to-transparent px-4 pt-10 pb-1 sm:px-8">
         <form
           onSubmit={(event) => {
             event.preventDefault();
@@ -87,6 +88,7 @@ export function AgentComposer({
             )}
           </Button>
         </form>
+        <AgentContact />
       </div>
     </div>
   );

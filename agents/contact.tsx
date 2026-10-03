@@ -4,7 +4,7 @@ export function AgentContact() {
   return (
     <aside
       aria-label="Kontakt z naszym zespołem"
-      className="mt-3 flex flex-wrap items-center justify-center gap-x-4 text-xs text-on-surface-variant"
+      className="mt-1 flex flex-wrap items-center justify-center gap-x-4 text-xs text-on-surface-variant"
     >
       <p>Wolisz kontakt z naszym zespołem?</p>
       <div className="flex flex-wrap items-center gap-x-4">

@@ -18,7 +18,11 @@ const toolTable: Record<AgentId, string[]> = {
   ],
   "dodaj-pomysl": [],
   "testuj-innowacje": [],
-  "wdrazanie-innowacji": ["read_report", "show_map", "show_bar_chart"],
+  "wdrazanie-innowacji": [
+    "search_innovations",
+    "read_innovation",
+    "read_social_challenges",
+  ],
 };
 const toolInputs = {
   read_report: { topic: "wszystkie" },

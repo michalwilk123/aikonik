@@ -1,5 +1,6 @@
 import { Clock, Mail, MapPin, Phone } from "lucide-react";
 import type { Metadata } from "next";
+import { ContactPageScene } from "@/app/_components/scenes-steps";
 import { SiteFooter } from "@/app/_components/site-footer";
 import { SiteHeader } from "@/app/_components/site-header";
 import { ContactForm } from "@/app/(public)/kontakt/contact-form";
@@ -11,48 +12,6 @@ export const metadata: Metadata = {
 
 const link =
   "inline-flex min-h-11 items-center font-medium text-primary underline underline-offset-4 outline-none focus-visible:ring-3 focus-visible:ring-ring/50 rounded-md";
-
-function Illustration() {
-  return (
-    <svg
-      aria-hidden="true"
-      focusable="false"
-      viewBox="0 0 200 140"
-      className="h-auto w-40 shrink-0"
-    >
-      <rect width="200" height="140" rx="16" fill="#FBE3E1" />
-      <rect
-        x="22"
-        y="36"
-        width="104"
-        height="72"
-        rx="8"
-        fill="#ffffff"
-        stroke="#1B2340"
-        strokeWidth="3"
-      />
-      <path
-        d="M26 42 74 80l48-38"
-        fill="none"
-        stroke="#1B2340"
-        strokeWidth="3"
-        strokeLinejoin="round"
-      />
-      <rect
-        x="116"
-        y="52"
-        width="60"
-        height="68"
-        rx="10"
-        fill="#C62832"
-        stroke="#1B2340"
-        strokeWidth="3"
-      />
-      <rect x="124" y="62" width="44" height="40" rx="4" fill="#FFF1CC" />
-      <circle cx="146" cy="111" r="4" fill="#ffffff" />
-    </svg>
-  );
-}
 
 export default function KontaktPage() {
   return (
@@ -73,7 +32,7 @@ export default function KontaktPage() {
               dni robocze.
             </p>
           </div>
-          <Illustration />
+          <ContactPageScene className="size-40 shrink-0" />
         </header>
 
         <section aria-labelledby="formularz" className="flex flex-col gap-4">

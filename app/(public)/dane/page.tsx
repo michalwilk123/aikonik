@@ -21,7 +21,7 @@ const sources = [
     href: "https://rops.krakow.pl/innowacje-spoleczne/publikacje-ze-swiata-innowacji",
   },
   {
-    label: "Social Canvas (INNO AGH, PDF)",
+    label: "Arkusz innowacji społecznej (INNO AGH, PDF)",
     href: "https://rops.krakow.pl/mpliki/IS/Moj_folder/INNO_AGH_-_SOCIAL_CANVAS.pdf",
   },
   {

@@ -15,7 +15,13 @@ streaming runtime and D1 persistence described in [chat testing](chat-testing.md
 | `agents/wiedza/` | Wiedza | Find facts in ROPS reports and social challenge excerpts, read statistics and display maps/charts |
 | `agents/dodaj-pomysl/` | Dodaj pomysł | One-question interview and a growing working Social Canvas |
 | `agents/testuj-innowacje/` | Testuj innowacje | Pilot hypotheses, success measures, feedback and improvements |
-| `agents/wdrazanie-innowacji/` | Wdrażanie innowacji | Adapt an innovation to an institution's service, resources and partners |
+| `agents/wdrazanie-innowacji/` | Wdrażanie innowacji | Read the shared ROPS innovation catalog and documentation, show cited videos and adapt a selected innovation into an institutional service brief |
+
+Dopasuj and Wdrażanie innowacji share the saved ROPS innovation catalog and its
+search/document tools. Wdrażanie reads the selected project's evidence and prepares
+a service brief covering adaptations, delivery, resources, responsibilities, costs
+to establish, a pilot and next steps. It retains that brief and catalog citations
+in its own conversation. Only Wiedza displays statistical charts and maps.
 
 Each directory owns its prompt and knowledge. `registry.ts` contains the navigation
 copy and colors. Welcome screens contain introductory copy and example questions;

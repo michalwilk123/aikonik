@@ -66,26 +66,30 @@ export function StreamedMessage({
           Asystent przygotowuje odpowiedź…
         </div>
       ) : null}
-      {reply?.visualizations &&
+      {reply?.visualizations && !revealing && message.agentId === "wiedza" && (
+        <div className="mt-4 space-y-4">
+          {reply.visualizations.map((visualization) => (
+            <ObservatoryVisualizationCard
+              key={`${visualization.kind}-${visualization.indicatorId}-${visualization.year}`}
+              visualization={visualization}
+            />
+          ))}
+        </div>
+      )}
+      {reply?.videos &&
         !revealing &&
-        (message.agentId === "wiedza" ||
+        (message.agentId === "odkrywaj" ||
           message.agentId === "wdrazanie-innowacji") && (
           <div className="mt-4 space-y-4">
-            {reply.visualizations.map((visualization) => (
-              <ObservatoryVisualizationCard
-                key={`${visualization.kind}-${visualization.indicatorId}-${visualization.year}`}
-                visualization={visualization}
+            {reply.videos.map((video) => (
+              <YouTubeVideo
+                key={video.url}
+                url={video.url}
+                title={video.title}
               />
             ))}
           </div>
         )}
-      {reply?.videos && !revealing && message.agentId === "odkrywaj" && (
-        <div className="mt-4 space-y-4">
-          {reply.videos.map((video) => (
-            <YouTubeVideo key={video.url} url={video.url} title={video.title} />
-          ))}
-        </div>
-      )}
       {reply?.artifact &&
         !revealing &&
         message.agentId !== "dodaj-pomysl" &&

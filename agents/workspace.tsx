@@ -3,7 +3,6 @@
 import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AgentComposer } from "@/agents/composer";
-import { AgentContact } from "@/agents/contact";
 import {
   agentHref,
   agentIdFromSlug,
@@ -12,6 +11,7 @@ import {
 } from "@/agents/registry";
 import { StreamedMessage } from "@/agents/streamed-message";
 import { AgentSubmissionForm } from "@/agents/submission-form";
+import { manualDraft } from "@/agents/submission-template";
 import { AgentTopBar } from "@/agents/top-bar";
 import {
   type AgentId,
@@ -31,8 +31,10 @@ type Session = {
   error: string | null;
   revealing: string[];
   submission: {
-    requestId: string;
+    // Null for a form filled in by hand before the first reply.
+    requestId: string | null;
     status: "open" | "cancelled" | "submitted";
+    manual?: boolean;
   } | null;
 };
 const emptySession = (): Session => ({
@@ -67,6 +69,16 @@ export function AgentWorkspace({ devMode = false }: { devMode?: boolean }) {
   const session = sessions[activeAgent];
   const agent = agents[activeAgent];
   const chatDisabled = session.submission?.status === "open";
+  const lastReply = session.replies.at(-1);
+  const canFillManually =
+    (activeAgent === "dodaj-pomysl" || activeAgent === "testuj-innowacje") &&
+    !chatDisabled &&
+    !session.pending &&
+    session.submission?.status !== "submitted" &&
+    (session.messages.length === 0 ||
+      (!session.error &&
+        lastReply !== undefined &&
+        lastReply.message.id === session.messages.at(-1)?.id));
 
   useEffect(() => {
     const active = requests.current;
@@ -272,10 +284,10 @@ export function AgentWorkspace({ devMode = false }: { devMode?: boolean }) {
                       "Pokaż raport i wizualizacje",
                     ]
                   : activeAgent === "dodaj-pomysl"
-                    ? ["Pokaż Social Canvas i formularz"]
+                    ? ["Pokaż szkic i formularz"]
                     : activeAgent === "testuj-innowacje"
                       ? ["Pokaż plan pilotażu"]
-                      : ["Pokaż plan wdrożenia i wizualizacje"]
+                      : ["Pokaż innowację i plan usługi"]
               ).map((text) => (
                 <button
                   key={text}
@@ -290,18 +302,17 @@ export function AgentWorkspace({ devMode = false }: { devMode?: boolean }) {
             </div>
           </aside>
         )}
-        {Object.values(sessions).every(
-          (entry) => entry.messages.length === 0,
-        ) && <AgentContact />}
         {session.messages.length === 0 ? (
-          <AgentWelcome
-            key={activeAgent}
-            agentId={activeAgent}
-            onPick={(text) => {
-              void submit(text);
-              inputRef.current?.focus();
-            }}
-          />
+          !chatDisabled && (
+            <AgentWelcome
+              key={activeAgent}
+              agentId={activeAgent}
+              onPick={(text) => {
+                void submit(text);
+                inputRef.current?.focus();
+              }}
+            />
+          )
         ) : (
           <div className="flex flex-col gap-7 py-7">
             {session.messages.map((message) => {
@@ -377,36 +388,64 @@ export function AgentWorkspace({ devMode = false }: { devMode?: boolean }) {
             )}
           </div>
         )}
+        {canFillManually && (
+          <div
+            className={
+              session.messages.length === 0
+                ? "-mt-4 flex justify-center pb-8"
+                : "flex justify-end"
+            }
+          >
+            <button
+              type="button"
+              onClick={() =>
+                update(activeAgent, (current) => ({
+                  ...current,
+                  submission: {
+                    requestId: lastReply?.requestId ?? null,
+                    status: "open",
+                    manual: true,
+                  },
+                }))
+              }
+              className="rounded-lg border border-outline-variant bg-white px-3 py-2 text-sm"
+            >
+              Wypełnij ręcznie
+            </button>
+          </div>
+        )}
         {(["dodaj-pomysl", "testuj-innowacje"] as const).map((id) => {
           const entry = sessions[id];
           const submission = entry.submission;
           const reply = entry.replies.find(
             (reply) => reply.requestId === submission?.requestId,
           );
-          const identity = identities.current.get(id);
+          const identity = identities.current.get(id) ?? null;
           if (
             !submission ||
             submission.status === "cancelled" ||
-            !reply?.artifact ||
-            !identity ||
+            (submission.requestId &&
+              (!reply ||
+                !identity ||
+                entry.revealing.includes(reply.message.id))) ||
+            (!submission.manual && !reply?.artifact) ||
             entry.pending ||
-            entry.error ||
-            entry.revealing.includes(reply.message.id)
+            entry.error
           )
             return null;
           return (
             <div key={id} hidden={activeAgent !== id}>
               <AgentSubmissionForm
-                key={reply.requestId}
+                key={`${submission.requestId}-${submission.manual ? "manual" : "draft"}`}
                 source={id}
-                requestId={reply.requestId}
-                artifact={reply.artifact}
-                identity={identity}
+                requestId={submission.requestId}
+                artifact={manualDraft(id, reply?.artifact)}
+                identity={submission.requestId ? identity : null}
                 onCancel={() => {
                   update(id, (current) => ({
                     ...current,
                     submission: {
-                      requestId: reply.requestId,
+                      requestId: submission.requestId,
                       status: "cancelled",
                     },
                   }));
@@ -416,7 +455,7 @@ export function AgentWorkspace({ devMode = false }: { devMode?: boolean }) {
                   update(id, (current) => ({
                     ...current,
                     submission: {
-                      requestId: reply.requestId,
+                      requestId: submission.requestId,
                       status: "submitted",
                     },
                   }))

@@ -1,11 +1,56 @@
-import { artifactSchema } from "@/agents/types";
+import { submissionTemplates } from "@/agents/submission-template";
+import { type AgentArtifact, artifactSchema } from "@/agents/types";
 import { ChatConflict } from "@/domain/chat/types";
 import type { SubmissionInput } from "@/domain/submissions/input";
 
+type AgentSubmission = Exclude<SubmissionInput, { source: "contact" }>;
+
+// A form filled in before any reply has no conversation and uses the template.
 export async function verifyAgentSubmission(
   db: D1Database,
-  input: Exclude<SubmissionInput, { source: "contact" }>,
+  input: AgentSubmission,
 ) {
+  const draft =
+    input.conversationId && input.capability && input.requestId
+      ? await latestDraft(db, {
+          source: input.source,
+          conversationId: input.conversationId,
+          capability: input.capability,
+          requestId: input.requestId,
+        })
+      : null;
+  // The form lists every template field plus fields the assistant added, and
+  // each of them must be filled in.
+  const template = submissionTemplates[input.source];
+  const allowed = new Set([
+    ...template.labels,
+    ...(draft?.fields.map((field) => field.label) ?? []),
+  ]);
+  const fields = input.artifact.fields;
+  const labels = fields.map((field) => field.label);
+  if (
+    input.artifact.title !== (draft?.title ?? template.title) ||
+    new Set(labels).size !== labels.length ||
+    labels.some((label) => !allowed.has(label)) ||
+    fields.some((field) => !field.value.trim()) ||
+    template.labels.some((label) => !labels.includes(label))
+  )
+    throw new ChatConflict(
+      409,
+      "Szkic nie odpowiada zapisanej wersji. Przejrzyj najnowszą odpowiedź.",
+    );
+  return { ...draft, title: input.artifact.title, fields };
+}
+
+async function latestDraft(
+  db: D1Database,
+  input: {
+    source: AgentSubmission["source"];
+    conversationId: string;
+    capability: string;
+    requestId: string;
+  },
+): Promise<AgentArtifact | null> {
   const bytes = await crypto.subtle.digest(
     "SHA-256",
     new TextEncoder().encode(input.capability),
@@ -44,18 +89,13 @@ export async function verifyAgentSubmission(
       409,
       "Szkic zmienił się. Przejrzyj najnowszą odpowiedź i wyślij ponownie.",
     );
-  const result = artifactSchema.safeParse(JSON.parse(latest.answer).artifact);
-  if (
-    !result.success ||
-    result.data.title !== input.artifact.title ||
-    result.data.fields.length !== input.artifact.fields.length ||
-    result.data.fields.some(
-      (field, index) => field.label !== input.artifact.fields[index]?.label,
-    )
-  )
+  const draft = artifactSchema
+    .nullish()
+    .safeParse(JSON.parse(latest.answer).artifact);
+  if (!draft.success)
     throw new ChatConflict(
       409,
       "Szkic nie odpowiada zapisanej wersji. Przejrzyj najnowszą odpowiedź.",
     );
-  return { ...result.data, fields: input.artifact.fields };
+  return draft.data ?? null;
 }

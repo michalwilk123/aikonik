@@ -35,12 +35,26 @@ test("DEV previews stream every agent's UI, persist without model calls and subm
         assert.notEqual(event.type, "error");
       }
       assert.ok(answer);
-      assert.ok(textEvents > 0);
+      assert.ok(textEvents > 0, `${agentId} must stream preview text`);
       assert.ok(answer.message.length <= 600);
       if (agentId === "odkrywaj") {
         assert.ok(answer.videos?.length);
         assert.equal(answer.artifact, null);
-      } else if (agentId === "wiedza" || agentId === "wdrazanie-innowacji") {
+      } else if (agentId === "wdrazanie-innowacji") {
+        assert.ok(answer.videos?.length);
+        assert.ok(
+          answer.sources?.every((source) =>
+            source.id.startsWith("innovation:"),
+          ),
+        );
+        assert.ok(answer.artifact?.title.includes("BaWita"));
+        assert.ok(
+          answer.artifact?.fields.some(
+            (field) => field.label === "Co zachować i co dostosować",
+          ),
+        );
+        assert.equal(answer.visualizations, undefined);
+      } else if (agentId === "wiedza") {
         assert.deepEqual(
           answer.visualizations?.map((chart) => chart.kind),
           ["map", "bar"],

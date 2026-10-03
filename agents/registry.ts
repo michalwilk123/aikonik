@@ -68,12 +68,12 @@ export const agents = {
     step: "05",
     title: "Sprawdzone rozwiązanie. Nowe miejsce.",
     description:
-      "Middleman Innowacji pomoże dopasować rozwiązanie do Twojej instytucji: odbiorców, zasobów, partnerów i sposobu świadczenia usługi.",
+      "Wybierz innowację z biblioteki ROPS i przygotuj plan usługi dla swojej instytucji. Asystent wykorzysta dokumentację projektu, dopasuje działania do odbiorców i zasobów oraz wskaże kolejne kroki.",
     placeholder: "Jaką innowację chcesz wdrożyć w swojej instytucji?",
     examples: [
-      "Chcemy uruchomić pomoc sąsiedzką w naszym CUS.",
-      "Jak dostosować warsztaty cyfrowe do małej gminy?",
-      "Pomóż określić zasoby i partnerów potrzebnych do wdrożenia.",
+      "Nasz CUS szuka innowacji wspierającej samotnych seniorów. Mamy koordynatorkę i dwóch wolontariuszy.",
+      "Chcemy wdrożyć BaWitę w placówce dziennej opieki. Jak ją włączyć do zajęć?",
+      "Przygotuj plan wdrożenia Senior CUDER w bibliotece: działania, zasoby, koszty do ustalenia i pierwszy pilotaż.",
     ],
   },
 } satisfies Record<

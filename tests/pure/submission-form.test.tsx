@@ -3,6 +3,7 @@ import { test } from "node:test";
 import { renderToStaticMarkup } from "react-dom/server";
 import { AgentComposer } from "@/agents/composer";
 import { AgentSubmissionForm } from "@/agents/submission-form";
+import { manualDraft } from "@/agents/submission-template";
 import { getAgentConfiguration } from "@/infrastructure/chat/agent-config";
 
 for (const source of ["dodaj-pomysl", "testuj-innowacje"] as const) {
@@ -66,3 +67,21 @@ for (const source of ["dodaj-pomysl", "testuj-innowacje"] as const) {
     }
   });
 }
+
+test("the manual form lists every field and keeps values from the draft", () => {
+  const draft = manualDraft("testuj-innowacje", {
+    title: "Plan testu innowacji",
+    fields: [
+      { label: "Uczestnicy", value: "10 seniorów" },
+      { label: "Dodatkowe", value: "Uwagi" },
+    ],
+  });
+  assert.equal(draft.fields.length, 8);
+  assert.deepEqual(draft.fields[2], {
+    label: "Uczestnicy",
+    value: "10 seniorów",
+  });
+  assert.equal(draft.fields[0]?.value, "");
+  assert.deepEqual(draft.fields.at(-1), { label: "Dodatkowe", value: "Uwagi" });
+  assert.equal(manualDraft("dodaj-pomysl", null).title, "Mój pomysł");
+});

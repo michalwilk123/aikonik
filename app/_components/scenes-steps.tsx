@@ -110,3 +110,46 @@ export function StepContactScene({ className, title }: Props) {
     </Svg>
   );
 }
+
+/** A sealed letter and a ringing phone, for the contact page. */
+export function ContactPageScene({ className, title }: Props) {
+  return (
+    <Svg className={className} title={title}>
+      <g className="ss-bob">
+        <g transform="rotate(8 136 96)">
+          <Poly p="108,36 164,36 164,156 108,156" f={C.red} />
+          <Poly p="136,36 164,36 164,156 136,156" f={C.redShade} />
+          <Poly p="116,50 156,50 156,134 116,134" f={C.cream} />
+          <Poly p="136,50 156,50 156,134 136,134" f={C.beige} />
+          <rect x="122" y="62" width="28" height="7" rx="3.5" fill={C.navy} />
+          <rect x="122" y="76" width="20" height="7" rx="3.5" fill={C.red} />
+          <circle cx="136" cy="145" r="5" fill={C.gold} />
+        </g>
+        <path
+          d="M172 30 A20 20 0 0 1 184 50"
+          fill="none"
+          stroke={C.gold}
+          strokeWidth="5"
+          strokeLinecap="round"
+        />
+        <path
+          d="M170 16 A34 34 0 0 1 196 46"
+          fill="none"
+          stroke={C.goldShade}
+          strokeWidth="5"
+          strokeLinecap="round"
+        />
+      </g>
+      <g className="ss-pop">
+        <g transform="rotate(-10 70 128)">
+          <Poly p="18,94 122,94 122,162 18,162" f={C.cream} />
+          <Poly p="70,94 122,94 122,162 18,162" f={C.beige} />
+          <Poly p="18,94 122,94 70,134" f={C.redShade} />
+          <Poly p="18,94 70,94 70,134" f={C.red} />
+          <circle cx="70" cy="134" r="12" fill={C.gold} />
+          <circle cx="67" cy="131" r="5" fill={C.goldLight} />
+        </g>
+      </g>
+    </Svg>
+  );
+}

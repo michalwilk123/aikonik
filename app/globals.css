@@ -167,19 +167,30 @@
 }
 
 /* Agent switcher: one pill glides between tabs and fades to the new colour. */
+.agent-track {
+  scrollbar-width: none;
+  transition: background-color 500ms ease;
+}
+.agent-track::-webkit-scrollbar {
+  display: none;
+}
+/* Track radius = thumb radius + track padding, so the corners stay concentric. */
 .agent-pill {
   position: absolute;
-  inset-block: 0;
+  top: 0;
   left: 0;
-  border-radius: 0.375rem;
+  border-radius: var(--radius-md);
+  background-color: #ffffff;
   pointer-events: none;
 }
 .agent-pill[data-ready] {
   transition:
-    transform 560ms var(--ease-spring),
-    width 560ms var(--ease-spring),
-    background-color 500ms ease,
+    transform 420ms var(--ease-out-expo),
+    width 420ms var(--ease-out-expo),
     box-shadow 500ms ease;
+}
+.agent-tab:not([aria-pressed="true"]):hover {
+  background-color: rgb(255 255 255 / 0.45);
 }
 @keyframes agent-swap {
   from {

@@ -1,31 +1,34 @@
 import type { AgentConfiguration } from "@/agents/configuration";
 import { agentOutputSchema } from "@/agents/types";
-import { sources } from "@/agents/wdrazanie-innowacji/knowledge";
 import { systemPrompt } from "@/agents/wdrazanie-innowacji/prompt";
-import { preserveAgentHistory } from "@/application/chat/context";
+import { projectAgentHistory } from "@/application/chat/context";
+import { MATCHING_INSTRUCTIONS } from "@/infrastructure/chat/agent-instructions";
+import { innovationTools } from "@/infrastructure/chat/agent-tools";
 import {
-  OBSERVATORY_INSTRUCTIONS,
-  REPORT_INSTRUCTIONS,
-} from "@/infrastructure/chat/agent-instructions";
-import {
-  makeReportTool,
-  observatoryTools,
-} from "@/infrastructure/chat/agent-tools";
+  getInnovationVideos,
+  resolveInnovationSources,
+} from "@/infrastructure/innovations/source";
 
 export const configuration = {
-  prompt: [systemPrompt, REPORT_INSTRUCTIONS, OBSERVATORY_INSTRUCTIONS].join(
-    "\n",
-  ),
-  sources,
+  prompt: [systemPrompt, MATCHING_INSTRUCTIONS].join("\n"),
+  sources: [],
   outputSchema: agentOutputSchema,
   supportsArtifacts: true,
-  prepareHistory: preserveAgentHistory,
+  prepareHistory: (history) =>
+    projectAgentHistory(
+      history,
+      ["visualizations"],
+      (id) =>
+        id.startsWith("innovation:") || id.startsWith("social-challenges:"),
+    ),
+  resolveHistorySources: resolveInnovationSources,
+  getVideos: getInnovationVideos,
   createTools(context) {
-    const charts = observatoryTools(context);
+    const tools = innovationTools(context);
     return {
-      read_report: makeReportTool(),
-      show_map: charts.show_map,
-      show_bar_chart: charts.show_bar_chart,
+      search_innovations: tools.search_innovations,
+      read_innovation: tools.read_innovation,
+      read_social_challenges: tools.read_social_challenges,
     };
   },
 } satisfies AgentConfiguration;

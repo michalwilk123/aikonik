@@ -7,30 +7,39 @@ import { artifactSchema } from "@/agents/types";
 const zones: Record<string, string> = {
   Problem: "problem",
   Odbiorcy: "people",
-  "Aktorzy zmiany": "people",
+  "Kto pomoże, a kto przeszkodzi": "people",
   Rozwiązanie: "solution",
   "Struktura kosztów": "money",
-  "Płatnicy i decydenci": "money",
+  "Kto zapłaci i kto zdecyduje": "money",
   "Źródła dochodów": "money",
   "Propozycja wartości": "value",
-  "Kanały dotarcia": "reach",
-  "Konstelacja partnerów": "reach",
-  Wpływ: "impact",
+  "Jak dotrzeć do odbiorców": "reach",
+  Partnerzy: "reach",
+  Cel: "impact",
+};
+
+// Labels renamed to plainer Polish; older submissions still use the originals.
+const renamedLabels: Record<string, string> = {
+  "Płatnicy i decydenci": "Kto zapłaci i kto zdecyduje",
+  "Aktorzy zmiany": "Kto pomoże, a kto przeszkodzi",
+  "Kanały dotarcia": "Jak dotrzeć do odbiorców",
+  "Konstelacja partnerów": "Partnerzy",
+  Wpływ: "Cel",
 };
 
 // Position on the 4-column board, in reading order of the printed canvas.
 const boardOrder = [
   "Problem",
-  "Aktorzy zmiany",
+  "Kto pomoże, a kto przeszkodzi",
   "Rozwiązanie",
   "Struktura kosztów",
   "Odbiorcy",
-  "Płatnicy i decydenci",
+  "Kto zapłaci i kto zdecyduje",
   "Źródła dochodów",
   "Propozycja wartości",
-  "Kanały dotarcia",
-  "Konstelacja partnerów",
-  "Wpływ",
+  "Jak dotrzeć do odbiorców",
+  "Partnerzy",
+  "Cel",
 ];
 
 export function SubmissionPreview({ data }: UIFieldServerProps) {
@@ -46,7 +55,13 @@ export function SubmissionPreview({ data }: UIFieldServerProps) {
       </section>
     );
   }
-  const artifact = parsed.data;
+  const artifact = {
+    ...parsed.data,
+    fields: parsed.data.fields.map((field) => ({
+      ...field,
+      label: renamedLabels[field.label] ?? field.label,
+    })),
+  };
   if (data.source !== "dodaj-pomysl") {
     return (
       <section className="staff-canvas" aria-label="Zgłoszenie do testowania">
@@ -69,7 +84,7 @@ export function SubmissionPreview({ data }: UIFieldServerProps) {
   const filled = canvasSteps.filter((step) => answerFor(step.label)).length;
   const description = answerFor("Opis pomysłu");
   return (
-    <section className="staff-canvas" aria-label="Social Canvas pomysłu">
+    <section className="staff-canvas" aria-label="Szkic pomysłu">
       <header className="staff-canvas-head">
         <h2>{artifact.title}</h2>
         {description && <p className="staff-canvas-lede">{description}</p>}
