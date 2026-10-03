@@ -292,9 +292,6 @@ test("scrolling up is respected while more text is revealed", async ({
     .poll(() => page.evaluate(() => window.scrollY))
     .toBeGreaterThan(320);
   await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
-  await expect(
-    page.getByRole("button", { name: "Najnowsza wiadomość" }),
-  ).toBeVisible();
   const scroll = await page.evaluate(() => window.scrollY);
   const text = page.locator(".chat-text");
   const revealed = (await text.textContent())?.length ?? 0;

@@ -1,6 +1,5 @@
 "use client";
 
-import { ArrowDown } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AgentComposer } from "@/agents/composer";
 import { agents, defaultAgentId } from "@/agents/registry";
@@ -335,22 +334,6 @@ export function AgentWorkspace() {
           </div>
         )}
       </div>
-      {!follow && session.messages.length > 0 && (
-        <button
-          type="button"
-          onClick={() => {
-            setFollow(true);
-            endRef.current?.scrollIntoView({
-              behavior: "smooth",
-              block: "end",
-            });
-          }}
-          className="fixed right-6 bottom-48 z-20 flex min-h-11 items-center gap-2 rounded-full border border-outline-variant bg-white px-4 text-sm shadow-dock"
-        >
-          <ArrowDown className="size-4" aria-hidden="true" />
-          Najnowsza wiadomość
-        </button>
-      )}
       <AgentComposer
         agentId={activeAgent}
         value={session.draft}
