@@ -19,6 +19,7 @@
       }
     ],
     "paths": {
+      "@payload-config": ["./payload.config.ts"],
       "@/*": ["./*"]
     },
     "types": ["node", "@cloudflare/workers-types"]

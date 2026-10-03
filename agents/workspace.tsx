@@ -7,6 +7,7 @@ import { AgentPanel as CanvasPanel } from "@/agents/dodaj-pomysl/components";
 import { AgentPanel as DiscoveryPanel } from "@/agents/odkrywaj/components";
 import { agents, defaultAgentId } from "@/agents/registry";
 import { StreamedMessage } from "@/agents/streamed-message";
+import { AgentSubmissionForm } from "@/agents/submission-form";
 import { AgentPanel as TestingPanel } from "@/agents/testuj-innowacje/components";
 import { AgentTopBar } from "@/agents/top-bar";
 import {
@@ -60,6 +61,7 @@ export function AgentWorkspace() {
   const endRef = useRef<HTMLDivElement>(null);
   const session = sessions[activeAgent];
   const agent = agents[activeAgent];
+  const submissionIdentity = identities.current.get(activeAgent);
   const Panel = panels[activeAgent];
   const artifactReply = session.replies.findLast(
     (reply) => reply.artifact !== null,
@@ -325,17 +327,35 @@ export function AgentWorkspace() {
                 );
                 if (message.role === "assistant")
                   return (
-                    <StreamedMessage
-                      key={message.id}
-                      message={message}
-                      reply={reply}
-                      pending={
-                        session.pending &&
-                        session.messages.at(-1)?.id === message.id
-                      }
-                      animate={session.revealing.includes(message.id)}
-                      onRevealed={onRevealed}
-                    />
+                    <div key={message.id} className="flex flex-col gap-4">
+                      <StreamedMessage
+                        message={message}
+                        reply={reply}
+                        pending={
+                          session.pending &&
+                          session.messages.at(-1)?.id === message.id
+                        }
+                        animate={session.revealing.includes(message.id)}
+                        onRevealed={onRevealed}
+                      />
+                      {reply?.artifact &&
+                        reply.artifact.fields.length > 0 &&
+                        !session.pending &&
+                        !session.error &&
+                        !session.revealing.includes(message.id) &&
+                        session.messages.at(-1)?.id === message.id &&
+                        (activeAgent === "dodaj-pomysl" ||
+                          activeAgent === "testuj-innowacje") &&
+                        submissionIdentity && (
+                          <AgentSubmissionForm
+                            key={reply.requestId}
+                            source={activeAgent}
+                            requestId={reply.requestId}
+                            artifact={reply.artifact}
+                            identity={submissionIdentity}
+                          />
+                        )}
+                    </div>
                   );
                 return (
                   <article

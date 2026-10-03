@@ -1,0 +1,250 @@
+import assert from "node:assert/strict";
+import { after, before, test } from "node:test";
+import type { ChatAgent } from "@/application/chat/runtime";
+import { startTurn } from "@/application/chat/runtime";
+import { ChatConflict } from "@/domain/chat/types";
+import { submissionInputSchema } from "@/domain/submissions/input";
+import { insertSubmission } from "@/infrastructure/cms/submissions";
+import { verifyAgentSubmission } from "@/infrastructure/submissions/agent";
+import { testDatabase } from "@/tests/helpers/d1";
+
+let fixture: Awaited<ReturnType<typeof testDatabase>>;
+before(async () => {
+  fixture = await testDatabase();
+});
+after(async () => {
+  await fixture?.dispose();
+});
+const artifact = {
+  title: "Mój Social Canvas",
+  fields: [{ label: "Odbiorcy", value: "Seniorzy" }],
+};
+const agent: ChatAgent = async function* () {
+  yield {
+    type: "answer",
+    answer: {
+      message: "Gotowy szkic",
+      areaLabel: "Małopolska",
+      offers: [],
+      artifact,
+    },
+  };
+};
+async function conversation(
+  source: "dodaj-pomysl" | "testuj-innowacje" = "dodaj-pomysl",
+) {
+  const identity = {
+    conversationId: crypto.randomUUID(),
+    capability: crypto.randomUUID(),
+  };
+  const requestId = crypto.randomUUID();
+  const events = await startTurn(
+    fixture.store,
+    agent,
+    { ...identity, requestId, agentId: source, text: "Pomoc seniorom" },
+    {},
+    new AbortController().signal,
+  );
+  for await (const _ of events) {
+    /* Persist the complete answer. */
+  }
+  return {
+    id: crypto.randomUUID(),
+    source,
+    ...identity,
+    requestId,
+    name: "Anna",
+    email: "anna@example.pl",
+    consent: true as const,
+    artifact,
+  };
+}
+
+test("submissions require explicit consent and validated contact information", () => {
+  const contact = {
+    id: crypto.randomUUID(),
+    source: "contact",
+    name: "Anna",
+    email: "anna@example.pl",
+    subject: "Inny temat",
+    message: "Dzień dobry",
+    consent: true,
+  };
+  assert.equal(submissionInputSchema.safeParse(contact).success, true);
+  assert.equal(
+    submissionInputSchema.safeParse({ ...contact, consent: false }).success,
+    false,
+  );
+  assert.equal(
+    submissionInputSchema.safeParse({ ...contact, email: "not-an-email" })
+      .success,
+    false,
+  );
+  assert.equal(
+    submissionInputSchema.safeParse({ ...contact, message: " " }).success,
+    false,
+  );
+  assert.equal(
+    submissionInputSchema.safeParse({ ...contact, subject: "arbitrary topic" })
+      .success,
+    false,
+  );
+});
+
+test("only the conversation owner can submit the exact persisted agent draft", async () => {
+  const input = await conversation();
+  assert.deepEqual(
+    await verifyAgentSubmission(fixture.db as unknown as D1Database, input),
+    artifact,
+  );
+  await assert.rejects(
+    verifyAgentSubmission(fixture.db as unknown as D1Database, {
+      ...input,
+      capability: crypto.randomUUID(),
+    }),
+    (error) => error instanceof ChatConflict && error.status === 403,
+  );
+  await assert.rejects(
+    verifyAgentSubmission(fixture.db as unknown as D1Database, {
+      ...input,
+      source: "testuj-innowacje",
+    }),
+    (error) => error instanceof ChatConflict && error.status === 403,
+  );
+  await assert.rejects(
+    verifyAgentSubmission(fixture.db as unknown as D1Database, {
+      ...input,
+      artifact: { ...artifact, title: "Changed title" },
+    }),
+    (error) => error instanceof ChatConflict && error.status === 409,
+  );
+});
+
+test("newer or running turns invalidate an earlier displayed draft", async () => {
+  const input = await conversation();
+  await fixture.store.accept(
+    {
+      conversationId: input.conversationId,
+      capability: input.capability,
+      requestId: crypto.randomUUID(),
+      agentId: input.source,
+      text: "Popraw szkic",
+    },
+    {},
+  );
+  await assert.rejects(
+    verifyAgentSubmission(fixture.db as unknown as D1Database, input),
+    (error) => error instanceof ChatConflict && error.status === 409,
+  );
+});
+
+test("immutable submission retries produce one receipt and reject altered payloads", async () => {
+  const input = await conversation();
+  const saved = {
+    id: input.id,
+    source: input.source,
+    name: input.name,
+    email: input.email,
+    subject: artifact.title,
+    artifact,
+    conversationId: input.conversationId,
+    sourceTurnId: input.requestId,
+  };
+  const db = fixture.db as unknown as D1Database;
+  const results = await Promise.all([
+    insertSubmission(db, saved),
+    insertSubmission(db, saved),
+  ]);
+  assert.deepEqual(results, [{ id: input.id }, { id: input.id }]);
+  assert.equal(
+    await fixture.db
+      .prepare("SELECT count(*) FROM submissions WHERE source_turn_id = ?")
+      .bind(input.requestId)
+      .first("count(*)"),
+    1,
+  );
+  const row = await fixture.db
+    .prepare("SELECT artifact, details FROM submissions WHERE id = ?")
+    .bind(input.id)
+    .first<{ artifact: string; details: string }>();
+  assert.deepEqual(JSON.parse(row?.artifact ?? "null"), artifact);
+  assert.match(row?.details ?? "", /Odbiorcy\nSeniorzy/);
+  await assert.rejects(
+    insertSubmission(db, { ...saved, name: "Changed name" }),
+    (error) => error instanceof ChatConflict && error.status === 409,
+  );
+  await fixture.store.accept(
+    {
+      conversationId: input.conversationId,
+      capability: input.capability,
+      requestId: crypto.randomUUID(),
+      agentId: input.source,
+      text: "Nowa wersja",
+    },
+    {},
+  );
+  assert.deepEqual(await verifyAgentSubmission(db, input), artifact);
+  assert.deepEqual(await insertSubmission(db, saved), { id: input.id });
+});
+
+test("a new turn between verification and insertion prevents saving a stale draft", async () => {
+  const input = await conversation();
+  const db = fixture.db as unknown as D1Database;
+  await verifyAgentSubmission(db, input);
+  await fixture.store.accept(
+    {
+      conversationId: input.conversationId,
+      capability: input.capability,
+      requestId: crypto.randomUUID(),
+      agentId: input.source,
+      text: "Nowa wersja",
+    },
+    {},
+  );
+  await assert.rejects(
+    insertSubmission(db, {
+      id: input.id,
+      source: input.source,
+      name: input.name,
+      email: input.email,
+      subject: artifact.title,
+      artifact,
+      conversationId: input.conversationId,
+      sourceTurnId: input.requestId,
+    }),
+    (error) => error instanceof ChatConflict && error.status === 409,
+  );
+  assert.equal(
+    await fixture.db
+      .prepare("SELECT count(*) FROM submissions WHERE id = ?")
+      .bind(input.id)
+      .first("count(*)"),
+    0,
+  );
+});
+
+test("Testuj innowacje submissions use the same owned immutable snapshot flow", async () => {
+  const input = await conversation("testuj-innowacje");
+  const db = fixture.db as unknown as D1Database;
+  assert.deepEqual(await verifyAgentSubmission(db, input), artifact);
+  assert.deepEqual(
+    await insertSubmission(db, {
+      id: input.id,
+      source: input.source,
+      name: input.name,
+      email: input.email,
+      subject: artifact.title,
+      artifact,
+      conversationId: input.conversationId,
+      sourceTurnId: input.requestId,
+    }),
+    { id: input.id },
+  );
+  assert.equal(
+    await fixture.db
+      .prepare("SELECT source FROM submissions WHERE id = ?")
+      .bind(input.id)
+      .first("source"),
+    "testuj-innowacje",
+  );
+});

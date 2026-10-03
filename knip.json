@@ -1,10 +1,14 @@
 {
   "$schema": "https://unpkg.com/knip@6/schema.json",
   "entry": [
+    "payload.config.ts",
+    "infrastructure/cms/drizzle-kit-runtime.ts",
     "open-next.config.ts",
     "scripts/*.ts",
     "db/client.ts",
     "components/ui/*.tsx"
   ],
-  "ignoreDependencies": []
+  "ignoreDependencies": [],
+  "ignore": ["payload-types.ts"],
+  "payload": false
 }

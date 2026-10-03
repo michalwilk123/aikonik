@@ -43,9 +43,15 @@ export function ContactForm() {
   const [errors, setErrors] = useState<Errors>({});
   const [consent, setConsent] = useState(false);
   const [sent, setSent] = useState(false);
+  const [pending, setPending] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const submissionId = useRef<string | null>(null);
 
-  function onSubmit(ev: FormEvent<HTMLFormElement>) {
+  async function onSubmit(ev: FormEvent<HTMLFormElement>) {
     ev.preventDefault();
+    if (pending) return;
+    setSubmitError(null);
+    setSent(false);
     const data = new FormData(ev.currentTarget);
     const values = {
       name: String(data.get("name") ?? ""),
@@ -65,26 +71,59 @@ export function ContactForm() {
       el?.focus();
       return;
     }
-    // Prototype: nothing is sent anywhere.
-    setSent(true);
-    setConsent(false);
-    formRef.current?.reset();
+    setPending(true);
+    submissionId.current ??= crypto.randomUUID();
+    try {
+      const response = await fetch("/api/submissions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...values,
+          id: submissionId.current,
+          source: "contact",
+          consent,
+        }),
+      });
+      const result = (await response.json()) as { id?: string; error?: string };
+      if (!response.ok || !result.id)
+        throw new Error(result.error ?? "Nie udało się wysłać wiadomości.");
+      setSent(true);
+      setConsent(false);
+      formRef.current?.reset();
+      submissionId.current = null;
+    } catch (error) {
+      setSubmitError(
+        error instanceof Error
+          ? error.message
+          : "Nie udało się wysłać wiadomości. Spróbuj ponownie.",
+      );
+    } finally {
+      setPending(false);
+    }
   }
 
   return (
     <div className="flex flex-col gap-4">
       <div role="status">
         {sent && (
-          <p className="rounded-xl border border-secondary bg-secondary-container p-4 font-medium text-on-surface">
-            Dziękujemy. To jest prototyp, więc wiadomość nie została wysłana.
-            Prawdziwa wiadomość trafi do ROPS Kraków.
+          <p className="rounded-2xl border border-gold bg-secondary-container p-4 font-medium text-on-surface">
+            Dziękujemy. Wiadomość została zapisana i jest dostępna dla
+            pracowników ROPS Kraków.
           </p>
         )}
       </div>
+      {submitError && (
+        <p role="alert" className="text-sm font-medium text-error">
+          {submitError}
+        </p>
+      )}
       <form
         ref={formRef}
         noValidate
         onSubmit={onSubmit}
+        onChange={() => {
+          if (!pending) submissionId.current = null;
+        }}
         className="flex flex-col gap-5"
       >
         <p className="text-sm text-on-surface-variant">
@@ -132,7 +171,7 @@ export function ContactForm() {
             aria-required="true"
             aria-invalid={errors.subject ? true : undefined}
             aria-describedby={errors.subject ? "subject-error" : undefined}
-            className="h-11 w-full rounded-lg border border-input bg-white px-3 text-base outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 aria-invalid:border-destructive"
+            className="h-11 w-full rounded-xl border border-input bg-white px-3 text-base outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 aria-invalid:border-destructive"
           >
             <option value="" disabled>
               Wybierz temat
@@ -186,10 +225,11 @@ export function ContactForm() {
 
         <Button
           type="submit"
-          className="h-11 self-start bg-secondary px-6 text-base font-semibold text-on-secondary hover:bg-secondary/90"
+          disabled={pending}
+          className="h-11 self-start px-6 text-base"
         >
           <Send className="size-4" aria-hidden="true" />
-          Wyślij wiadomość
+          {pending ? "Wysyłanie…" : "Wyślij wiadomość"}
         </Button>
       </form>
     </div>
