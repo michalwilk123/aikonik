@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { ObservatoryVisualizationCard } from "@/agents/observatory-visualization";
 import { agents } from "@/agents/registry";
 import type { AgentMessage, AgentReply } from "@/agents/types";
 import { useSmoothText } from "@/app/_hooks/use-smooth-text";
@@ -63,7 +64,20 @@ export function StreamedMessage({
           Asystent przygotowuje odpowiedź…
         </div>
       ) : null}
-      {reply?.artifact && !revealing && (
+      {reply?.visualizations &&
+        !revealing &&
+        (message.agentId === "odkrywaj" ||
+          message.agentId === "wdrazanie-innowacji") && (
+          <div className="mt-4 space-y-4">
+            {reply.visualizations.map((visualization) => (
+              <ObservatoryVisualizationCard
+                key={`${visualization.kind}-${visualization.indicatorId}-${visualization.year}`}
+                visualization={visualization}
+              />
+            ))}
+          </div>
+        )}
+      {reply?.artifact && !revealing && message.agentId !== "dodaj-pomysl" && (
         <section
           className="mt-4 rounded-2xl border border-outline-variant bg-white p-5"
           aria-label="Roboczy szkic"

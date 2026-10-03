@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { observatoryVisualizationSchema } from "@/domain/observatory";
 
 export const agentIdSchema = z.enum([
   "odkrywaj",
@@ -81,6 +82,7 @@ export const agentReplySchema = z.object({
   message: agentMessageSchema,
   sources: z.array(sourceSchema),
   artifact: artifactSchema.nullable(),
+  visualizations: z.array(observatoryVisualizationSchema).max(4).optional(),
   model: z.string(),
 });
 export type AgentReply = z.infer<typeof agentReplySchema>;

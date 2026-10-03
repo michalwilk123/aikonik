@@ -246,7 +246,7 @@ Functional tests must assert effects through real module interfaces. A mock retu
 
 Use AI SDK v7 `MockLanguageModelV4` for compatible model contract tests, inspecting actual model requests rather than replacing the whole agent runtime. [AI SDK testing](https://ai-sdk.dev/docs/ai-sdk-core/testing). Run D1-specific tests in a Workers-compatible environment with real migrations; current Cloudflare docs recommend their Vitest integration. [Workers tests](https://developers.cloudflare.com/workers/testing/vitest-integration/).
 
-Proposed scripts for the implementation phase: `test`, `test:integration`, `test:e2e`, `eval:openrouter`. Deterministic tests plus existing lint/type checks gate changes. Live evaluation remains opt-in, with no paid calls in ordinary CI.
+Proposed scripts for the implementation phase: `test`, `test:integration`, `eval:openrouter`. Deterministic tests plus existing lint/type checks gate changes. Live evaluation remains opt-in, with no paid calls in ordinary CI.
 
 Synthetic live evaluations run the same orchestration and tool adapters against a fixture corpus and disposable database. Load `OPENROUTER_API_KEY` only for explicit local evaluations; ordinary CI runs pure tests with fixture transport. Use the shared fixed Gemini model ID. Never commit the key or send real stored conversations in evaluations. A synthetic live request validated the new adapter separately from CI.
 

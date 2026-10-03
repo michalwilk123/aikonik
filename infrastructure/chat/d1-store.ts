@@ -159,6 +159,18 @@ export function makeD1ChatStore(db: D1Database): ChatStore {
                 ? { sourceIds: value.sources.map((source) => source.id) }
                 : {}),
               ...(value.artifact ? { artifact: value.artifact } : {}),
+              ...(value.visualizations?.length
+                ? {
+                    visualizations: value.visualizations.map(
+                      ({ indicatorId, kind, year, title }) => ({
+                        indicatorId,
+                        kind,
+                        year,
+                        title,
+                      }),
+                    ),
+                  }
+                : {}),
             }),
           };
         },

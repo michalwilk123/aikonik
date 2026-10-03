@@ -31,7 +31,6 @@ const authSecret =
   secret || "local-development-only-payload-secret-change-on-production";
 const baseURL =
   process.env.SITE_URL ||
-  process.env.PLAYWRIGHT_BASE_URL ||
   (isProductionRuntime
     ? cloudflare.env.SITE_URL
     : `http://localhost:${process.env.PORT || "3000"}`);
@@ -54,11 +53,18 @@ export default buildConfig({
     meta: { titleSuffix: " · AIkonik", icons: { icon: "/icon.svg" } },
     theme: "light",
     components: {
+      Nav: "@/infrastructure/cms/staff-dashboard#StaffNav",
       graphics: {
         Logo: "@/infrastructure/cms/branding#StaffLogo",
         Icon: "@/infrastructure/cms/branding#StaffIcon",
       },
       beforeNavLinks: ["@/infrastructure/cms/branding#StaffLogo"],
+      afterNavLinks: ["@/infrastructure/cms/staff-dashboard#StaffInboxLinks"],
+      views: {
+        dashboard: {
+          Component: "@/infrastructure/cms/staff-dashboard#StaffDashboard",
+        },
+      },
     },
     autoLogin: false,
   },

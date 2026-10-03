@@ -134,12 +134,21 @@ export interface UserAuthOperations {
   };
 }
 /**
- * Wiadomości z kontaktu, zgłoszone pomysły i deklaracje testowania innowacji. Wybierz zgłoszenie, aby przeczytać jego treść.
+ * Kontakt, pomysły mieszkańców i zgłoszenia do testowania. Filtruj według rodzaju, statusu i osoby prowadzącej.
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "submissions".
  */
 export interface Submission {
+  status: 'new' | 'in-progress' | 'waiting' | 'completed' | 'rejected';
+  /**
+   * Wybierz pracownika zajmującego się sprawą.
+   */
+  assignedTo?: (number | null) | User;
+  /**
+   * Ustalenia zespołu. Niewidoczne dla zgłaszającego.
+   */
+  internalNotes?: string | null;
   id: string;
   submittedAt: string;
   source: 'contact' | 'dodaj-pomysl' | 'testuj-innowacje';
@@ -418,6 +427,9 @@ export interface PayloadMigration {
  * via the `definition` "submissions_select".
  */
 export interface SubmissionsSelect<T extends boolean = true> {
+  status?: T;
+  assignedTo?: T;
+  internalNotes?: T;
   id?: T;
   submittedAt?: T;
   source?: T;

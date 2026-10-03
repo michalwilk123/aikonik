@@ -12,9 +12,7 @@ type Props = { current: (typeof links)[number]["href"] };
 export function SiteHeader({ current }: Props) {
   return (
     <header className="fixed inset-x-0 top-0 z-30 h-16 border-b border-outline-variant bg-background/90 backdrop-blur">
-      <div
-        className={`mx-auto flex h-full ${current === "/asystent" ? "max-w-3xl" : "max-w-5xl"} items-center justify-between gap-4 px-4 sm:px-6`}
-      >
+      <div className="mx-auto flex h-full max-w-5xl items-center justify-between gap-4 px-4 sm:px-6">
         <Link
           href="/"
           className="flex min-h-11 items-center gap-3 rounded-full"

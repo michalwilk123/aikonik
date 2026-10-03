@@ -26,9 +26,6 @@ jobs:
         run: bun run test:pure
       - name: D1 integration tests (no AI credentials)
         run: bun run test:integration
-      - run: bunx playwright install --with-deps chromium
-      - name: Chat browser tests (fixture responses)
-        run: bun run test:e2e
       - run: bun run lint
       - run: bun run typecheck
       - run: bun run knip

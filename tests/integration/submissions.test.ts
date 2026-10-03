@@ -164,11 +164,22 @@ test("immutable submission retries produce one receipt and reject altered payloa
     1,
   );
   const row = await fixture.db
-    .prepare("SELECT artifact, details FROM submissions WHERE id = ?")
+    .prepare(
+      "SELECT artifact, details, status, assigned_to_id, internal_notes FROM submissions WHERE id = ?",
+    )
     .bind(input.id)
-    .first<{ artifact: string; details: string }>();
+    .first<{
+      artifact: string;
+      details: string;
+      status: string;
+      assigned_to_id: number | null;
+      internal_notes: string | null;
+    }>();
   assert.deepEqual(JSON.parse(row?.artifact ?? "null"), artifact);
   assert.match(row?.details ?? "", /Odbiorcy\nSeniorzy/);
+  assert.equal(row?.status, "new");
+  assert.equal(row?.assigned_to_id, null);
+  assert.equal(row?.internal_notes, null);
   await assert.rejects(
     insertSubmission(db, { ...saved, name: "Changed name" }),
     (error) => error instanceof ChatConflict && error.status === 409,

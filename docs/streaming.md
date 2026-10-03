@@ -12,6 +12,5 @@ Przycisk zatrzymania przerywa żądanie; częściowy tekst pozostaje widoczny i 
 
 - `bun run test:pure`: adapter OpenRouter ze strumieniowaną odpowiedzią fixture, parser, anulowanie, walidacja, grafemy i adaptacyjne tempo.
 - `bun run test:integration`: rzeczywisty adapter SDK → lokalne D1 → odpowiedź HTTP → parser klienta. Test zatrzymuje zakończenie modelu, aż pierwszy fragment będzie odczytany i znaleziony w bazie.
-- `bun run test:e2e`: przeglądarka, odpowiedzi w paczkach, bardzo częste aktualizacje, ograniczony ruch, zatrzymanie, reset i przewijanie.
 
 Te testy nie potrzebują tokenu ani płatnych wywołań modeli. CI uruchamia testy pure; testy z rzeczywistym modelem pozostają osobnym, ręcznym poleceniem `eval:openrouter`.

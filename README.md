@@ -39,8 +39,7 @@ D1-backed conversation history. Accepted user and assistant messages, partial
 responses, model timings/usage/errors, tool calls and browser metadata are
 persisted without copying the transcript on each request.
 
-Run `bun run test` for deterministic pure and actual D1 tests, then
-`bunx playwright install chromium` and `bun run test:e2e` for browser checks.
+Run `bun run test` for deterministic pure and actual D1 tests.
 CI and deployment run these suites without AI credentials.
 
 Live model evaluations are separate: supply `OPENROUTER_API_KEY` in your
@@ -57,8 +56,13 @@ using the separate submission form; the model cannot send them itself.
 ## Staff panel
 
 Payload supplies the staff UI; Better Auth supplies email/password login.
-`/cms` opens the Polish submissions inbox. The `cms` role can only read contact,
-idea and innovation-testing submissions. `/admin` gives administrators access to
+`/cms` opens the staff dashboard with three inboxes: contact, residents’ ideas
+and innovation testing. Staff can set a case status, assign any staff member and
+save internal notes. Visitor contact data and submitted content remain read-only.
+Ideas display the Social Canvas as twelve sections, including unanswered areas.
+The dashboard shows new-case counts, recent submissions and a link to the
+current user’s open cases. The `cms` role can read the staff directory for
+assignment; account administration and technical chat data remain restricted. `/admin` gives administrators access to
 submissions, staff accounts and all stored chat records. Public visitors do not
 need accounts. Registration and email password recovery are disabled.
 

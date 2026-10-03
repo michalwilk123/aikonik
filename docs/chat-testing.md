@@ -6,26 +6,27 @@ buffered Server Action is retired. Each agent has a separate in-memory opaque
 conversation capability. Switching agents preserves its conversation; reloading
 creates a new conversation. Existing transcripts remain in D1.
 
+Assistants „Odkrywaj” and „Wdrażanie innowacji” can call `show_map` and
+`show_bar_chart` to display interactive visualizations directly in their replies.
+For example: „Jak wygląda dzietność w woj. małopolskim?” selects indicator 135
+and a bar chart comparing Małopolska with Poland. This indicator has no county
+map. Indicators with county data support interactive maps using the original
+Obserwator boundaries. Data is fetched from the source for the requested year;
+omitting the year selects the latest available. The other two assistants have
+no visualization tools. Source failures never produce invented chart values.
+
 ## Run deterministic checks
 
 ```sh
 bun install
 bun run db:migrate:local
 bun run test           # pure adapter tests + actual local D1 integration
-bunx playwright install chromium
-bun run test:e2e       # real browser, synthetic responses; no model credentials
 bun run lint
 bun run typecheck
 bun run knip
 ```
 
-If another agent already has Next dev running, reuse it without stopping it:
-
-```sh
-PLAYWRIGHT_BASE_URL=http://localhost:3200 bun run test:e2e
-```
-
-CI and deployment gates run pure, D1 and browser tests. They never invoke live
+CI and deployment gates run pure and D1 tests. They never invoke live
 models. D1 integration uses Miniflare/workerd and the actual migrations, batch
 admission, persistence adapter and runtime, rather than an in-memory SQL mock.
 The fixture database is isolated from `.wrangler` and disposed after the tests.
@@ -35,10 +36,11 @@ The fixture database is isolated from `.wrangler` and disposed after the tests.
 | History and prompt construction | Real outgoing OpenRouter request: one instruction message, previous user/assistant turns, new message once, whole-turn budgets, no browser data or credentials |
 | Streaming | Real provider adapter with an open SSE fixture: readable text arrives before provider completion; structured JSON stays private |
 | Report tool | Actual tool invocation, topic validation, approved facts/pages, matched call/result ID, instructions on continuation, final answer after repeated tool calls |
+| Observatory tools | Live-source parsing, isolated cookies, requested years, map/bar tool calls, assistant restrictions, persisted charts and replay |
 | Canonical persistence | Two message rows per turn, one conversation across turns, writes before publication, atomic admission/finalization, prompt version saved once |
 | Retry/concurrency | Existing request replay never invokes a model, changed payload rejected, one running turn across concurrent D1 admissions |
 | Failures | Schema/provider failures, missing completion, partial response preservation, cancellation, stale-turn recovery, no fabricated fallback |
-| UI | Burst reveal, acceleration/draining, reduced motion, mobile layout and multiline input, stop, prepared messages, inline artifacts, aligned header/chat/composer, scroll-up preservation |
+| Text reveal | Burst reveal, acceleration/draining, reduced motion and grapheme boundaries |
 | Agent behavior | Four distinct prompts, source ID allowlist, isolated conversations and artifacts |
 
 ## Opt-in live evaluation

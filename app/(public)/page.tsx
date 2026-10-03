@@ -152,7 +152,7 @@ export default function HomePage() {
               style={{ "--d": "250ms" } as CSSProperties}
             >
               <HeroArt
-                className="h-auto w-full"
+                className="mx-auto h-auto w-full max-w-sm"
                 title="Schemat: trzy potrzeby mieszkańców, na przykład opieka dla mamy, trafiają do AiKonika, który wskazuje pasujące rozwiązania w małopolskich miejscowościach."
               />
             </div>

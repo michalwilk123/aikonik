@@ -25,7 +25,7 @@ export function AgentComposer({
   const agent = agents[agentId];
   return (
     <div className="pointer-events-none fixed inset-x-0 bottom-0 z-20">
-      <div className="pointer-events-auto mx-auto w-full max-w-3xl bg-linear-to-t from-white via-white/90 to-transparent px-4 pt-10 pb-5 sm:px-8">
+      <div className="pointer-events-auto mx-auto w-full max-w-5xl bg-linear-to-t from-white via-white/90 to-transparent px-4 pt-10 pb-5 sm:px-8">
         <form
           onSubmit={(event) => {
             event.preventDefault();

@@ -1,11 +1,12 @@
 import { betterAuthStrategy } from "@delmaredigital/payload-better-auth";
-import type { CollectionConfig } from "payload";
+import type { CollectionConfig, Field } from "payload";
 import { adminField, isAdmin, isStaff } from "@/infrastructure/cms/access";
 import {
   deleteStaffCredentials,
   prepareStaffPassword,
   saveStaffPassword,
 } from "@/infrastructure/cms/user-hooks";
+import { submissionStatuses } from "@/infrastructure/cms/workflow";
 
 export const users: CollectionConfig = {
   slug: "users",
@@ -23,9 +24,7 @@ export const users: CollectionConfig = {
     admin: ({ req }) =>
       Boolean(req.user && ["cms", "admin"].includes(req.user.role)),
     create: isAdmin,
-    read: ({ req }) =>
-      req.user?.role === "admin" ||
-      (req.user ? { id: { equals: req.user.id } } : false),
+    read: isStaff,
     update: isAdmin,
     delete: isAdmin,
   },
@@ -64,7 +63,7 @@ export const users: CollectionConfig = {
       saveToJWT: true,
       access: { create: adminField, update: adminField },
       options: [
-        { label: "Odczyt zgłoszeń", value: "cms" },
+        { label: "Obsługa zgłoszeń", value: "cms" },
         { label: "Administrator", value: "admin" },
       ],
     },
@@ -78,70 +77,146 @@ export const submissions: CollectionConfig = {
   lockDocuments: false,
   disableDuplicate: true,
   defaultSort: "-submittedAt",
-  access: { create: isAdmin, read: isStaff, update: isAdmin, delete: isAdmin },
+  access: { create: isAdmin, read: isStaff, update: isStaff, delete: isAdmin },
   admin: {
     useAsTitle: "subject",
-    defaultColumns: ["submittedAt", "source", "subject", "name", "email"],
+    defaultColumns: [
+      "subject",
+      "source",
+      "status",
+      "assignedTo",
+      "name",
+      "submittedAt",
+    ],
     description:
-      "Wiadomości z kontaktu, zgłoszone pomysły i deklaracje testowania innowacji. Wybierz zgłoszenie, aby przeczytać jego treść.",
+      "Kontakt, pomysły mieszkańców i zgłoszenia do testowania. Filtruj według rodzaju, statusu i osoby prowadzącej.",
     pagination: { defaultLimit: 25, limits: [25, 50, 100] },
   },
   fields: [
     {
-      name: "id",
-      type: "text",
-      defaultValue: () => crypto.randomUUID(),
-      required: true,
-      admin: { hidden: true },
-    },
-    {
-      name: "submittedAt",
-      label: "Data zgłoszenia",
-      type: "date",
-      required: true,
-      defaultValue: () => new Date().toISOString(),
-      admin: { date: { displayFormat: "dd.MM.yyyy HH:mm" } },
-    },
-    {
-      name: "source",
-      label: "Rodzaj zgłoszenia",
+      name: "status",
+      label: "Status sprawy",
       type: "select",
       required: true,
-      options: [
-        { label: "Kontakt", value: "contact" },
-        { label: "Dodaj pomysł", value: "dodaj-pomysl" },
-        { label: "Testuj innowacje", value: "testuj-innowacje" },
-      ],
-    },
-    { name: "subject", label: "Temat", type: "text", required: true },
-    { name: "name", label: "Imię i nazwisko", type: "text", required: true },
-    { name: "email", label: "Adres e-mail", type: "email", required: true },
-    { name: "message", label: "Wiadomość", type: "textarea" },
-    { name: "details", label: "Treść zgłoszenia", type: "textarea" },
-    {
-      name: "artifact",
-      type: "json",
-      admin: { hidden: true },
-      access: { read: adminField },
+      defaultValue: "new",
+      options: submissionStatuses,
+      admin: { position: "sidebar" },
     },
     {
-      name: "conversationId",
-      type: "text",
-      admin: { hidden: true },
-      access: { read: adminField },
+      name: "assignedTo",
+      label: "Osoba prowadząca",
+      type: "relationship",
+      relationTo: "users",
+      filterOptions: { role: { in: ["cms", "admin"] } },
+      admin: {
+        position: "sidebar",
+        description: "Wybierz pracownika zajmującego się sprawą.",
+      },
     },
     {
-      name: "sourceTurnId",
-      type: "text",
-      unique: true,
-      admin: { hidden: true },
-      access: { read: adminField },
+      name: "internalNotes",
+      label: "Notatki wewnętrzne",
+      type: "textarea",
+      admin: {
+        position: "sidebar",
+        description: "Ustalenia zespołu. Niewidoczne dla zgłaszającego.",
+      },
     },
     {
-      name: "fingerprint",
-      type: "text",
-      admin: { hidden: true },
-      access: { read: adminField },
+      name: "submissionPreview",
+      type: "ui",
+      admin: {
+        components: {
+          Field: "@/infrastructure/cms/submission-preview#SubmissionPreview",
+        },
+      },
     },
+    ...(
+      [
+        {
+          name: "id",
+          type: "text",
+          defaultValue: () => crypto.randomUUID(),
+          required: true,
+          admin: { hidden: true },
+        },
+        {
+          name: "submittedAt",
+          label: "Data zgłoszenia",
+          type: "date",
+          required: true,
+          defaultValue: () => new Date().toISOString(),
+          admin: { date: { displayFormat: "dd.MM.yyyy HH:mm" } },
+        },
+        {
+          name: "source",
+          label: "Rodzaj zgłoszenia",
+          type: "select",
+          required: true,
+          options: [
+            { label: "Zgłoszenia kontaktowe", value: "contact" },
+            { label: "Pomysły mieszkańców", value: "dodaj-pomysl" },
+            { label: "Zgłoszenia do testowania", value: "testuj-innowacje" },
+          ],
+        },
+        { name: "subject", label: "Temat", type: "text", required: true },
+        {
+          name: "name",
+          label: "Imię i nazwisko",
+          type: "text",
+          required: true,
+        },
+        { name: "email", label: "Adres e-mail", type: "email", required: true },
+        {
+          name: "message",
+          label: "Wiadomość",
+          type: "textarea",
+          admin: { condition: (data) => data.source === "contact" },
+        },
+        {
+          name: "details",
+          label: "Treść zgłoszenia",
+          type: "textarea",
+          admin: { hidden: true },
+        },
+        {
+          name: "artifact",
+          type: "json",
+          admin: { hidden: true },
+          access: {
+            read: ({ req }) =>
+              Boolean(req.user && ["cms", "admin"].includes(req.user.role)),
+          },
+        },
+        {
+          name: "conversationId",
+          type: "text",
+          admin: { hidden: true },
+          access: { read: adminField },
+        },
+        {
+          name: "sourceTurnId",
+          type: "text",
+          unique: true,
+          admin: { hidden: true },
+          access: { read: adminField },
+        },
+        {
+          name: "fingerprint",
+          type: "text",
+          admin: { hidden: true },
+          access: { read: adminField },
+        },
+      ] satisfies Field[]
+    ).map(
+      (field): Field => ({
+        ...field,
+        access: {
+          ...("access" in field ? field.access : {}),
+          update: adminField,
+        },
+        admin: { ...field.admin, readOnly: true },
+      }),
+    ),
   ],
 };

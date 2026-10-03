@@ -33,6 +33,20 @@ const emptySession = (): Session => ({
   revealing: [],
 });
 
+const MIN_QUESTIONS = 2;
+
+// The form appears only after the assistant asked at least MIN_QUESTIONS
+// questions and its latest reply no longer ends with a question.
+function isInterviewDone(
+  messages: { role: string; content: string }[],
+  latest: string,
+) {
+  const asked = messages.filter(
+    (entry) => entry.role === "assistant" && entry.content.includes("?"),
+  ).length;
+  return asked >= MIN_QUESTIONS && !latest.includes("?");
+}
+
 export function AgentWorkspace() {
   const [activeAgent, setActiveAgent] = useState<AgentId>(defaultAgentId);
   const [sessions, setSessions] = useState<Record<AgentId, Session>>({
@@ -186,6 +200,7 @@ export function AgentWorkspace() {
             message: { ...assistant, content: event.answer.message },
             sources: event.answer.sources ?? [],
             artifact: event.answer.artifact ?? null,
+            visualizations: event.answer.visualizations ?? [],
             model: MODEL_ID,
           });
           update(agentId, (current) => ({
@@ -230,7 +245,7 @@ export function AgentWorkspace() {
           setFollow(true);
         }}
       />
-      <div className="mx-auto w-full max-w-3xl flex-1 bg-white px-4 pb-64 shadow-soft sm:border-x sm:border-outline-variant sm:px-8">
+      <div className="mx-auto w-full max-w-5xl flex-1 bg-white px-4 pb-64 shadow-soft sm:border-x sm:border-outline-variant sm:px-8">
         {session.messages.length === 0 ? (
           <AgentWelcome
             key={activeAgent}
@@ -265,8 +280,8 @@ export function AgentWorkspace() {
                       !session.error &&
                       !session.revealing.includes(message.id) &&
                       session.messages.at(-1)?.id === message.id &&
-                      (activeAgent === "dodaj-pomysl" ||
-                        activeAgent === "testuj-innowacje") &&
+                      isInterviewDone(session.messages, message.content) &&
+                      activeAgent === "dodaj-pomysl" &&
                       submissionIdentity && (
                         <AgentSubmissionForm
                           key={reply.requestId}

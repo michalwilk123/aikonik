@@ -50,6 +50,4 @@ next-env.d.ts
 *.build-hidden
 
 # chat verification artifacts
-/test-results/
-/playwright-report/
 /evals/results/

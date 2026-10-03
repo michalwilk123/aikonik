@@ -1,12 +1,6 @@
 "use client";
 
-import {
-  Check,
-  Compass,
-  FlaskConical,
-  Lightbulb,
-  Workflow,
-} from "lucide-react";
+import { Compass, FlaskConical, Lightbulb, Workflow } from "lucide-react";
 import { useLayoutEffect, useRef, useState } from "react";
 import { agentIds, agents } from "@/agents/registry";
 import type { AgentId } from "@/agents/types";
@@ -64,9 +58,9 @@ export function AgentTopBar({
   return (
     <nav
       aria-label="Wybierz agenta"
-      className="sticky top-16 z-20 border-b border-outline-variant bg-background/95 py-3 backdrop-blur px-4 sm:px-6"
+      className="sticky top-16 z-20 border-b border-outline-variant bg-background/95 py-1.5 backdrop-blur px-4 sm:px-6"
     >
-      <div className="relative mx-auto grid max-w-[calc(48rem-2rem)] grid-cols-2 gap-1 overflow-clip sm:max-w-[calc(48rem-3rem)] sm:grid-cols-4">
+      <div className="relative mx-auto grid max-w-5xl grid-cols-2 gap-1 overflow-clip sm:grid-cols-4">
         <span
           aria-hidden="true"
           className="agent-pill"
@@ -95,7 +89,7 @@ export function AgentTopBar({
               type="button"
               onClick={() => onSwitch(id)}
               aria-pressed={isActive}
-              className="relative z-10 flex min-h-11 min-w-0 items-center justify-center gap-2 rounded-full px-3 py-2 text-sm font-medium transition-colors duration-500 hover:text-foreground"
+              className="relative z-10 flex min-h-9 min-w-0 items-center justify-center gap-2 rounded-full px-3 py-1 text-sm leading-tight font-medium transition-colors duration-500 hover:text-foreground"
               style={{ color: isActive ? agent.color : "#5B6075" }}
             >
               <Icon
@@ -104,11 +98,6 @@ export function AgentTopBar({
                 aria-hidden="true"
               />
               <span className="min-w-0 break-words">{agent.label}</span>
-              <Check
-                className="agent-check size-3.5 shrink-0"
-                data-on={isActive || undefined}
-                aria-hidden="true"
-              />
             </button>
           );
         })}

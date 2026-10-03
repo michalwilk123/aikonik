@@ -1,4 +1,10 @@
-import { isStepCount, type LanguageModel, Output, streamText } from "ai";
+import {
+  isStepCount,
+  type LanguageModel,
+  Output,
+  streamText,
+  type ToolSet,
+} from "ai";
 import type { z } from "zod";
 import { resolveSources } from "@/agents/context";
 import {
@@ -9,8 +15,13 @@ import {
 import { compileHistory } from "@/application/chat/context";
 import type { AgentEvent, ChatAgent } from "@/application/chat/runtime";
 import type { ChatAnswer } from "@/domain/chat/types";
+import type { ObservatoryVisualization } from "@/domain/observatory";
 import { type SupportOffer, supportAnswerSchema } from "@/domain/support-offer";
 import { getAgentConfiguration } from "@/infrastructure/chat/agent-config";
+import {
+  makeObservatoryTools,
+  supportsObservatory,
+} from "@/infrastructure/chat/observatory-tool";
 import { makeReportTool } from "@/infrastructure/chat/report-tool";
 
 export function makeChatAgent(
@@ -33,6 +44,24 @@ export function makeChatAgent(
     type ModelEvent = Extract<AgentEvent, { type: "model" }>;
     const calls: ModelEvent[] = [];
     const toolEvents: Extract<AgentEvent, { type: "tool" }>[] = [];
+    const visualizations: ObservatoryVisualization[] = [];
+    const tools: ToolSet = { read_report: makeReportTool() };
+    if (supportsObservatory(agentId))
+      Object.assign(
+        tools,
+        makeObservatoryTools((visualization) => {
+          if (
+            visualizations.length < 4 &&
+            !visualizations.some(
+              (existing) =>
+                existing.kind === visualization.kind &&
+                existing.indicatorId === visualization.indicatorId &&
+                existing.year === visualization.year,
+            )
+          )
+            visualizations.push(visualization);
+        }),
+      );
     let streamError: unknown;
     // Aborts the provider call when the consumer closes this iterator early.
     const local = new AbortController();
@@ -40,7 +69,7 @@ export function makeChatAgent(
       model,
       instructions: config.instructions,
       messages: compileHistory(history),
-      tools: { read_report: makeReportTool() },
+      tools,
       stopWhen: isStepCount(3),
       // Reserve the final step for an answer; tool-only steps have no object
       // output and would otherwise exhaust the limit with an empty response.
@@ -138,6 +167,7 @@ export function makeChatAgent(
           message: generated.message,
           areaLabel: generated.areaLabel ?? "Małopolska",
           offers: generated.offers ?? [],
+          ...(visualizations.length ? { visualizations } : {}),
           ...(agentId
             ? {
                 sources: resolveSources(

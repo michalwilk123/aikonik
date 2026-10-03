@@ -205,6 +205,13 @@ test("all four streaming agents keep their role, resolve allowed sources and res
       new AbortController().signal,
     ))
       events.push(event);
+    const tools = request.tools as { function: { name: string } }[];
+    assert.deepEqual(
+      tools.map((entry) => entry.function.name),
+      id === "odkrywaj" || id === "wdrazanie-innowacji"
+        ? ["read_report", "show_map", "show_bar_chart"]
+        : ["read_report"],
+    );
     const messages = request.messages as { role: string; content: string }[];
     assert.equal(
       messages.filter((message) => message.role === "system").length,
