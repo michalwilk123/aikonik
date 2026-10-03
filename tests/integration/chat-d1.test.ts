@@ -360,6 +360,33 @@ test("D1 enforces agent ownership and preserves drafts without copying sources i
   }
 });
 
+test("D1 isolates matching and knowledge histories and preserves their agent IDs", async () => {
+  const { db, store } = await freshDatabase();
+  const matching = { ...input(), agentId: "odkrywaj" as const };
+  await drain(await startTurn(store, agent, matching, {}, signal()));
+  await assert.rejects(
+    store.accept(
+      { ...matching, agentId: "wiedza", requestId: crypto.randomUUID() },
+      {},
+    ),
+    (error) => error instanceof ChatConflict && error.status === 409,
+  );
+  const knowledge = { ...input(), agentId: "wiedza" as const };
+  await drain(await startTurn(store, agent, knowledge, {}, signal()));
+  const next = await store.accept(
+    { ...knowledge, requestId: crypto.randomUUID(), text: "Porównaj powiaty" },
+    {},
+  );
+  assert.equal(next.history.length, 3);
+  const ids = await db
+    .prepare("SELECT agent_id FROM conversations ORDER BY agent_id")
+    .all();
+  assert.deepEqual(
+    ids.results.map((row) => row.agent_id),
+    ["odkrywaj", "wiedza"],
+  );
+});
+
 test("D1 preserves bounded innovation evidence and catalog videos for follow-up questions", async () => {
   const { store } = await freshDatabase();
   const first = { ...input(), agentId: "odkrywaj" as const };

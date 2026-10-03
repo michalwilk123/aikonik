@@ -6,12 +6,11 @@ import { ContactForm } from "@/app/(public)/kontakt/contact-form";
 
 export const metadata: Metadata = {
   title: "Kontakt",
-  description:
-    "Dane kontaktowe ROPS Kraków, formularz kontaktowy i deklaracja dostępności.",
+  description: "Formularz kontaktowy i dane kontaktowe ROPS Kraków.",
 };
 
 const link =
-  "inline-flex min-h-11 items-center font-medium text-primary underline underline-offset-4 outline-none focus-visible:ring-3 focus-visible:ring-ring/50 rounded-full";
+  "inline-flex min-h-11 items-center font-medium text-primary underline underline-offset-4 outline-none focus-visible:ring-3 focus-visible:ring-ring/50 rounded-md";
 
 function Illustration() {
   return (
@@ -77,6 +76,16 @@ export default function KontaktPage() {
           <Illustration />
         </header>
 
+        <section aria-labelledby="formularz" className="flex flex-col gap-4">
+          <h2
+            id="formularz"
+            className="scroll-mt-24 text-2xl font-extrabold text-foreground"
+          >
+            Napisz do nas
+          </h2>
+          <ContactForm />
+        </section>
+
         <section
           aria-labelledby="dane"
           className="rounded-3xl bg-surface-container p-5 sm:p-6"
@@ -138,52 +147,6 @@ export default function KontaktPage() {
           </address>
         </section>
 
-        <section aria-labelledby="formularz" className="flex flex-col gap-4">
-          <h2
-            id="formularz"
-            className="text-2xl font-extrabold text-foreground"
-          >
-            Napisz do nas
-          </h2>
-          <ContactForm />
-        </section>
-
-        <section
-          aria-labelledby="naglo"
-          className="rounded-3xl border-2 border-primary bg-white p-5 sm:p-6"
-        >
-          <h2
-            id="naglo"
-            className="mb-3 text-2xl font-extrabold text-foreground"
-          >
-            W nagłych sytuacjach
-          </h2>
-          <p className="mb-4 leading-6 text-on-surface">
-            Ten formularz nie służy do pilnej pomocy. Jeśli ktoś jest w
-            niebezpieczeństwie, zadzwoń od razu.
-          </p>
-          <ul className="flex flex-col gap-3 text-base leading-6 text-on-surface">
-            <li>
-              <a href="tel:112" className={link}>
-                112
-              </a>{" "}
-              – numer alarmowy. Policja, straż pożarna, pogotowie.
-            </li>
-            <li>
-              <a href="tel:116123" className={link}>
-                116 123
-              </a>{" "}
-              – kryzysowy telefon zaufania dla dorosłych.
-            </li>
-            <li>
-              <a href="tel:116111" className={link}>
-                116 111
-              </a>{" "}
-              – telefon zaufania dla dzieci i młodzieży.
-            </li>
-          </ul>
-        </section>
-
         <section
           id="dostepnosc"
           aria-labelledby="dostepnosc-h"
@@ -193,29 +156,8 @@ export default function KontaktPage() {
             id="dostepnosc-h"
             className="text-2xl font-extrabold text-foreground"
           >
-            Deklaracja dostępności
-          </h2>
-          <p>
-            To jest prototyp. Nie jest jeszcze gotową stroną ROPS Kraków.
-            Chcemy, żeby każdy mógł z niej korzystać. Naszym celem jest zgodność
-            ze standardem WCAG 2.1 na poziomie AA.
-          </p>
-          <h3 className="mt-2 text-lg font-extrabold text-foreground">
-            Co już zrobiliśmy
-          </h3>
-          <ul className="list-disc space-y-1 pl-6">
-            <li>Całą stronę obsłużysz klawiaturą.</li>
-            <li>Strona jest opisana dla czytników ekranu.</li>
-            <li>Kolory mają wysoki kontrast.</li>
-            <li>Piszemy prostym językiem.</li>
-          </ul>
-          <p>
-            Prototyp nie został jeszcze w pełni sprawdzony przez ekspertów. Mogą
-            w nim być błędy.
-          </p>
-          <h3 className="mt-2 text-lg font-extrabold text-foreground">
             Znalazłeś barierę?
-          </h3>
+          </h2>
           <p>
             Napisz do nas na{" "}
             <a href="mailto:rops@rops.krakow.pl" className={link}>

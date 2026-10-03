@@ -1,4 +1,4 @@
-# hubmi
+# Aikonik
 
 Next.js 16 (React Compiler, Tailwind v4, shadcn) on Cloudflare Workers via
 OpenNext, with Cloudflare D1 + Drizzle ORM. Lint/format with Biome, dead code
@@ -97,6 +97,10 @@ Edit `db/schema.ts`, run `bun run db:generate`, commit `drizzle/`, then
 `db:migrate:local` / `db:migrate:remote` (CI applies remote on deploy).
 
 ## Deploy
+
+Repository: https://github.com/michalwilk123/aikonik. Production runs on the
+`aikonik` Worker at https://aikonik.michalwilk139.workers.dev. Its D1 binding
+continues to use the existing `hubmi` database, preserving stored data.
 
 Pushes to `main` run `.github/workflows/deploy.yml` (checks, build, D1
 migrations, deploy). Required GitHub secrets: `CLOUDFLARE_API_TOKEN`,

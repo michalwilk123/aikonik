@@ -78,16 +78,17 @@ export function RevealText({
   step = 45,
 }: {
   text: string;
-  by?: "word" | "letter";
+  by?: "word" | "letter" | "line";
   delay?: number;
   step?: number;
 }) {
   const joiner = by === "word" ? " " : "";
+  const parts = by === "line" ? [text] : text.split(joiner);
   return (
     <>
       <span className="sr-only">{text}</span>
       <span aria-hidden="true">
-        {text.split(joiner).map((word, i) => (
+        {parts.map((word, i) => (
           // biome-ignore lint/suspicious/noArrayIndexKey: static text, order never changes
           <Fragment key={i}>
             <span

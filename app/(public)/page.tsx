@@ -2,23 +2,32 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import type { CSSProperties } from "react";
+import { agents } from "@/agents/registry";
+import type { AgentId } from "@/agents/types";
 import { HeroArt } from "@/app/_components/hero-art";
-import {
-  LinkedCirclesIllustration,
-  ParentChildIllustration,
-  SeniorIllustration,
-  SpeechBubblesIllustration,
-  StepContactIllustration,
-  StepSearchIllustration,
-  StepWriteIllustration,
-  TownHallIllustration,
-  VolunteerIllustration,
-} from "@/app/_components/illustrations";
 import {
   RevealOnScroll,
   RevealText,
   ScrollProgress,
 } from "@/app/_components/motion";
+import {
+  MunicipalityScene,
+  NgoScene,
+  ResidentsScene,
+  SeniorsScene,
+} from "@/app/_components/scenes-audiences";
+import {
+  DataScene,
+  IdeaScene,
+  RolloutScene,
+  SupportScene,
+  TestScene,
+} from "@/app/_components/scenes-features";
+import {
+  StepContactScene,
+  StepSearchScene,
+  StepWriteScene,
+} from "@/app/_components/scenes-steps";
 import { SiteFooter } from "@/app/_components/site-footer";
 import { SiteHeader } from "@/app/_components/site-header";
 import { Button } from "@/components/ui/button";
@@ -27,64 +36,71 @@ export const metadata: Metadata = { title: "O aplikacji" };
 
 const steps = [
   {
-    Icon: StepWriteIllustration,
+    Icon: StepWriteScene,
     title: "Opisz swój problem",
     text: "Napisz własnymi słowami, czego potrzebujesz. Nie musisz znać żadnych nazw ani przepisów.",
   },
   {
-    Icon: StepSearchIllustration,
+    Icon: StepSearchScene,
     title: "Asystent szuka rozwiązań",
     text: "Asystent sprawdza, jakie wsparcie i sprawdzone pomysły są w Małopolsce i pasują do Twojej sytuacji.",
   },
   {
-    Icon: StepContactIllustration,
+    Icon: StepContactScene,
     title: "Dostajesz propozycje",
     text: "Dostajesz krótką listę pomysłów i informację, gdzie szukać pomocy.",
   },
 ] as const;
 
+// One card per agent in agents/registry.ts; each opens that agent's tab.
 const features = [
   {
-    title: "Znajdź wsparcie",
-    text: "Opisz swoją sytuację, a asystent podpowie, gdzie szukać pomocy.",
-    available: true,
-    href: "/asystent",
-    Art: LinkedCirclesIllustration,
+    agent: "odkrywaj",
+    text: "Opisz swoją sytuację, a asystent dobierze pasujące projekty i podpowie, gdzie szukać pomocy.",
+    Art: SupportScene,
   },
   {
-    title: "Zasobnik wiedzy",
-    text: "Biblioteka innowacji społecznych: opisy sprawdzonych rozwiązań z całej Małopolski.",
-    available: false,
-    Art: TownHallIllustration,
+    agent: "wiedza",
+    text: "Pytaj o dane i ciekawostki o Małopolsce. Asystent pokaże wyniki na wykresach i mapach.",
+    Art: DataScene,
   },
   {
-    title: "Kreator pomysłów",
-    text: "Masz pomysł na pomoc w swojej okolicy? Kreator pomoże Ci go opisać na prostym formularzu (Social Canvas).",
-    available: false,
-    Art: SpeechBubblesIllustration,
+    agent: "dodaj-pomysl",
+    text: "Masz pomysł na pomoc w swojej okolicy? Asystent pomoże go opisać na Canvie Innowacji Społecznej.",
+    Art: IdeaScene,
   },
-] as const;
+  {
+    agent: "testuj-innowacje",
+    text: "Zaplanuj mały pilotaż, sprawdź, co działa, i zbierz opinie uczestników.",
+    Art: TestScene,
+  },
+  {
+    agent: "wdrazanie-innowacji",
+    text: "Dopasuj sprawdzone rozwiązanie do swojej gminy, CUS albo organizacji.",
+    Art: RolloutScene,
+  },
+] as const satisfies readonly { agent: AgentId; text: string; Art: unknown }[];
 
 const audiences = [
   {
     title: "Mieszkańcy",
     text: "Szukasz pomocy dla siebie lub bliskich i nie wiesz, od czego zacząć.",
-    Art: ParentChildIllustration,
+    Art: ResidentsScene,
   },
   {
     title: "Seniorzy i opiekunowie",
     text: "Potrzebujesz wsparcia w codziennych sprawach albo opiekujesz się kimś bliskim.",
-    Art: SeniorIllustration,
+    Art: SeniorsScene,
   },
   {
     title: "Organizacje pozarządowe",
     text: "Chcesz pokazać swoje działania albo znaleźć sprawdzone pomysły do wykorzystania.",
-    Art: VolunteerIllustration,
+    Art: NgoScene,
   },
   {
     title: "Gminy i Centra Usług Społecznych",
     text: "Szukasz gotowych rozwiązań, które możesz wdrożyć u siebie.",
-    Art: TownHallIllustration,
+    Art: MunicipalityScene,
   },
 ] as const;
 
@@ -122,11 +138,20 @@ export default function HomePage() {
                 </span>
               </h1>
               <p className="intro-text mt-4 text-lg leading-relaxed text-on-surface-variant">
-                <RevealText
-                  text="Opisz, z czym masz kłopot. Asystent pomoże Ci znaleźć wsparcie i sprawdzone rozwiązania w Małopolsce."
-                  delay={420}
-                  step={28}
-                />
+                <span className="block">
+                  <RevealText
+                    text="Opisz, z czym masz kłopot."
+                    by="line"
+                    delay={420}
+                  />
+                </span>
+                <span className="block">
+                  <RevealText
+                    text="Asystent pomoże Ci znaleźć wsparcie i sprawdzone rozwiązania w Małopolsce."
+                    by="line"
+                    delay={720}
+                  />
+                </span>
               </p>
               <div
                 className="intro mt-8 flex flex-col gap-3 sm:flex-row sm:items-center"
@@ -141,7 +166,7 @@ export default function HomePage() {
                 </Button>
                 <a
                   href="#jak-to-dziala"
-                  className="inline-flex min-h-12 items-center justify-center rounded-full px-5 text-base font-bold text-primary underline underline-offset-4 hover:bg-primary-container"
+                  className="inline-flex min-h-12 items-center justify-center rounded-md px-5 text-base font-bold text-primary underline underline-offset-4 hover:bg-primary-container"
                 >
                   Jak to działa?
                 </a>
@@ -169,14 +194,19 @@ export default function HomePage() {
               <RevealText text="Co to jest AiKonik?" />
             </h2>
             <p className="mt-4 text-lg leading-relaxed text-on-surface-variant">
-              AiKonik to prototyp Małopolskiego Hubu Innowacji Społecznych.
-              Tworzy go Regionalny Ośrodek Polityki Społecznej w Krakowie.
+              AiKonik to aplikacja przygotowana dla Małopolskiego Hubu Innowacji
+              Społecznych. Ma pięciu asystentów: pomagają dopasować sprawdzone
+              rozwiązania do Twojej sytuacji, znaleźć dane o Małopolsce, opisać
+              własny pomysł, zaplanować jego test i wdrożyć go w instytucji.
             </p>
             <p className="mt-4 text-lg leading-relaxed text-on-surface-variant">
-              W Małopolsce działa już około 200 sprawdzonych pomysłów, które
-              pomagają ludziom w codziennych sprawach. Trudno jest je znaleźć.
-              AiKonik ma to ułatwić: łączy to, czego potrzebują mieszkańcy, z
-              rozwiązaniami, które już działają.
+              Asystenci korzystają z Biblioteki Innowacji Społecznych
+              Regionalnego Ośrodka Polityki Społecznej w Krakowie (115 opisanych
+              rozwiązań), raportów ROPS i danych Obserwatora ROPS.
+            </p>
+            <p className="mt-4 text-lg leading-relaxed text-on-surface-variant">
+              AiKonik wykorzystuje sztuczną inteligencję i najnowsze technologie
+              chmurowe. Działa szybko na każdym urządzeniu.
             </p>
           </div>
         </section>
@@ -217,7 +247,7 @@ export default function HomePage() {
         {/* Features */}
         <section
           aria-labelledby="co-mozesz"
-          className="px-4 py-12 sm:px-6 sm:py-16"
+          className="bg-secondary-container/40 px-4 py-12 sm:px-6 sm:py-16"
         >
           <div className="mx-auto max-w-5xl">
             <h2 id="co-mozesz" className={sectionTitle} data-reveal>
@@ -229,29 +259,23 @@ export default function HomePage() {
             >
               {features.map((f) => (
                 <li
-                  key={f.title}
+                  key={f.agent}
                   className="flex flex-col rounded-3xl bg-surface-container p-6"
                 >
                   <f.Art className="h-24 w-auto self-start" />
                   <h3 className="mt-4 text-xl font-extrabold text-foreground">
-                    {f.title}
+                    {agents[f.agent].label}
                   </h3>
                   <p className="mt-2 flex-1 leading-relaxed text-on-surface-variant">
                     {f.text}
                   </p>
-                  {f.available ? (
-                    <Button
-                      nativeButton={false}
-                      render={<Link href={f.href} />}
-                      className="mt-5 h-12 self-start px-6 text-base"
-                    >
-                      Otwórz asystenta
-                    </Button>
-                  ) : (
-                    <p className="mt-5 inline-flex min-h-8 items-center self-start rounded-full bg-secondary-container px-3 text-sm font-bold text-on-secondary-container">
-                      Wkrótce
-                    </p>
-                  )}
+                  <Button
+                    nativeButton={false}
+                    render={<Link href={`/asystent?agent=${f.agent}`} />}
+                    className="mt-5 h-12 self-start px-6 text-base"
+                  >
+                    Otwórz asystenta
+                  </Button>
                 </li>
               ))}
             </ul>

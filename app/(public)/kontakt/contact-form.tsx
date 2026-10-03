@@ -3,18 +3,17 @@
 import { Send } from "lucide-react";
 import { type FormEvent, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 
-type FieldName = "name" | "email" | "subject" | "message" | "consent";
+type FieldName = "name" | "email" | "subject" | "message";
 type Errors = Partial<Record<FieldName, string>>;
 
-const ORDER: FieldName[] = ["name", "email", "subject", "message", "consent"];
+const ORDER: FieldName[] = ["name", "email", "subject", "message"];
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-function validate(v: Record<FieldName, string>, consent: boolean): Errors {
+function validate(v: Record<FieldName, string>): Errors {
   const e: Errors = {};
   if (!v.name.trim()) e.name = "Wpisz swoje imię.";
   if (!v.email.trim()) e.email = "Wpisz adres e-mail.";
@@ -22,7 +21,6 @@ function validate(v: Record<FieldName, string>, consent: boolean): Errors {
     e.email = "Adres e-mail wygląda na niepełny. Przykład: anna@example.pl";
   if (!v.subject) e.subject = "Wybierz temat wiadomości.";
   if (!v.message.trim()) e.message = "Napisz wiadomość.";
-  if (!consent) e.consent = "Zaznacz zgodę, żeby wysłać wiadomość.";
   return e;
 }
 
@@ -41,7 +39,6 @@ function FieldError({ id, text }: { id: string; text?: string }) {
 export function ContactForm() {
   const formRef = useRef<HTMLFormElement>(null);
   const [errors, setErrors] = useState<Errors>({});
-  const [consent, setConsent] = useState(false);
   const [sent, setSent] = useState(false);
   const [pending, setPending] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -58,15 +55,14 @@ export function ContactForm() {
       email: String(data.get("email") ?? ""),
       subject: String(data.get("subject") ?? ""),
       message: String(data.get("message") ?? ""),
-      consent: "",
     };
-    const found = validate(values, consent);
+    const found = validate(values);
     setErrors(found);
     const first = ORDER.find((k) => found[k]);
     if (first) {
       setSent(false);
       const el = formRef.current?.querySelector<HTMLElement>(
-        first === "consent" ? "#consent" : `[name="${first}"]`,
+        `[name="${first}"]`,
       );
       el?.focus();
       return;
@@ -81,14 +77,12 @@ export function ContactForm() {
           ...values,
           id: submissionId.current,
           source: "contact",
-          consent,
         }),
       });
       const result = (await response.json()) as { id?: string; error?: string };
       if (!response.ok || !result.id)
         throw new Error(result.error ?? "Nie udało się wysłać wiadomości.");
       setSent(true);
-      setConsent(false);
       formRef.current?.reset();
       submissionId.current = null;
     } catch (error) {
@@ -198,29 +192,6 @@ export function ContactForm() {
             className="min-h-32 bg-white px-3 py-2 text-base"
           />
           <FieldError id="message-error" text={errors.message} />
-        </div>
-
-        <div className="flex flex-col gap-2">
-          <div className="flex items-start gap-3">
-            <Checkbox
-              id="consent"
-              checked={consent}
-              onCheckedChange={setConsent}
-              required
-              aria-required="true"
-              aria-invalid={errors.consent ? true : undefined}
-              aria-describedby={errors.consent ? "consent-error" : undefined}
-              className="mt-0.5 size-6 bg-white"
-            />
-            <Label
-              htmlFor="consent"
-              className="items-start text-sm leading-6 font-normal"
-            >
-              Zgadzam się, żeby ROPS Kraków odpowiedział na moją wiadomość.
-              Użyje do tego mojego imienia i adresu e-mail.
-            </Label>
-          </div>
-          <FieldError id="consent-error" text={errors.consent} />
         </div>
 
         <Button

@@ -1,7 +1,7 @@
 import type { AgentSource } from "@/agents/types";
 import { getYouTubeVideoId } from "@/domain/youtube";
 
-export type PdfPage = { page: number; text: string };
+type PdfPage = { page: number; text: string };
 export type Innovation = {
   id: string;
   title: string;
@@ -27,7 +27,7 @@ const synonyms = [
   ["bezrobot", "zatrudn", "prac"],
 ];
 
-export function normalize(text: string) {
+function normalize(text: string) {
   return text
     .toLowerCase()
     .replaceAll("ł", "l")
@@ -124,7 +124,7 @@ function excerpt(text: string, query: string, max = 1800) {
     .slice(0, max);
 }
 
-export function projectSource(project: Innovation, query = ""): AgentSource {
+function projectSource(project: Innovation, query = ""): AgentSource {
   return {
     id: `innovation:${project.id}:page`,
     title: project.title,

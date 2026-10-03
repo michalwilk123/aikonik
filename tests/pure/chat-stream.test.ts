@@ -173,9 +173,10 @@ test("report functionality validates input, limits topics and returns source/pag
   );
 });
 
-test("all four streaming agents keep their role, resolve allowed sources and restrict discovery artifacts", async () => {
+test("all streaming agents keep their role, resolve allowed sources and restrict read-only artifacts", async () => {
   const ids = [
     "odkrywaj",
+    "wiedza",
     "dodaj-pomysl",
     "testuj-innowacje",
     "wdrazanie-innowacji",
@@ -205,21 +206,21 @@ test("all four streaming agents keep their role, resolve allowed sources and res
       new AbortController().signal,
     ))
       events.push(event);
-    const tools = request.tools as { function: { name: string } }[];
+    const tools = (request.tools ?? []) as { function: { name: string } }[];
     assert.deepEqual(
       tools.map((entry) => entry.function.name),
       id === "odkrywaj"
-        ? [
-            "read_report",
-            "search_innovations",
-            "read_innovation",
-            "read_social_challenges",
-            "show_map",
-            "show_bar_chart",
-          ]
-        : id === "wdrazanie-innowacji"
-          ? ["read_report", "show_map", "show_bar_chart"]
-          : ["read_report"],
+        ? ["search_innovations", "read_innovation", "read_social_challenges"]
+        : id === "wiedza"
+          ? [
+              "read_report",
+              "read_social_challenges",
+              "show_map",
+              "show_bar_chart",
+            ]
+          : id === "wdrazanie-innowacji"
+            ? ["read_report", "show_map", "show_bar_chart"]
+            : [],
     );
     const messages = request.messages as { role: string; content: string }[];
     assert.equal(
@@ -240,7 +241,7 @@ test("all four streaming agents keep their role, resolve allowed sources and res
       assert.deepEqual(final.answer.sources, []);
       assert.deepEqual(
         final.answer.artifact,
-        id === "odkrywaj" ? null : artifact,
+        id === "odkrywaj" || id === "wiedza" ? null : artifact,
       );
     }
   }
@@ -328,8 +329,8 @@ test("repeated report calls reserve the last model step for a complete answer", 
     ]);
   });
   const events: AgentEvent[] = [];
-  for await (const event of makeChatAgent(model, "dodaj-pomysl")(
-    [{ id: "q", role: "user", content: "Chce zbudowac karmniki dla ptakow" }],
+  for await (const event of makeChatAgent(model, "wiedza")(
+    [{ id: "q", role: "user", content: "Podaj dane o seniorach" }],
     new AbortController().signal,
   ))
     events.push(event);

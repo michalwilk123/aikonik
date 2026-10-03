@@ -32,6 +32,19 @@ test("rejects history belonging to another agent", () => {
   );
 });
 
+test("matching and knowledge conversations cannot share transcripts", () => {
+  const request = {
+    agentId: "wiedza",
+    requestId: crypto.randomUUID(),
+    messages: [message("user", "Pokaż dane o seniorach", "wiedza")],
+  };
+  assert.equal(agentRequestSchema.safeParse(request).success, true);
+  assert.equal(
+    agentRequestSchema.safeParse({ ...request, agentId: "odkrywaj" }).success,
+    false,
+  );
+});
+
 test("rejects an assistant-only request and excessive context", () => {
   const request = { agentId: "odkrywaj", requestId: crypto.randomUUID() };
   assert.equal(

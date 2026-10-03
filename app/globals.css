@@ -90,7 +90,7 @@
   --chart-3: #1b2340;
   --chart-4: #5b6075;
   --chart-5: #eadfd3;
-  --radius: 0.875rem;
+  --radius: 0.375rem;
   --sidebar: #fbf7f1;
   --sidebar-foreground: #1b2340;
   --sidebar-primary: #c62832;
@@ -171,7 +171,7 @@
   position: absolute;
   inset-block: 0;
   left: 0;
-  border-radius: 9999px;
+  border-radius: 0.375rem;
   pointer-events: none;
 }
 .agent-pill[data-ready] {

@@ -60,7 +60,7 @@ async function conversation(
   };
 }
 
-test("submissions require explicit consent and validated contact information", () => {
+test("contact submissions require validated contact information without a consent field", () => {
   const contact = {
     id: crypto.randomUUID(),
     source: "contact",
@@ -68,13 +68,8 @@ test("submissions require explicit consent and validated contact information", (
     email: "anna@example.pl",
     subject: "Inny temat",
     message: "Dzień dobry",
-    consent: true,
   };
   assert.equal(submissionInputSchema.safeParse(contact).success, true);
-  assert.equal(
-    submissionInputSchema.safeParse({ ...contact, consent: false }).success,
-    false,
-  );
   assert.equal(
     submissionInputSchema.safeParse({ ...contact, email: "not-an-email" })
       .success,
@@ -93,6 +88,11 @@ test("submissions require explicit consent and validated contact information", (
 
 test("only the conversation owner can submit the exact persisted agent draft", async () => {
   const input = await conversation();
+  assert.equal(submissionInputSchema.safeParse(input).success, true);
+  assert.equal(
+    submissionInputSchema.safeParse({ ...input, consent: false }).success,
+    false,
+  );
   assert.deepEqual(
     await verifyAgentSubmission(fixture.db as unknown as D1Database, input),
     artifact,

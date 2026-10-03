@@ -23,7 +23,7 @@ export const innovationReadSchema = z
     question: z.string().trim().min(2).max(500).optional(),
   })
   .strict();
-export const socialChallengesSchema = z
+const socialChallengesSchema = z
   .object({ query: z.string().trim().min(2).max(500) })
   .strict();
 
@@ -47,7 +47,7 @@ export function makeInnovationTools(
     }),
     read_innovation: tool({
       description:
-        "Odczytaj źródłowy opis konkretnej innowacji i maksymalnie trzy pasujące fragmenty stron PDF. projectId wybierz z search_innovations. question zawęża fragmenty do potrzeb, działań, wymagań lub dowodów, o które pyta użytkownik. Cytuj zwrócone sourceIds; brak PDF albo informacji nie uprawnia do ich wymyślania.",
+        "Odczytaj źródłowy opis konkretnej innowacji i maksymalnie trzy pasujące fragmenty stron PDF. projectId wybierz z search_innovations. question zawęża fragmenty do potrzeb, działań, wymagań lub dowodów, o które pyta użytkownik. Zwrócone sourceIds identyfikują wykorzystaną dokumentację; brak PDF albo informacji nie uprawnia do ich wymyślania.",
       inputSchema: innovationReadSchema,
       execute: async ({ projectId, question }) => {
         const result = readInnovation(innovations, projectId, question);

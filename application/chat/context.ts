@@ -35,3 +35,36 @@ export function compileHistory(
     ({ role, content }) => ({ role, content }),
   );
 }
+
+export function projectAgentHistory(
+  history: HistoryMessage[],
+  excludedFields: readonly string[],
+  acceptsSource: (id: string) => boolean,
+) {
+  return history.map((message) => {
+    if (message.role !== "assistant") return message;
+    try {
+      const answer = JSON.parse(message.content);
+      if (!answer || typeof answer !== "object" || Array.isArray(answer))
+        return message;
+      for (const field of excludedFields) delete answer[field];
+      if (Array.isArray(answer.sourceIds))
+        answer.sourceIds = answer.sourceIds.filter(
+          (id: unknown) => typeof id === "string" && acceptsSource(id),
+        );
+      if (Array.isArray(answer.sources))
+        answer.sources = answer.sources.filter(
+          (source: { id?: unknown }) =>
+            typeof source?.id === "string" && acceptsSource(source.id),
+        );
+      return { ...message, content: JSON.stringify(answer) };
+    } catch {
+      // Older assistant replies are plain text.
+      return message;
+    }
+  });
+}
+
+export function preserveAgentHistory(history: HistoryMessage[]) {
+  return history;
+}

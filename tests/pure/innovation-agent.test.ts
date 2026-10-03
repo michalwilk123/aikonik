@@ -5,7 +5,7 @@ import { createChatModel } from "@/infrastructure/ai/openrouter";
 import { makeChatAgent } from "@/infrastructure/chat/openrouter-agent";
 import { sseChunk, streamResponse } from "@/tests/helpers/openrouter-stream";
 
-test("discovery searches saved evidence, reads the project and attaches only cited catalog videos", async () => {
+test("matchmaking searches saved evidence, reads the project and attaches only cited catalog videos", async () => {
   const requests: Record<string, unknown>[] = [];
   const model = createChatModel("fixture-key", async (_url, init) => {
     const request = JSON.parse(String(init?.body));
@@ -147,16 +147,17 @@ test("follow-up replies can cite known evidence from persisted history", async (
   }
 });
 
-test("innovation retrieval tools are available only to discovery", async () => {
+test("project retrieval tools are available only to matchmaking", async () => {
   for (const agentId of [
     undefined,
+    "wiedza",
     "dodaj-pomysl",
     "testuj-innowacje",
     "wdrazanie-innowacji",
   ] as const) {
     const model = createChatModel("fixture-key", async (_url, init) => {
       const request = JSON.parse(String(init?.body));
-      const toolNames = request.tools.map(
+      const toolNames = (request.tools ?? []).map(
         (entry: { function: { name: string } }) => entry.function.name,
       );
       assert.ok(!toolNames.includes("search_innovations"));
@@ -178,5 +179,104 @@ test("innovation retrieval tools are available only to discovery", async () => {
     )) {
       /* drain */
     }
+  }
+});
+
+test("knowledge reads social challenges, preserves citations on follow-up and excludes project videos", async () => {
+  let requests = 0;
+  let sourceId = "";
+  const model = createChatModel("fixture-key", async (_url, init) => {
+    const request = JSON.parse(String(init?.body));
+    requests++;
+    if (requests === 1)
+      return streamResponse([
+        sseChunk({
+          tool_calls: [
+            {
+              index: 0,
+              id: "challenge",
+              type: "function",
+              function: {
+                name: "read_social_challenges",
+                arguments: '{"query":"samotność seniorów"}',
+              },
+            },
+          ],
+        }),
+        sseChunk({}, "tool_calls"),
+      ]);
+    if (requests === 2) {
+      const toolMessage = request.messages.find(
+        (message: { role: string }) => message.role === "tool",
+      );
+      const evidence = JSON.parse(toolMessage.content);
+      sourceId = evidence.sources[0].id;
+      assert.match(sourceId, /^social-challenges:/);
+    }
+    return streamResponse([
+      sseChunk({
+        content: JSON.stringify({
+          message: "Fakt ze źródła.",
+          sourceIds: [sourceId, "innovation:senior-cuder:page"],
+          artifact: {
+            title: "Szkic",
+            fields: [{ label: "Problem", value: "Samotność" }],
+          },
+        }),
+      }),
+      sseChunk({}, "stop"),
+    ]);
+  });
+  const firstEvents: AgentEvent[] = [];
+  for await (const event of makeChatAgent(model, "wiedza")(
+    [
+      {
+        id: "question",
+        role: "user",
+        content: "Co wiemy o samotności seniorów?",
+      },
+    ],
+    new AbortController().signal,
+  ))
+    firstEvents.push(event);
+  const first = firstEvents.at(-1);
+  assert.equal(first?.type, "answer");
+  if (first?.type !== "answer") return;
+  assert.deepEqual(
+    first.answer.sources?.map((source) => source.id),
+    [sourceId],
+  );
+  assert.equal(first.answer.videos, undefined);
+  assert.equal(first.answer.artifact, null);
+  const followupEvents: AgentEvent[] = [];
+  for await (const event of makeChatAgent(model, "wiedza")(
+    [
+      {
+        id: "question",
+        role: "user",
+        content: "Co wiemy o samotności seniorów?",
+      },
+      {
+        id: "reply",
+        role: "assistant",
+        content: JSON.stringify({
+          message: first.answer.message,
+          sourceIds: [sourceId, "innovation:senior-cuder:page"],
+        }),
+      },
+      { id: "followup", role: "user", content: "Podaj źródło." },
+    ],
+    new AbortController().signal,
+  ))
+    followupEvents.push(event);
+  const followup = followupEvents.at(-1);
+  assert.equal(followup?.type, "answer");
+  if (followup?.type === "answer") {
+    assert.deepEqual(
+      followup.answer.sources?.map((source) => source.id),
+      [sourceId],
+    );
+    assert.equal(followup.answer.videos, undefined);
+    assert.equal(followup.answer.artifact, null);
   }
 });

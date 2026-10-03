@@ -1,0 +1,33 @@
+import type { ToolSet } from "ai";
+import type { z } from "zod";
+import type { AgentArtifact, AgentSource } from "@/agents/types";
+import type { HistoryMessage } from "@/domain/chat/types";
+import type { innovationVideoSchema } from "@/domain/innovation-video";
+import type { ObservatoryVisualization } from "@/domain/observatory";
+import type { SupportOffer } from "@/domain/support-offer";
+
+export type AgentModelAnswer = {
+  message: string;
+  areaLabel?: string;
+  offers?: SupportOffer[];
+  sourceIds?: string[];
+  artifact?: AgentArtifact | null;
+};
+
+export type AgentToolContext = {
+  onSources: (sources: AgentSource[]) => void;
+  onVisualization: (visualization: ObservatoryVisualization) => void;
+};
+
+export type AgentConfiguration = {
+  prompt: string;
+  sources: AgentSource[];
+  outputSchema: z.ZodType<AgentModelAnswer>;
+  supportsArtifacts: boolean;
+  createTools: (context: AgentToolContext) => ToolSet;
+  prepareHistory: (history: HistoryMessage[]) => HistoryMessage[];
+  resolveHistorySources?: (ids: string[]) => AgentSource[];
+  getVideos?: (
+    sources: AgentSource[],
+  ) => z.infer<typeof innovationVideoSchema>[];
+};

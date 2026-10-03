@@ -15,7 +15,7 @@ export const metadata: Metadata = {
   },
   description:
     "AiKonik to przyjazny asystent AI, który pomaga mieszkańcom województwa małopolskiego załatwiać sprawy urzędowe i codzienne: proste odpowiedzi, jasne wyjaśnienia, pomoc 24/7.",
-  generator: "hubmi",
+  generator: "aikonik",
 };
 
 export const viewport: Viewport = { themeColor: "#C62832" };

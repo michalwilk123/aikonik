@@ -1,4 +1,8 @@
-# Odkrywaj — źródła wersji startowej
+# Wiedza — źródła raportu
+
+Fragmenty raportu są używane przez agenta „Wiedza”. Moduł odczytu pozostaje w
+`agents/odkrywaj/knowledge.ts`; zakładka „Dopasuj” (wewnętrzne ID `odkrywaj`)
+korzysta z biblioteki innowacji i dokumentacji projektów.
 
 Katalog: [Raporty z badań ROPS](https://rops.krakow.pl/badania-analizy-raporty/raporty-z-badan).
 

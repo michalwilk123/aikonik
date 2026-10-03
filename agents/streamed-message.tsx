@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { MarkdownMessage } from "@/agents/markdown-message";
 import { ObservatoryVisualizationCard } from "@/agents/observatory-visualization";
 import { agents } from "@/agents/registry";
 import type { AgentMessage, AgentReply } from "@/agents/types";
@@ -37,8 +38,8 @@ export function StreamedMessage({
         Asystent
       </p>
       {text ? (
-        <p className="chat-text whitespace-pre-wrap break-words text-[16px] leading-7 text-foreground">
-          {text}
+        <div className="chat-text text-[16px] leading-7 text-foreground">
+          <MarkdownMessage>{text}</MarkdownMessage>
           {(pending || revealing) && (
             <span
               className="chat-cursor"
@@ -46,7 +47,7 @@ export function StreamedMessage({
               style={{ backgroundColor: agent.color }}
             />
           )}
-        </p>
+        </div>
       ) : pending ? (
         <div
           role="status"
@@ -67,7 +68,7 @@ export function StreamedMessage({
       ) : null}
       {reply?.visualizations &&
         !revealing &&
-        (message.agentId === "odkrywaj" ||
+        (message.agentId === "wiedza" ||
           message.agentId === "wdrazanie-innowacji") && (
           <div className="mt-4 space-y-4">
             {reply.visualizations.map((visualization) => (
@@ -85,52 +86,59 @@ export function StreamedMessage({
           ))}
         </div>
       )}
-      {reply?.artifact && !revealing && message.agentId !== "dodaj-pomysl" && (
-        <section
-          className="mt-4 rounded-2xl border border-outline-variant bg-white p-5"
-          aria-label="Roboczy szkic"
-        >
-          <h2 className="font-semibold text-foreground">
-            {reply.artifact.title}
-          </h2>
-          <dl className="mt-4 space-y-4">
-            {reply.artifact.fields.map((field) => (
-              <div key={field.label}>
-                <dt className="text-sm font-semibold text-foreground">
-                  {field.label}
-                </dt>
-                <dd className="mt-1 whitespace-pre-wrap text-sm leading-6 text-on-surface-variant">
-                  {field.value}
-                </dd>
-              </div>
-            ))}
-          </dl>
-        </section>
-      )}
-      {reply && !revealing && reply.sources.length > 0 && (
-        <details className="chat-enter mt-4 rounded-2xl border border-outline-variant bg-white px-4 py-3 text-xs text-on-surface-variant">
-          <summary className="cursor-pointer font-medium">
-            Źródła · {reply.sources.length}
-          </summary>
-          <ul className="mt-3 space-y-3">
-            {reply.sources.map((source) => (
-              <li key={source.id}>
-                <a
-                  href={source.url}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="font-medium underline underline-offset-2"
-                  style={{ color: agent.color }}
-                >
-                  {source.title}
-                  {source.page ? ` · str. ${source.page}` : ""}
-                </a>
-                <p className="mt-1 leading-5">{source.excerpt}</p>
-              </li>
-            ))}
-          </ul>
-        </details>
-      )}
+      {reply?.artifact &&
+        !revealing &&
+        message.agentId !== "dodaj-pomysl" &&
+        message.agentId !== "odkrywaj" &&
+        message.agentId !== "wiedza" && (
+          <section
+            className="mt-4 rounded-2xl border border-outline-variant bg-white p-5"
+            aria-label="Roboczy szkic"
+          >
+            <h2 className="font-semibold text-foreground">
+              {reply.artifact.title}
+            </h2>
+            <dl className="mt-4 space-y-4">
+              {reply.artifact.fields.map((field) => (
+                <div key={field.label}>
+                  <dt className="text-sm font-semibold text-foreground">
+                    {field.label}
+                  </dt>
+                  <dd className="mt-1 whitespace-pre-wrap text-sm leading-6 text-on-surface-variant">
+                    {field.value}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          </section>
+        )}
+      {reply &&
+        !revealing &&
+        message.agentId !== "odkrywaj" &&
+        reply.sources.length > 0 && (
+          <details className="chat-enter mt-4 rounded-2xl border border-outline-variant bg-white px-4 py-3 text-xs text-on-surface-variant">
+            <summary className="cursor-pointer font-medium">
+              Źródła · {reply.sources.length}
+            </summary>
+            <ul className="mt-3 space-y-3">
+              {reply.sources.map((source) => (
+                <li key={source.id}>
+                  <a
+                    href={source.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="font-medium underline underline-offset-2"
+                    style={{ color: agent.color }}
+                  >
+                    {source.title}
+                    {source.page ? ` · str. ${source.page}` : ""}
+                  </a>
+                  <p className="mt-1 leading-5">{source.excerpt}</p>
+                </li>
+              ))}
+            </ul>
+          </details>
+        )}
       {reply && !revealing && (
         <span className="sr-only" role="status">
           Odpowiedź asystenta jest gotowa.

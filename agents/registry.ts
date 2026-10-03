@@ -2,25 +2,40 @@ import type { AgentId } from "@/agents/types";
 
 export const agents = {
   odkrywaj: {
-    label: "Odkrywaj",
+    label: "Dopasuj",
     color: "#1B2340",
     tint: "#E9ECF5",
     step: "01",
     title: "Od potrzeby do możliwości.",
     description:
-      "Opisz problem, a asystent poszuka pasujących rozwiązań w Bibliotece Innowacji Społecznych ROPS. Możesz też pytać o dokumentację projektów i dane społeczne.",
-    placeholder: "Jaki problem chcesz rozwiązać lub lepiej zrozumieć?",
+      "Opowiedz, z czym potrzebujesz pomocy. Asystent dopyta o Twoją sytuację i dobierze pasujące projekty, wraz z dokumentacją i filmami.",
+    placeholder: "Z czym potrzebujesz pomocy?",
     examples: [
-      "Co raporty ROPS mówią o starzeniu się Małopolski?",
+      "Opiekuję się bliską osobą i potrzebuję wsparcia. Od czego zacząć?",
       "Starsza osoba czuje się samotna. Jakie innowacje mogą pomóc?",
-      "Jakie są luki w usługach opiekuńczych?",
+      "Szukam projektu, który pomoże osobom z niepełnosprawnością żyć samodzielnie.",
+    ],
+  },
+  wiedza: {
+    label: "Wiedza",
+    color: "#245B85",
+    tint: "#E5F1FA",
+    step: "02",
+    title: "Pytaj. Porównuj. Zobacz dane.",
+    description:
+      "Odkrywaj fakty i ciekawostki o Małopolsce. Asystent wyszuka dane statystyczne i raporty społeczne, porówna obszary oraz pokaże wyniki na wykresach i mapach.",
+    placeholder: "Jakie dane lub ciekawostki chcesz poznać?",
+    examples: [
+      "Pokaż na mapie, w których powiatach Małopolski najwięcej osób korzysta z pomocy społecznej.",
+      "Porównaj dzietność w Małopolsce i Polsce na wykresie.",
+      "Co wiemy o starzeniu się Małopolski?",
     ],
   },
   "dodaj-pomysl": {
     label: "Dodaj pomysł",
     color: "#C62832",
     tint: "#FBE3E1",
-    step: "02",
+    step: "03",
     title: "Twój pomysł ma dobry początek.",
     description:
       "Opowiedz o swojej idei. Asystent zada kolejne pytania i pomoże ułożyć roboczą Canvę Innowacji Społecznej.",
@@ -35,7 +50,7 @@ export const agents = {
     label: "Testuj innowacje",
     color: "#7A4B00",
     tint: "#FFF1CC",
-    step: "03",
+    step: "04",
     title: "Mały test. Ważna zmiana.",
     description:
       "Zaplanuj pierwszy pilotaż, ustal co chcesz sprawdzić i zbierz opinie uczestników. Znajdź kolejne usprawnienie swojego rozwiązania.",
@@ -50,7 +65,7 @@ export const agents = {
     label: "Wdrażanie innowacji",
     color: "#2F6B4F",
     tint: "#E4F2E9",
-    step: "04",
+    step: "05",
     title: "Sprawdzone rozwiązanie. Nowe miejsce.",
     description:
       "Middleman Innowacji pomoże dopasować rozwiązanie do Twojej instytucji: odbiorców, zasobów, partnerów i sposobu świadczenia usługi.",

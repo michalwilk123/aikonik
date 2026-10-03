@@ -23,8 +23,7 @@ export async function POST(request: Request) {
   } catch {
     return Response.json(
       {
-        error:
-          "Sprawdź wymagane pola, adres e-mail i zgodę na przesłanie zgłoszenia.",
+        error: "Sprawdź wymagane pola i adres e-mail.",
       },
       { status: 400, headers },
     );

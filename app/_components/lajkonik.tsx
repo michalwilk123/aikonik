@@ -11,9 +11,9 @@ const C = {
   goldLight: "#F7C94B",
   orange: "#F59E2B",
   orangeShade: "#E0861A",
-  white: "#F7F3EE",
-  grey: "#D9D3CB",
-  greyDark: "#BDB6AD",
+  white: "#D9A66B",
+  grey: "#B98450",
+  greyDark: "#8F6035",
   dark: "#3A3A40",
   beige: "#E6DCD0",
 } as const;
@@ -23,7 +23,7 @@ function Poly({ p, f }: { p: string; f: string }) {
 }
 
 /** Rider head: plume, hat, band and orange square face. Local frame ~ x 190-300, y 0-160. */
-function Head() {
+export function LajkonikHeadShapes() {
   return (
     <g>
       {/* plume */}
@@ -86,24 +86,26 @@ export function LajkonikShapes({ waving = false }: { waving?: boolean }) {
       <Poly p="150,418 188,418 192,434 142,434" f={C.dark} />
 
       {/* horse neck + mane */}
-      <Poly p="132,214 176,200 206,300 150,318" f={C.white} />
-      <Poly p="176,200 206,300 186,306" f={C.grey} />
-      <Poly p="164,176 188,184 214,296 190,300" f={C.dark} />
-      <Poly p="164,176 188,184 176,214" f="#55555D" />
-      {/* horse head */}
-      <Poly p="74,238 116,214 160,226 116,256" f={C.white} />
-      <Poly p="116,256 160,226 168,282 126,318" f={C.grey} />
-      <Poly p="74,238 116,256 126,318 68,300" f={C.white} />
-      <Poly p="68,300 126,318 128,330 70,314" f={C.greyDark} />
-      <Poly p="132,208 146,178 160,214" f={C.white} />
-      <Poly p="138,208 146,190 154,214" f={C.grey} />
+      <Poly p="118,236 164,206 210,300 152,314" f={C.white} />
+      <Poly p="164,206 210,300 188,306" f={C.grey} />
+      <Poly p="156,202 172,196 214,296 202,300" f={C.dark} />
+      {/* horse head in profile, facing left */}
+      <Poly
+        p="160,208 122,214 72,252 66,288 82,300 124,286 150,270"
+        f={C.white}
+      />
+      <Poly p="160,208 122,214 72,252 96,258 150,234" f="#E4B87F" />
+      <Poly p="66,288 82,300 124,286 150,270 140,260 96,280" f={C.grey} />
+      <Poly p="72,252 66,288 78,290 84,256" f={C.greyDark} />
+      <Poly p="146,212 156,180 170,208" f={C.white} />
+      <Poly p="152,208 157,192 164,208" f={C.grey} />
       {/* nostril + eye */}
-      <rect x="82" y="290" width="8" height="8" fill={C.dark} />
-      <rect x="116" y="250" width="9" height="9" rx="1" fill={C.navy} />
+      <rect x="74" y="268" width="7" height="7" fill={C.dark} />
+      <rect x="118" y="228" width="11" height="13" fill={C.navy} />
+      <rect x="124" y="230" width="3" height="3" fill="#FFFFFF" />
       {/* bridle */}
-      <Poly p="74,266 118,278 120,290 72,278" f={C.red} />
-      <Poly p="110,238 124,236 134,300 120,304" f={C.red} />
-      <circle cx="122" cy="283" r="6" fill={C.gold} />
+      <Poly p="86,254 98,252 104,292 92,296" f={C.red} />
+      <circle cx="96" cy="274" r="5.5" fill={C.gold} />
 
       {/* caparison */}
       <Poly p="148,296 336,268 342,372 158,384" f={C.red} />
@@ -132,26 +134,18 @@ export function LajkonikShapes({ waving = false }: { waving?: boolean }) {
       <Poly p="262,208 286,214 262,290 240,284" f={C.gold} />
       <Poly p="240,284 262,290 258,304 238,298" f={C.goldLight} />
 
-      {/* forward arm resting */}
-      <Poly p="278,196 306,206 286,252 254,244" f={C.red} />
-      <Poly p="278,196 254,244 238,236 262,192" f={C.redLight} />
-      <Poly p="224,230 256,236 252,268 222,262" f={C.orange} />
-      <Poly p="240,232 256,236 252,268 240,262" f={C.orangeShade} />
-
       {/* waving arm */}
       <g className="lj-wave">
-        <Poly p="210,184 236,204 190,140 166,154" f={C.red} />
-        <Poly p="210,184 236,204 224,206 198,190" f={C.redShade} />
-        <Poly p="166,154 190,140 178,118 156,130" f={C.redLight} />
-        <Poly p="150,98 182,92 186,128 156,134" f={C.orange} />
-        <Poly p="150,98 168,95 160,134 156,134" f="#FAB95A" />
-        <Poly p="168,95 182,92 186,128 172,131" f={C.orangeShade} />
+        <Poly p="196,198 224,186 196,124 172,136" f={C.red} />
+        <Poly p="196,198 208,192 182,130 172,136" f={C.redLight} />
+        <Poly p="164,100 190,96 196,128 170,134" f={C.orange} />
+        <Poly p="164,100 176,98 172,133 170,134" f="#FAB95A" />
+        <Poly p="183,97 190,96 196,128 187,130" f={C.orangeShade} />
       </g>
       <Spark x={122} y={92} r={0.9} />
-      <polygon points="124,126 150,118 150,122 126,132" fill={C.gold} />
 
       {/* head */}
-      <Head />
+      <LajkonikHeadShapes />
     </g>
   );
 }

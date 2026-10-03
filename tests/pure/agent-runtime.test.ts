@@ -4,7 +4,7 @@ import { agentIds } from "@/agents/registry";
 import { replyToAgent } from "@/agents/server";
 import { createChatModel, MODEL_ID } from "@/infrastructure/ai/openrouter";
 
-test("four real agent adapters route distinct instructions and preserve response ownership", async () => {
+test("all real agent adapters route distinct instructions and preserve response ownership", async () => {
   for (const agentId of agentIds) {
     const requests: Record<string, unknown>[] = [];
     const artifact = {
@@ -62,7 +62,10 @@ test("four real agent adapters route distinct instructions and preserve response
     assert.equal(result.message.role, "assistant");
     assert.equal(result.model, MODEL_ID);
     assert.deepEqual(result.sources, []);
-    assert.deepEqual(result.artifact, agentId === "odkrywaj" ? null : artifact);
+    assert.deepEqual(
+      result.artifact,
+      agentId === "odkrywaj" || agentId === "wiedza" ? null : artifact,
+    );
     assert.equal(requests.length, 1);
     const messages = requests[0].messages as {
       role: string;
@@ -79,12 +82,12 @@ test("four real agent adapters route distinct instructions and preserve response
       typeof instruction === "string"
         ? instruction
         : (instruction?.map((part) => part.text).join("\n") ?? "");
-    assert.ok(instructionText.includes(`Jesteś wyłącznie agentem ${agentId}`));
+    assert.ok(instructionText.includes(`jako agent ${agentId}`));
     assert.deepEqual(
       messages.filter((message) => message.role === "user"),
       [{ role: "user", content: "Pomysł pomocy seniorom" }],
     );
-    if (agentId !== "odkrywaj")
+    if (agentId !== "odkrywaj" && agentId !== "wiedza")
       assert.ok(instructionText.includes(JSON.stringify(artifact)));
   }
 });

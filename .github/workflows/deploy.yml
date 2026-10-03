@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: hubmi-production
+  group: aikonik-production
   cancel-in-progress: false
 
 jobs:

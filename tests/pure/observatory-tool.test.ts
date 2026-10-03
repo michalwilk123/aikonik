@@ -4,7 +4,6 @@ import type { ObservatoryVisualization } from "@/domain/observatory";
 import {
   makeObservatoryTools,
   observatoryInputSchema,
-  supportsObservatory,
 } from "@/infrastructure/chat/observatory-tool";
 
 const visualization: ObservatoryVisualization = {
@@ -25,12 +24,7 @@ const options = {
   abortSignal: new AbortController().signal,
 };
 
-test("only assistants one and four receive the two visualization capabilities", () => {
-  assert.equal(supportsObservatory("odkrywaj"), true);
-  assert.equal(supportsObservatory("wdrazanie-innowacji"), true);
-  assert.equal(supportsObservatory("dodaj-pomysl"), false);
-  assert.equal(supportsObservatory("testuj-innowacje"), false);
-  assert.equal(supportsObservatory(), false);
+test("observatory factory provides map and bar chart tools", () => {
   assert.deepEqual(Object.keys(makeObservatoryTools(() => {})), [
     "show_map",
     "show_bar_chart",

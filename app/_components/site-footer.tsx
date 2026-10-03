@@ -5,11 +5,11 @@ const links = [
   { href: "/", label: "O aplikacji" },
   { href: "/asystent", label: "Asystent" },
   { href: "/kontakt", label: "Kontakt" },
-  { href: "/kontakt#dostepnosc", label: "Deklaracja dostępności" },
+  { href: "/kontakt#dostepnosc", label: "Zgłoś barierę" },
 ] as const;
 
 const linkClass =
-  "inline-flex min-h-11 items-center rounded-full text-sm text-on-surface-variant underline-offset-4 hover:text-primary hover:underline";
+  "inline-flex min-h-11 items-center rounded-md text-sm text-on-surface-variant underline-offset-4 hover:text-primary hover:underline";
 
 export function SiteFooter() {
   return (
@@ -74,7 +74,12 @@ export function SiteFooter() {
           © {new Date().getFullYear()} Regionalny Ośrodek Polityki Społecznej w
           Krakowie
         </p>
-        <p>Prototyp — projekt HackYeah</p>
+        <p>
+          <Link href="/dane" className="underline underline-offset-4">
+            Dane
+          </Link>
+          {" · "}Prototyp — projekt HackYeah
+        </p>
       </div>
     </footer>
   );

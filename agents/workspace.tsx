@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AgentComposer } from "@/agents/composer";
+import { AgentContact } from "@/agents/contact";
 import { agents, defaultAgentId } from "@/agents/registry";
 import { StreamedMessage } from "@/agents/streamed-message";
 import { AgentSubmissionForm } from "@/agents/submission-form";
@@ -10,6 +11,7 @@ import {
   type AgentId,
   type AgentMessage,
   type AgentReply,
+  agentIdSchema,
   agentReplySchema,
 } from "@/agents/types";
 import { AgentWelcome } from "@/agents/welcome";
@@ -51,6 +53,7 @@ export function AgentWorkspace() {
   const [activeAgent, setActiveAgent] = useState<AgentId>(defaultAgentId);
   const [sessions, setSessions] = useState<Record<AgentId, Session>>({
     odkrywaj: emptySession(),
+    wiedza: emptySession(),
     "dodaj-pomysl": emptySession(),
     "testuj-innowacje": emptySession(),
     "wdrazanie-innowacji": emptySession(),
@@ -62,6 +65,13 @@ export function AgentWorkspace() {
   const [follow, setFollow] = useState(true);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const endRef = useRef<HTMLDivElement>(null);
+  // Deep link from the landing page: /asystent?agent=<id> opens that tab.
+  useEffect(() => {
+    const requested = agentIdSchema.safeParse(
+      new URLSearchParams(window.location.search).get("agent"),
+    );
+    if (requested.success) setActiveAgent(requested.data);
+  }, []);
   const session = sessions[activeAgent];
   const agent = agents[activeAgent];
   const submissionIdentity = identities.current.get(activeAgent);
@@ -112,9 +122,9 @@ export function AgentWorkspace() {
     setSessions((previous) => ({ ...previous, [id]: change(previous[id]) }));
   }
 
-  async function submit() {
+  async function submit(text = session.draft) {
     const agentId = activeAgent;
-    const content = session.draft.trim();
+    const content = text.trim();
     if (!content || requests.current.has(agentId)) return;
     const controller = new AbortController();
     requests.current.set(agentId, controller);
@@ -247,12 +257,15 @@ export function AgentWorkspace() {
         }}
       />
       <div className="mx-auto w-full max-w-5xl flex-1 bg-white px-4 pb-64 shadow-soft sm:border-x sm:border-outline-variant sm:px-8">
+        {Object.values(sessions).every(
+          (entry) => entry.messages.length === 0,
+        ) && <AgentContact />}
         {session.messages.length === 0 ? (
           <AgentWelcome
             key={activeAgent}
             agentId={activeAgent}
-            onPick={(draft) => {
-              update(activeAgent, (current) => ({ ...current, draft }));
+            onPick={(text) => {
+              void submit(text);
               inputRef.current?.focus();
             }}
           />

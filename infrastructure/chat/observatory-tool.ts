@@ -1,6 +1,5 @@
 import { tool } from "ai";
 import { z } from "zod";
-import type { AgentId } from "@/agents/types";
 import {
   type ObservatoryVisualization,
   observatoryVisualizationSchema,
@@ -14,10 +13,6 @@ export const observatoryInputSchema = z
     year: z.number().int().min(1990).max(2100).optional(),
   })
   .strict();
-
-export function supportsObservatory(id?: AgentId) {
-  return id === "odkrywaj" || id === "wdrazanie-innowacji";
-}
 
 export function makeObservatoryTools(
   onVisualization: (visualization: ObservatoryVisualization) => void,

@@ -1,19 +1,25 @@
 # Chat streaming, storage and verification
 
-`/asystent` uses the four-agent workspace through the `Chat` component. Both
+`/asystent` uses the five-agent workspace through the `Chat` component. Both
 `POST /api/agents` and `POST /api/chat` use the same streaming runtime. The old
 buffered Server Action is retired. Each agent has a separate in-memory opaque
 conversation capability. Switching agents preserves its conversation; reloading
 creates a new conversation. Existing transcripts remain in D1.
 
-Assistants „Odkrywaj” and „Wdrażanie innowacji” can call `show_map` and
+Assistants „Wiedza” and „Wdrażanie innowacji” can call `show_map` and
 `show_bar_chart` to display interactive visualizations directly in their replies.
 For example: „Jak wygląda dzietność w woj. małopolskim?” selects indicator 135
 and a bar chart comparing Małopolska with Poland. This indicator has no county
 map. Indicators with county data support interactive maps using the original
 Obserwator boundaries. Data is fetched from the source for the requested year;
-omitting the year selects the latest available. The other two assistants have
+omitting the year selects the latest available. The other three assistants have
 no visualization tools. Source failures never produce invented chart values.
+
+„Dopasuj” uses the saved innovation catalog, project documentation and social
+challenge excerpts to match a problem to a solution. Only this agent attaches
+catalog videos. „Wiedza” also reads approved report facts and social challenge
+excerpts; it has no project matching or video tools. Both agents have response schemas without artifact creation.
+The internal ID `odkrywaj` is retained for „Dopasuj” to preserve stored conversations.
 
 ## Run deterministic checks
 
@@ -41,7 +47,7 @@ The fixture database is isolated from `.wrangler` and disposed after the tests.
 | Retry/concurrency | Existing request replay never invokes a model, changed payload rejected, one running turn across concurrent D1 admissions |
 | Failures | Schema/provider failures, missing completion, partial response preservation, cancellation, stale-turn recovery, no fabricated fallback |
 | Text reveal | Burst reveal, acceleration/draining, reduced motion and grapheme boundaries |
-| Agent behavior | Four distinct prompts, source ID allowlist, isolated conversations and artifacts |
+| Agent behavior | Per-agent executable tool registries, forbidden calls recorded without execution, role-specific output schemas, isolated history and artifacts |
 
 ## Opt-in live evaluation
 

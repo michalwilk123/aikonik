@@ -62,7 +62,7 @@ export function AgentComposer({
             disabled={!pending && !value.trim()}
             aria-label={pending ? "Zatrzymaj" : "Wyślij wiadomość"}
             style={{ backgroundColor: agent.color }}
-            className="size-12 shrink-0 rounded-full transition-[background-color,transform] duration-500 active:scale-95"
+            className="size-12 shrink-0 rounded-md transition-[background-color,transform] duration-500 active:scale-95"
           >
             {pending ? (
               <Square className="size-4" fill="currentColor" />

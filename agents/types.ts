@@ -4,6 +4,7 @@ import { observatoryVisualizationSchema } from "@/domain/observatory";
 
 export const agentIdSchema = z.enum([
   "odkrywaj",
+  "wiedza",
   "dodaj-pomysl",
   "testuj-innowacje",
   "wdrazanie-innowacji",
@@ -78,6 +79,10 @@ export const agentOutputSchema = z.object({
   sourceIds: z.array(z.string()).max(8),
   artifact: artifactSchema.nullable(),
 });
+export const readOnlyAgentOutputSchema = agentOutputSchema.omit({
+  artifact: true,
+});
+
 export const agentReplySchema = z.object({
   requestId: z.uuid(),
   message: agentMessageSchema,

@@ -5,7 +5,6 @@ const contactFields = {
   id: z.uuid(),
   name: z.string().trim().min(1).max(150),
   email: z.string().trim().max(254).pipe(z.email()),
-  consent: z.literal(true),
 };
 export const submissionInputSchema = z.discriminatedUnion("source", [
   z
@@ -26,6 +25,7 @@ export const submissionInputSchema = z.discriminatedUnion("source", [
     .object({
       ...contactFields,
       source: z.enum(["dodaj-pomysl", "testuj-innowacje"]),
+      consent: z.literal(true),
       conversationId: z.uuid(),
       capability: z.uuid(),
       requestId: z.uuid(),

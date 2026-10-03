@@ -52,7 +52,7 @@ const cases = [
     turns: [
       "Użyj read_report dla usług opiekuńczych. Ile osób objęto usługami sąsiedzkimi według ROPS? Podaj rok danych i stronę raportu.",
     ],
-    agentId: "odkrywaj" as const,
+    agentId: "wiedza" as const,
     memory: false,
     tool: true,
   },
@@ -145,7 +145,7 @@ try {
           last?.type === "complete" ? last.answer.artifact : null;
         const checks = {
           roleArtifact:
-            scenario.agentId === "odkrywaj"
+            scenario.agentId === "odkrywaj" || scenario.agentId === "wiedza"
               ? artifact === null
               : !!artifact?.fields.length,
           canvasCorrection:
