@@ -5,6 +5,8 @@ export type IdeaGuideReply = {
   message: string;
   nextField: CanvasField | null;
   complete: boolean;
+  accepted: boolean;
+  validationMessage?: string;
 };
 
 export interface IdeaGuide {

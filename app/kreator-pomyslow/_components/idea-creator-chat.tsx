@@ -77,6 +77,7 @@ export function IdeaCreatorChat() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [toast, setToast] = useState<{ id: number; message: string } | null>(null);
   const inFlight = useRef(false);
   const nextQuestionRef = useRef<HTMLDivElement>(null);
 
@@ -85,6 +86,12 @@ export function IdeaCreatorChat() {
       nextQuestionRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
     }
   }, [messages.length, pending]);
+
+  useEffect(() => {
+    if (!toast) return;
+    const timeout = window.setTimeout(() => setToast(null), 4500);
+    return () => window.clearTimeout(timeout);
+  }, [toast]);
 
   async function begin() {
     const text = idea.trim();
@@ -95,6 +102,11 @@ export function IdeaCreatorChat() {
     setMessages([{ role: "user", content: text }]);
     try {
       const result = await startIdeaGuide(text);
+      if (!result.accepted) {
+        setMessages([]);
+        setToast({ id: Date.now(), message: result.validationMessage ?? "Proszę popraw opis pomysłu." });
+        return;
+      }
       setReply(result);
       setMessages((current) => [...current, { role: "assistant", content: result.message }]);
       setIdea("");
@@ -115,11 +127,18 @@ export function IdeaCreatorChat() {
     inFlight.current = true;
     setPending(true);
     setError(null);
-    setMessages((current) => [...current, { role: "user", content }]);
     try {
       const result = await answerIdeaGuide(reply.canvas, field.id, value);
+      if (!result.accepted) {
+        setToast({ id: Date.now(), message: result.validationMessage ?? "Proszę popraw odpowiedź." });
+        return;
+      }
       setReply(result);
-      setMessages((current) => [...current, { role: "assistant", content: result.message }]);
+      setMessages((current) => [
+        ...current,
+        { role: "user", content },
+        { role: "assistant", content: result.message },
+      ]);
     } catch {
       setError("Nie udało się zapisać odpowiedzi. Spróbuj ponownie.");
     } finally {
@@ -136,6 +155,14 @@ export function IdeaCreatorChat() {
 
   return (
     <div className="mx-auto flex w-full max-w-3xl flex-col gap-8">
+      {toast ? (
+        <div
+          role="alert"
+          className="fixed top-20 left-1/2 z-50 w-[min(90vw,32rem)] -translate-x-1/2 rounded-xl bg-primary px-4 py-3 text-sm font-medium text-primary-foreground shadow-dock"
+        >
+          {toast.message}
+        </div>
+      ) : null}
       <section className="rounded-3xl bg-surface-container-low p-6 sm:p-8">
         <p className="mb-2 text-sm font-semibold tracking-wider text-secondary uppercase">Kreator pomysłów</p>
         <h1 className="text-3xl font-bold tracking-tight text-primary">Zamień pomysł w gotowy dokument</h1>
