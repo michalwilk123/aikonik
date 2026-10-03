@@ -62,7 +62,8 @@ save internal notes. Visitor contact data and submitted content remain read-only
 Ideas display the Social Canvas as twelve sections, including unanswered areas.
 The dashboard shows new-case counts, recent submissions and a link to the
 current user’s open cases. The `cms` role can read the staff directory for
-assignment; account administration and technical chat data remain restricted. `/admin` gives administrators access to
+assignment and edit their own account settings; administration of other accounts
+and technical chat data remain restricted. `/admin` gives administrators access to
 submissions, staff accounts and all stored chat records. Public visitors do not
 need accounts. Registration and email password recovery are disabled.
 
@@ -90,6 +91,38 @@ chat migrations. Automatic Payload schema push is disabled to preserve existing
 chat tables and indexes. Generate Payload types/import maps with
 `bun node_modules/payload/bin.js generate:types --disable-transpile` and
 `bun node_modules/payload/bin.js generate:importmap --disable-transpile`.
+
+## Email notifications and passwords
+
+In the staff panel, **Moje ustawienia** opens your account. Administrators can
+also configure every account through **Użytkownicy**. Enable **Wysyłaj
+powiadomienia e-mail** and set **Adres e-mail do powiadomień** to receive new
+resident idea notifications. Both settings are required; the login address is
+never used as a fallback. Existing accounts start with notifications disabled.
+Contact and innovation-testing submissions do not trigger emails.
+
+Delivery uses the [Resend SDK](https://github.com/resend/resend-node). Configure
+these Worker secrets for production (use a sender from a domain verified in Resend):
+
+```sh
+bunx wrangler secret put RESEND_API_KEY
+bunx wrangler secret put RESEND_FROM_EMAIL
+```
+
+For example, the sender can be `AIkonik <powiadomienia@your-domain.pl>`.
+Apply `0005_email_notifications.sql` with the usual D1 migration command.
+No email is sent during local development, including production previews on
+localhost, or when either Resend setting is missing. Notifications run with
+Worker `waitUntil` after the idea is saved. Each recipient gets a separate email
+linking to the authenticated panel. Repeated submission requests do not trigger
+another notification; provider failures are logged without blocking submissions.
+Failed deliveries are not automatically retried.
+
+**Zmień hasło** opens a separate form with a new password and confirmation.
+CMS users must enter their current password; administrators can reset any
+account without it. Passwords must have 8–128 characters. A successful change
+revokes all sessions of the affected user. Changing your own password redirects
+to login. Save other account settings separately using the normal save button.
 
 ## Migrations
 

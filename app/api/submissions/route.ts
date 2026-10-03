@@ -30,30 +30,36 @@ export async function POST(request: Request) {
   }
   try {
     if (input.source === "contact") {
-      const receipt = await saveSubmission({
-        id: input.id,
-        source: input.source,
-        name: input.name,
-        email: input.email,
-        subject: input.subject,
-        message: input.message,
-      });
+      const receipt = await saveSubmission(
+        {
+          id: input.id,
+          source: input.source,
+          name: input.name,
+          email: input.email,
+          subject: input.subject,
+          message: input.message,
+        },
+        request.url,
+      );
       return Response.json(receipt, { status: 201, headers });
     }
     const artifact = await verifyAgentSubmission(
       getCloudflareContext().env.DB,
       input,
     );
-    const receipt = await saveSubmission({
-      id: input.id,
-      source: input.source,
-      name: `${input.name} ${input.surname}`,
-      email: input.email,
-      subject: artifact.title,
-      artifact,
-      conversationId: input.conversationId,
-      sourceTurnId: input.requestId,
-    });
+    const receipt = await saveSubmission(
+      {
+        id: input.id,
+        source: input.source,
+        name: `${input.name} ${input.surname}`,
+        email: input.email,
+        subject: artifact.title,
+        artifact,
+        conversationId: input.conversationId,
+        sourceTurnId: input.requestId,
+      },
+      request.url,
+    );
     return Response.json(receipt, { status: 201, headers });
   } catch (error) {
     if (error instanceof ChatConflict)

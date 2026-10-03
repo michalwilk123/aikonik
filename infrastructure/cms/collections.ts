@@ -1,6 +1,13 @@
 import { betterAuthStrategy } from "@delmaredigital/payload-better-auth";
 import type { CollectionConfig, Field } from "payload";
-import { adminField, isAdmin, isStaff } from "@/infrastructure/cms/access";
+import {
+  adminField,
+  adminOrSelf,
+  isAdmin,
+  isStaff,
+  ownSettingsField,
+} from "@/infrastructure/cms/access";
+import { changeStaffPassword } from "@/infrastructure/cms/password-endpoint";
 import {
   deleteStaffCredentials,
   prepareStaffPassword,
@@ -16,6 +23,13 @@ export const users: CollectionConfig = {
     strategies: [betterAuthStrategy()],
   },
   lockDocuments: false,
+  endpoints: [
+    {
+      path: "/:id/change-password",
+      method: "post",
+      handler: changeStaffPassword,
+    },
+  ],
   hooks: {
     afterChange: [saveStaffPassword],
     beforeDelete: [deleteStaffCredentials],
@@ -25,7 +39,7 @@ export const users: CollectionConfig = {
       Boolean(req.user && ["cms", "admin"].includes(req.user.role)),
     create: isAdmin,
     read: isStaff,
-    update: isAdmin,
+    update: adminOrSelf,
     delete: isAdmin,
   },
   admin: {
@@ -42,18 +56,50 @@ export const users: CollectionConfig = {
       virtual: true,
       access: { create: adminField, update: adminField, read: adminField },
       minLength: 8,
+      maxLength: 128,
       hooks: {
         beforeChange: [prepareStaffPassword],
         afterRead: [() => undefined],
       },
       admin: {
+        condition: (_data, _siblingData, { operation }) =>
+          operation === "create",
         autoComplete: "new-password",
-        description:
-          "Wpisz hasło przy tworzeniu konta lub aby zmienić hasło użytkownika. Zmiana wyloguje jego aktywne sesje.",
+        description: "Ustaw początkowe hasło konta (od 8 do 128 znaków).",
         components: { Field: "@payloadcms/ui#PasswordField" },
       },
     },
     { name: "name", label: "Nazwa", type: "text", required: true },
+    {
+      name: "emailNotifications",
+      label: "Wysyłaj powiadomienia e-mail",
+      type: "checkbox",
+      defaultValue: false,
+      access: { read: ownSettingsField, update: ownSettingsField },
+      admin: {
+        description:
+          "Powiadomienia wymagają podania adresu poniżej. Lokalnie wiadomości nie są wysyłane.",
+      },
+    },
+    {
+      name: "notificationEmail",
+      label: "Adres e-mail do powiadomień",
+      type: "email",
+      access: { read: ownSettingsField, update: ownSettingsField },
+      admin: {
+        description:
+          "Pozostaw puste, aby nie otrzymywać wiadomości. Adres logowania nie jest używany jako zastępczy.",
+      },
+    },
+    {
+      name: "passwordChange",
+      type: "ui",
+      admin: {
+        components: {
+          Field: "@/infrastructure/cms/password-form#StaffPasswordForm",
+        },
+      },
+    },
     {
       name: "role",
       label: "Uprawnienia",

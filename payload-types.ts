@@ -177,10 +177,18 @@ export interface Submission {
 export interface User {
   id: number;
   /**
-   * Wpisz hasło przy tworzeniu konta lub aby zmienić hasło użytkownika. Zmiana wyloguje jego aktywne sesje.
+   * Ustaw początkowe hasło konta (od 8 do 128 znaków).
    */
   newPassword?: string | null;
   name: string;
+  /**
+   * Powiadomienia wymagają podania adresu poniżej. Lokalnie wiadomości nie są wysyłane.
+   */
+  emailNotifications?: boolean | null;
+  /**
+   * Pozostaw puste, aby nie otrzymywać wiadomości. Adres logowania nie jest używany jako zastępczy.
+   */
+  notificationEmail?: string | null;
   role: 'cms' | 'admin';
   /**
    * Auto-added by Better Auth (email)
@@ -450,6 +458,8 @@ export interface SubmissionsSelect<T extends boolean = true> {
 export interface UsersSelect<T extends boolean = true> {
   newPassword?: T;
   name?: T;
+  emailNotifications?: T;
+  notificationEmail?: T;
   role?: T;
   email?: T;
   emailVerified?: T;

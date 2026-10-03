@@ -398,3 +398,28 @@
     padding: 16px;
   }
 }
+
+.staff-password-change {
+  margin-block: 24px;
+  padding: 20px;
+  border: 1px solid var(--theme-elevation-150);
+  border-radius: 8px;
+}
+.staff-password-change label {
+  display: block;
+  margin-block: 16px;
+}
+.staff-password-change input {
+  display: block;
+  width: min(100%, 420px);
+  padding: 10px;
+  margin-top: 6px;
+  border: 1px solid var(--theme-elevation-200);
+  border-radius: 4px;
+}
+.staff-password-change button {
+  cursor: pointer;
+  padding: 10px 16px;
+  border: 1px solid var(--theme-elevation-200);
+  border-radius: 4px;
+}

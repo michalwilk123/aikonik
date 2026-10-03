@@ -1,8 +1,11 @@
 import assert from "node:assert/strict";
 import { after, before, test } from "node:test";
 import { sqliteD1Adapter } from "@payloadcms/db-d1-sqlite";
-import { buildConfig, getPayload, type Payload } from "payload";
+import { hashPassword, verifyPassword } from "better-auth/crypto";
+import { buildConfig, createLocalReq, getPayload, type Payload } from "payload";
+import { staffAuthPlugins } from "@/infrastructure/cms/auth";
 import { submissions, users } from "@/infrastructure/cms/collections";
+import { changeStaffPassword } from "@/infrastructure/cms/password-endpoint";
 import { insertSubmission } from "@/infrastructure/cms/submissions";
 import type { User } from "@/payload-types";
 import { testDatabase } from "@/tests/helpers/d1";
@@ -28,7 +31,12 @@ before(async () => {
   payload = await getPayload({
     config: buildConfig({
       secret: "cms-integration-test-secret",
+      routes: { api: "/api/cms" },
       collections: [submissions, users],
+      plugins: staffAuthPlugins(
+        "cms-integration-test-secret",
+        "http://localhost:3000",
+      ),
       db: sqliteD1Adapter({
         binding: fixture.db as unknown as D1Database,
         push: false,
@@ -148,7 +156,7 @@ test("staff manage every inbox while submitted contact data and Canvas remain im
   }
 });
 
-test("staff can choose a colleague but cannot change accounts or expose submissions publicly", async () => {
+test("staff can choose a colleague but cannot change other accounts or expose submissions publicly", async () => {
   const directory = await payload.find({
     collection: "users",
     user: worker,
@@ -166,7 +174,7 @@ test("staff can choose a colleague but cannot change accounts or expose submissi
   await assert.rejects(
     payload.update({
       collection: "users",
-      id: worker.id,
+      id: colleague.id,
       user: worker,
       overrideAccess: false,
       data: { role: "admin" },
@@ -191,4 +199,169 @@ test("staff can choose a colleague but cannot change accounts or expose submissi
       },
     }),
   );
+});
+
+test("staff edit only their own notification settings and cannot elevate their role", async () => {
+  const updated = await payload.update({
+    collection: "users",
+    id: worker.id,
+    user: worker,
+    overrideAccess: false,
+    data: {
+      emailNotifications: true,
+      notificationEmail: "notify@example.pl",
+      role: "admin",
+    },
+  });
+  assert.equal(updated.role, "cms");
+  assert.equal(updated.emailNotifications, true);
+  assert.equal(updated.notificationEmail, "notify@example.pl");
+  await assert.rejects(
+    payload.update({
+      collection: "users",
+      id: colleague.id,
+      user: worker,
+      overrideAccess: false,
+      data: {
+        emailNotifications: true,
+        notificationEmail: "stolen@example.pl",
+      },
+    }),
+  );
+  const other = await payload.findByID({
+    collection: "users",
+    id: worker.id,
+    user: colleague,
+    overrideAccess: false,
+  });
+  assert.equal(other.notificationEmail, undefined);
+  assert.equal(other.emailNotifications, undefined);
+  await assert.rejects(
+    payload.update({
+      collection: "users",
+      id: worker.id,
+      user: worker,
+      overrideAccess: false,
+      data: { notificationEmail: "invalid-email" },
+    }),
+  );
+  const admin = { ...colleague, role: "admin" as const };
+  const administered = await payload.update({
+    collection: "users",
+    id: worker.id,
+    user: admin,
+    overrideAccess: false,
+    data: { emailNotifications: false, notificationEmail: null },
+  });
+  assert.equal(administered.emailNotifications, false);
+  assert.equal(administered.notificationEmail, null);
+});
+
+test("password changes require permission, confirmation and the current password, and revoke sessions", async () => {
+  const initial = "original-password";
+  await payload.create({
+    collection: "accounts",
+    data: {
+      user: worker.id,
+      accountId: String(worker.id),
+      providerId: "credential",
+      password: await hashPassword(initial),
+    },
+  });
+  await payload.create({
+    collection: "sessions",
+    data: {
+      user: worker.id,
+      token: "old-session",
+      expiresAt: new Date(Date.now() + 3600000).toISOString(),
+    },
+  });
+  async function change(
+    user: User | undefined,
+    id: number,
+    body: object,
+    origin = "http://localhost:3000",
+  ) {
+    const req = await createLocalReq(
+      {
+        user,
+        req: {
+          url: `http://localhost:3000/api/cms/users/${id}/change-password`,
+          routeParams: { id: String(id) },
+          headers: new Headers({ origin }),
+          json: async () => body,
+        },
+      },
+      payload,
+    );
+    return changeStaffPassword(req);
+  }
+  const input = {
+    password: "changed-password",
+    confirmation: "changed-password",
+    currentPassword: initial,
+  };
+  assert.equal((await change(undefined, worker.id, input)).status, 401);
+  assert.equal((await change(colleague, worker.id, input)).status, 403);
+  assert.equal(
+    (await change(worker, worker.id, input, "https://other.example")).status,
+    403,
+  );
+  assert.equal(
+    (await change(worker, worker.id, { ...input, confirmation: "mismatched" }))
+      .status,
+    400,
+  );
+  assert.equal(
+    (
+      await change(worker, worker.id, {
+        ...input,
+        password: "short",
+        confirmation: "short",
+      })
+    ).status,
+    400,
+  );
+  assert.equal(
+    (
+      await change(worker, worker.id, {
+        ...input,
+        currentPassword: "wrong-password",
+      })
+    ).status,
+    400,
+  );
+  assert.equal((await payload.count({ collection: "sessions" })).totalDocs, 1);
+  assert.equal((await change(worker, worker.id, input)).status, 200);
+  const account = (await payload.find({ collection: "accounts" })).docs[0];
+  assert.ok(account.password);
+  assert.equal(
+    await verifyPassword({ hash: account.password, password: input.password }),
+    true,
+  );
+  assert.equal(
+    await verifyPassword({ hash: account.password, password: initial }),
+    false,
+  );
+  assert.equal((await payload.count({ collection: "sessions" })).totalDocs, 0);
+  const admin = { ...colleague, role: "admin" as const };
+  assert.equal(
+    (
+      await change(admin, worker.id, {
+        password: initial,
+        confirmation: initial,
+      })
+    ).status,
+    200,
+  );
+  assert.equal(
+    (
+      await change(admin, colleague.id, {
+        password: initial,
+        confirmation: initial,
+      })
+    ).status,
+    200,
+  );
+  assert.equal((await payload.count({ collection: "accounts" })).totalDocs, 2);
 });

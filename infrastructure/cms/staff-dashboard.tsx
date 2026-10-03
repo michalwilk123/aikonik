@@ -27,6 +27,7 @@ export function StaffInboxLinks({ user }: ServerProps) {
   return (
     <nav className="staff-inbox-nav" aria-label="Skrzynki zgłoszeń">
       <Link href="/admin">Pulpit pracownika</Link>
+      <Link href={`/admin/collections/users/${user.id}`}>Moje ustawienia</Link>
       {submissionInboxes.map((inbox) => (
         <Link
           key={inbox.source}

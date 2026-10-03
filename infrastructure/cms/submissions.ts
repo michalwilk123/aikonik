@@ -1,6 +1,7 @@
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import type { AgentArtifact } from "@/agents/types";
 import { ChatConflict } from "@/domain/chat/types";
+import { notifyNewIdea } from "@/infrastructure/email/idea-notifications";
 
 export type SubmissionInput = {
   id: string;
@@ -14,7 +15,11 @@ export type SubmissionInput = {
   sourceTurnId?: string;
 };
 
-export async function insertSubmission(db: D1Database, input: SubmissionInput) {
+export async function insertSubmission(
+  db: D1Database,
+  input: SubmissionInput,
+  onCreated?: () => void,
+) {
   const canonical = JSON.stringify([
     input.source,
     input.name,
@@ -67,7 +72,10 @@ export async function insertSubmission(db: D1Database, input: SubmissionInput) {
       input.conversationId ?? null,
     )
     .run();
-  if (result.meta.changes) return { id: input.id };
+  if (result.meta.changes) {
+    onCreated?.();
+    return { id: input.id };
+  }
   const existing = await db
     .prepare(
       "SELECT id, fingerprint FROM submissions WHERE id = ? OR source_turn_id = ?",
@@ -83,6 +91,23 @@ export async function insertSubmission(db: D1Database, input: SubmissionInput) {
   );
 }
 
-export async function saveSubmission(input: SubmissionInput) {
-  return insertSubmission(getCloudflareContext().env.DB, input);
+export async function saveSubmission(
+  input: SubmissionInput,
+  requestURL: string,
+) {
+  const { env, ctx } = getCloudflareContext();
+  return insertSubmission(env.DB, input, () => {
+    const notification = notifyNewIdea(env.DB, input, {
+      apiKey: env.RESEND_API_KEY,
+      from: env.RESEND_FROM_EMAIL,
+      siteURL: new URL(requestURL).origin,
+      production: process.env.NODE_ENV === "production",
+    }).catch(() => {
+      // biome-ignore lint/suspicious/noConsole: Keep notification failures separate from successful submission receipts.
+      console.error("Idea notification processing failed", {
+        submissionId: input.id,
+      });
+    });
+    ctx.waitUntil(notification);
+  });
 }
