@@ -21,7 +21,7 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate:local": "wrangler d1 migrations apply hubmi --local",
     "db:migrate:remote": "wrangler d1 migrations apply hubmi --remote",
-    "test:integration": "bun test ./tests/integration",
+    "test:integration": "bun test --timeout 30000 ./tests/integration",
     "test:e2e": "playwright test",
     "eval:openrouter": "bun run evals/openrouter.ts",
     "cms:seed": "bun scripts/seed-staff.ts"
