@@ -3,8 +3,8 @@ import type { AgentId } from "@/agents/types";
 export const agents = {
   odkrywaj: {
     label: "Odkrywaj",
-    color: "#0f766e",
-    tint: "#f0fdfa",
+    color: "#1B2340",
+    tint: "#E9ECF5",
     step: "01",
     title: "Od potrzeby do możliwości.",
     description:
@@ -19,8 +19,8 @@ export const agents = {
   },
   "dodaj-pomysl": {
     label: "Dodaj pomysł",
-    color: "#7e22ce",
-    tint: "#faf5ff",
+    color: "#C62832",
+    tint: "#FBE3E1",
     step: "02",
     title: "Twój pomysł ma dobry początek.",
     description:
@@ -35,8 +35,8 @@ export const agents = {
   },
   "testuj-innowacje": {
     label: "Testuj innowacje",
-    color: "#92400e",
-    tint: "#fffbeb",
+    color: "#7A4B00",
+    tint: "#FFF1CC",
     step: "03",
     title: "Mały test. Ważna zmiana.",
     description:
@@ -51,8 +51,8 @@ export const agents = {
   },
   "wdrazanie-innowacji": {
     label: "Wdrażanie innowacji",
-    color: "#be123c",
-    tint: "#fff1f2",
+    color: "#2F6B4F",
+    tint: "#E4F2E9",
     step: "04",
     title: "Sprawdzone rozwiązanie. Nowe miejsce.",
     description:

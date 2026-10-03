@@ -2,7 +2,7 @@ import { Clock, Mail, MapPin, Phone } from "lucide-react";
 import type { Metadata } from "next";
 import { SiteFooter } from "@/app/_components/site-footer";
 import { SiteHeader } from "@/app/_components/site-header";
-import { ContactForm } from "@/app/kontakt/contact-form";
+import { ContactForm } from "@/app/(public)/kontakt/contact-form";
 
 export const metadata: Metadata = {
   title: "Kontakt",
@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 };
 
 const link =
-  "inline-flex min-h-11 items-center font-medium text-primary underline underline-offset-4 outline-none focus-visible:ring-3 focus-visible:ring-ring/50 rounded-sm";
+  "inline-flex min-h-11 items-center font-medium text-primary underline underline-offset-4 outline-none focus-visible:ring-3 focus-visible:ring-ring/50 rounded-full";
 
 function Illustration() {
   return (
@@ -21,7 +21,7 @@ function Illustration() {
       viewBox="0 0 200 140"
       className="h-auto w-40 shrink-0"
     >
-      <rect width="200" height="140" rx="16" fill="#eaedff" />
+      <rect width="200" height="140" rx="16" fill="#FBE3E1" />
       <rect
         x="22"
         y="36"
@@ -29,13 +29,13 @@ function Illustration() {
         height="72"
         rx="8"
         fill="#ffffff"
-        stroke="#131b2e"
+        stroke="#1B2340"
         strokeWidth="3"
       />
       <path
         d="M26 42 74 80l48-38"
         fill="none"
-        stroke="#131b2e"
+        stroke="#1B2340"
         strokeWidth="3"
         strokeLinejoin="round"
       />
@@ -45,11 +45,11 @@ function Illustration() {
         width="60"
         height="68"
         rx="10"
-        fill="#006f66"
-        stroke="#131b2e"
+        fill="#C62832"
+        stroke="#1B2340"
         strokeWidth="3"
       />
-      <rect x="124" y="62" width="44" height="40" rx="4" fill="#86f2e4" />
+      <rect x="124" y="62" width="44" height="40" rx="4" fill="#FFF1CC" />
       <circle cx="146" cy="111" r="4" fill="#ffffff" />
     </svg>
   );
@@ -66,7 +66,7 @@ export default function KontaktPage() {
       >
         <header className="flex flex-col items-start gap-6 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex flex-col gap-3">
-            <h1 className="text-3xl font-bold text-primary sm:text-4xl">
+            <h1 className="text-3xl font-extrabold text-foreground sm:text-4xl">
               Kontakt
             </h1>
             <p className="max-w-prose text-lg leading-7 text-on-surface-variant">
@@ -79,9 +79,12 @@ export default function KontaktPage() {
 
         <section
           aria-labelledby="dane"
-          className="rounded-2xl bg-surface-container-low p-5 sm:p-6"
+          className="rounded-3xl bg-surface-container p-5 sm:p-6"
         >
-          <h2 id="dane" className="mb-4 text-2xl font-semibold text-primary">
+          <h2
+            id="dane"
+            className="mb-4 text-2xl font-extrabold text-foreground"
+          >
             Dane kontaktowe
           </h2>
           {/* TODO: verify all contact details and opening hours with ROPS Kraków before production. */}
@@ -91,7 +94,7 @@ export default function KontaktPage() {
             </p>
             <p className="flex items-start gap-3">
               <MapPin
-                className="mt-0.5 size-5 shrink-0 text-secondary"
+                className="mt-0.5 size-5 shrink-0 text-primary"
                 aria-hidden="true"
               />
               <span>
@@ -103,7 +106,7 @@ export default function KontaktPage() {
             </p>
             <p className="flex items-center gap-3">
               <Phone
-                className="size-5 shrink-0 text-secondary"
+                className="size-5 shrink-0 text-primary"
                 aria-hidden="true"
               />
               <span>
@@ -115,7 +118,7 @@ export default function KontaktPage() {
             </p>
             <p className="flex items-center gap-3">
               <Mail
-                className="size-5 shrink-0 text-secondary"
+                className="size-5 shrink-0 text-primary"
                 aria-hidden="true"
               />
               <span>
@@ -127,7 +130,7 @@ export default function KontaktPage() {
             </p>
             <p className="flex items-start gap-3">
               <Clock
-                className="mt-0.5 size-5 shrink-0 text-secondary"
+                className="mt-0.5 size-5 shrink-0 text-primary"
                 aria-hidden="true"
               />
               <span>Godziny pracy: poniedziałek–piątek, 8:00–16:00</span>
@@ -136,7 +139,10 @@ export default function KontaktPage() {
         </section>
 
         <section aria-labelledby="formularz" className="flex flex-col gap-4">
-          <h2 id="formularz" className="text-2xl font-semibold text-primary">
+          <h2
+            id="formularz"
+            className="text-2xl font-extrabold text-foreground"
+          >
             Napisz do nas
           </h2>
           <ContactForm />
@@ -144,9 +150,12 @@ export default function KontaktPage() {
 
         <section
           aria-labelledby="naglo"
-          className="rounded-2xl border-2 border-primary bg-white p-5 sm:p-6"
+          className="rounded-3xl border-2 border-primary bg-white p-5 sm:p-6"
         >
-          <h2 id="naglo" className="mb-3 text-2xl font-semibold text-primary">
+          <h2
+            id="naglo"
+            className="mb-3 text-2xl font-extrabold text-foreground"
+          >
             W nagłych sytuacjach
           </h2>
           <p className="mb-4 leading-6 text-on-surface">
@@ -180,7 +189,10 @@ export default function KontaktPage() {
           aria-labelledby="dostepnosc-h"
           className="flex scroll-mt-24 flex-col gap-3 leading-6 text-on-surface"
         >
-          <h2 id="dostepnosc-h" className="text-2xl font-semibold text-primary">
+          <h2
+            id="dostepnosc-h"
+            className="text-2xl font-extrabold text-foreground"
+          >
             Deklaracja dostępności
           </h2>
           <p>
@@ -188,7 +200,7 @@ export default function KontaktPage() {
             Chcemy, żeby każdy mógł z niej korzystać. Naszym celem jest zgodność
             ze standardem WCAG 2.1 na poziomie AA.
           </p>
-          <h3 className="mt-2 text-lg font-semibold text-primary">
+          <h3 className="mt-2 text-lg font-extrabold text-foreground">
             Co już zrobiliśmy
           </h3>
           <ul className="list-disc space-y-1 pl-6">
@@ -201,7 +213,7 @@ export default function KontaktPage() {
             Prototyp nie został jeszcze w pełni sprawdzony przez ekspertów. Mogą
             w nim być błędy.
           </p>
-          <h3 className="mt-2 text-lg font-semibold text-primary">
+          <h3 className="mt-2 text-lg font-extrabold text-foreground">
             Znalazłeś barierę?
           </h3>
           <p>

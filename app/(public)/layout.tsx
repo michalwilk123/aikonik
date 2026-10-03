@@ -1,28 +1,37 @@
 import type { Metadata, Viewport } from "next";
-import { Public_Sans } from "next/font/google";
+import { Caveat, Nunito } from "next/font/google";
 import "@/app/globals.css";
 
-const publicSans = Public_Sans({
-  variable: "--font-public-sans",
+const nunito = Nunito({
+  variable: "--font-nunito",
   subsets: ["latin", "latin-ext"],
-  weight: ["400", "500", "600", "700"],
+  weight: ["400", "500", "600", "700", "800", "900"],
+});
+
+const caveat = Caveat({
+  variable: "--font-caveat",
+  subsets: ["latin", "latin-ext"],
+  weight: ["500", "600"],
 });
 
 export const metadata: Metadata = {
   title: {
-    default: "Hubmi — Małopolski Hub Innowacji Społecznych",
-    template: "%s · Hubmi",
+    default: "AIkonik — Twój asystent w sprawach codziennych w Małopolsce",
+    template: "%s · AIkonik",
   },
   description:
-    "Hubmi pomaga mieszkańcom Małopolski znaleźć wsparcie społeczne i zgłosić pomysł na innowację. Projekt Regionalnego Ośrodka Polityki Społecznej w Krakowie.",
+    "AIkonik to przyjazny asystent AI, który pomaga mieszkańcom województwa małopolskiego załatwiać sprawy urzędowe i codzienne: proste odpowiedzi, jasne wyjaśnienia, pomoc 24/7.",
   generator: "hubmi",
 };
 
-export const viewport: Viewport = { themeColor: "#091426" };
+export const viewport: Viewport = { themeColor: "#C62832" };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="pl" className={`${publicSans.variable} h-full antialiased`}>
+    <html
+      lang="pl"
+      className={`${nunito.variable} ${caveat.variable} h-full antialiased`}
+    >
       <body className="flex min-h-full flex-col">
         <a
           href="#tresc"

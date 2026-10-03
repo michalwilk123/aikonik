@@ -24,17 +24,17 @@ export function AgentComposer({
 }) {
   const agent = agents[agentId];
   return (
-    <div className="pointer-events-none fixed inset-x-0 bottom-0 z-20 bg-linear-to-t from-background via-background/90 to-transparent px-4 pt-10 pb-5 sm:px-6">
-      <div className="pointer-events-auto mx-auto max-w-3xl">
+    <div className="pointer-events-none fixed inset-x-0 bottom-0 z-20 bg-linear-to-t from-background via-background/90 to-transparent pt-10 pb-5">
+      <div className="pointer-events-auto mx-auto w-full max-w-3xl px-4 sm:px-6">
         <form
           onSubmit={(event) => {
             event.preventDefault();
             onSubmit();
           }}
-          className="flex items-end gap-2 rounded-2xl border border-slate-200 bg-white p-2 shadow-dock"
+          className="flex items-end gap-2 rounded-3xl border border-outline-variant bg-white p-2 shadow-dock"
         >
           <label htmlFor="agent-prompt" className="sr-only">
-            Wiadomość · {agent.label}
+            Wiadomość
           </label>
           <Textarea
             id="agent-prompt"
@@ -60,13 +60,9 @@ export function AgentComposer({
             type={pending ? "button" : "submit"}
             onClick={pending ? onStop : undefined}
             disabled={!pending && !value.trim()}
-            aria-label={
-              pending
-                ? `Zatrzymaj · ${agent.label}`
-                : `Wyślij wiadomość · ${agent.label}`
-            }
+            aria-label={pending ? "Zatrzymaj" : "Wyślij wiadomość"}
             style={{ backgroundColor: agent.color }}
-            className="size-12 shrink-0 rounded-full"
+            className="size-12 shrink-0 rounded-full transition-[background-color,transform] duration-500 active:scale-95"
           >
             {pending ? (
               <Square className="size-4" fill="currentColor" />
@@ -75,8 +71,8 @@ export function AgentComposer({
             )}
           </Button>
         </form>
-        <p className="mt-2 text-center text-xs text-slate-500">
-          {agent.label} · Enter wysyła · Rozmowy dostępne do odświeżenia strony
+        <p className="mt-2 text-center text-xs text-on-surface-variant">
+          Enter wysyła · Rozmowy dostępne do odświeżenia strony
         </p>
       </div>
     </div>

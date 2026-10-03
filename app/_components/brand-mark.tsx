@@ -1,17 +1,11 @@
-// Two overlapping rings: a need meeting a solution (social matchmaking).
-export function BrandMark({ className }: { className?: string }) {
+// AIkonik wordmark: "AI" in navy + "konik" in Kraków red, Nunito 900.
+export function Wordmark({ className = "text-2xl" }: { className?: string }) {
   return (
-    <svg viewBox="0 0 32 32" className={className} aria-hidden="true">
-      <rect width="32" height="32" rx="8" fill="#091426" />
-      <circle cx="12.5" cy="16" r="5" fill="#86f2e4" />
-      <circle
-        cx="19.5"
-        cy="16"
-        r="5"
-        fill="none"
-        stroke="#86f2e4"
-        strokeWidth="2.5"
-      />
-    </svg>
+    <span
+      className={`font-black tracking-tight whitespace-nowrap ${className}`}
+    >
+      <span className="text-foreground">AI</span>
+      <span className="text-primary">konik</span>
+    </span>
   );
 }

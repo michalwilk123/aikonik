@@ -1,5 +1,5 @@
-// Flat, friendly illustrations. Palette: navy #091426, teal #006a61,
-// mint #86f2e4, soft yellow #f6c453, lavender #eaedff / #e2e7ff, skin tones.
+// Flat, friendly illustrations. Palette: navy #1B2340, Kraków red #C62832,
+// pastel red #FBE3E1, gold #F2A81D, beige #F4EEE6 / #EADFD3, skin tones.
 type Props = {
   className?: string;
   title?: string;
@@ -30,22 +30,22 @@ function Svg({
   );
 }
 
-const NAVY = "#091426";
-const TEAL = "#006a61";
-const MINT = "#86f2e4";
-const YELLOW = "#f6c453";
+const NAVY = "#1B2340";
+const TEAL = "#C62832";
+const MINT = "#FBE3E1";
+const YELLOW = "#F2A81D";
 
 // Town hall of a Małopolska town: clock tower, steps, flag.
 export function TownHallIllustration({ className, title, box }: Props) {
   return (
     <Svg className={className} title={title} box={box} viewBox="0 0 240 200">
-      <ellipse cx="120" cy="188" rx="110" ry="8" fill="#e2e7ff" />
+      <ellipse cx="120" cy="188" rx="110" ry="8" fill="#EADFD3" />
       <rect
         x="100"
         y="20"
         width="40"
         height="70"
-        fill="#eaedff"
+        fill="#F4EEE6"
         stroke={NAVY}
         strokeWidth="3"
       />
@@ -127,7 +127,7 @@ export function TownHallIllustration({ className, title, box }: Props) {
         y="178"
         width="208"
         height="10"
-        fill="#c5c6cd"
+        fill="#E6DCD0"
         stroke={NAVY}
         strokeWidth="3"
       />
@@ -147,7 +147,7 @@ export function TownHallIllustration({ className, title, box }: Props) {
 export function SeniorIllustration({ className, title, box }: Props) {
   return (
     <Svg className={className} title={title} box={box} viewBox="0 0 120 200">
-      <ellipse cx="60" cy="190" rx="44" ry="6" fill="#e2e7ff" />
+      <ellipse cx="60" cy="190" rx="44" ry="6" fill="#EADFD3" />
       <path
         d="M44 150v34M68 150v34"
         stroke={NAVY}
@@ -205,7 +205,7 @@ export function SeniorIllustration({ className, title, box }: Props) {
       />
       <path
         d="M36 52c0-22 12-30 24-30s24 8 24 30c-6-10-12-14-24-14s-18 4-24 14z"
-        fill="#e8e8ee"
+        fill="#EADFD3"
         stroke={NAVY}
         strokeWidth="3"
         strokeLinejoin="round"
@@ -230,7 +230,7 @@ export function SeniorIllustration({ className, title, box }: Props) {
 export function ParentChildIllustration({ className, title, box }: Props) {
   return (
     <Svg className={className} title={title} box={box} viewBox="0 0 160 200">
-      <ellipse cx="80" cy="190" rx="66" ry="6" fill="#e2e7ff" />
+      <ellipse cx="80" cy="190" rx="66" ry="6" fill="#EADFD3" />
       {/* parent */}
       <path
         d="M38 150v34M62 150v34"
@@ -343,10 +343,10 @@ export function ParentChildIllustration({ className, title, box }: Props) {
 export function VolunteerIllustration({ className, title, box }: Props) {
   return (
     <Svg className={className} title={title} box={box} viewBox="0 0 140 200">
-      <ellipse cx="70" cy="190" rx="52" ry="6" fill="#e2e7ff" />
+      <ellipse cx="70" cy="190" rx="52" ry="6" fill="#EADFD3" />
       <path
         d="M52 152v32M76 152v32"
-        stroke="#3b4a68"
+        stroke="#5B6075"
         strokeWidth="9"
         strokeLinecap="round"
       />
@@ -512,7 +512,7 @@ export function LinkedCirclesIllustration({ className, title, box }: Props) {
 export function StepWriteIllustration({ className, title, box }: Props) {
   return (
     <Svg className={className} title={title} box={box} viewBox="0 0 96 96">
-      <circle cx="48" cy="48" r="46" fill="#eaedff" />
+      <circle cx="48" cy="48" r="46" fill="#F4EEE6" />
       <rect
         x="24"
         y="20"
@@ -543,7 +543,7 @@ export function StepWriteIllustration({ className, title, box }: Props) {
 export function StepSearchIllustration({ className, title, box }: Props) {
   return (
     <Svg className={className} title={title} box={box} viewBox="0 0 96 96">
-      <circle cx="48" cy="48" r="46" fill="#eaedff" />
+      <circle cx="48" cy="48" r="46" fill="#F4EEE6" />
       <circle
         cx="42"
         cy="42"
@@ -571,7 +571,7 @@ export function StepSearchIllustration({ className, title, box }: Props) {
 export function StepContactIllustration({ className, title, box }: Props) {
   return (
     <Svg className={className} title={title} box={box} viewBox="0 0 96 96">
-      <circle cx="48" cy="48" r="46" fill="#eaedff" />
+      <circle cx="48" cy="48" r="46" fill="#F4EEE6" />
       <rect
         x="30"
         y="14"
@@ -604,26 +604,6 @@ export function StepContactIllustration({ className, title, box }: Props) {
         strokeWidth="2.5"
       />
       <circle cx="48" cy="72" r="3.5" fill={NAVY} />
-    </Svg>
-  );
-}
-
-// Hero scene: town hall with a senior, a parent with child and a volunteer.
-export function HeroIllustration({ className, title, box }: Props) {
-  return (
-    <Svg className={className} title={title} box={box} viewBox="0 0 480 300">
-      <rect width="480" height="300" rx="24" fill="#eaedff" />
-      <circle cx="410" cy="50" r="22" fill={YELLOW} />
-      <TownHallIllustration box={{ x: 150, y: 6, width: 190, height: 160 }} />
-      <SeniorIllustration box={{ x: 20, y: 90, width: 120, height: 200 }} />
-      <ParentChildIllustration
-        box={{ x: 170, y: 90, width: 140, height: 200 }}
-      />
-      <VolunteerIllustration box={{ x: 330, y: 90, width: 130, height: 200 }} />
-      <SpeechBubblesIllustration
-        box={{ x: 330, y: 14, width: 120, height: 90 }}
-      />
-      <rect y="284" width="480" height="16" fill="#e2e7ff" />
     </Svg>
   );
 }

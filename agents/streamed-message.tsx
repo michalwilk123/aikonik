@@ -28,14 +28,14 @@ export function StreamedMessage({
   return (
     <article
       className="chat-enter w-full"
-      aria-label={`Odpowiedź · ${agent.label}`}
+      aria-label="Odpowiedź asystenta"
       aria-busy={pending || revealing}
     >
       <p className="mb-2 text-xs font-semibold" style={{ color: agent.color }}>
-        Asystent · {agent.label}
+        Asystent
       </p>
       {text ? (
-        <p className="chat-text whitespace-pre-wrap break-words text-[16px] leading-7 text-slate-800">
+        <p className="chat-text whitespace-pre-wrap break-words text-[16px] leading-7 text-foreground">
           {text}
           {(pending || revealing) && (
             <span
@@ -60,11 +60,33 @@ export function StreamedMessage({
               />
             ))}
           </span>
-          {agent.label} przygotowuje odpowiedź…
+          Asystent przygotowuje odpowiedź…
         </div>
       ) : null}
+      {reply?.artifact && !revealing && (
+        <section
+          className="mt-4 rounded-2xl border border-outline-variant bg-white p-5"
+          aria-label="Roboczy szkic"
+        >
+          <h2 className="font-semibold text-foreground">
+            {reply.artifact.title}
+          </h2>
+          <dl className="mt-4 space-y-4">
+            {reply.artifact.fields.map((field) => (
+              <div key={field.label}>
+                <dt className="text-sm font-semibold text-foreground">
+                  {field.label}
+                </dt>
+                <dd className="mt-1 whitespace-pre-wrap text-sm leading-6 text-on-surface-variant">
+                  {field.value}
+                </dd>
+              </div>
+            ))}
+          </dl>
+        </section>
+      )}
       {reply && !revealing && reply.sources.length > 0 && (
-        <details className="chat-enter mt-4 rounded-xl border border-slate-200 bg-white px-4 py-3 text-xs text-slate-600">
+        <details className="chat-enter mt-4 rounded-2xl border border-outline-variant bg-white px-4 py-3 text-xs text-on-surface-variant">
           <summary className="cursor-pointer font-medium">
             Źródła · {reply.sources.length}
           </summary>
