@@ -138,10 +138,13 @@ export function IdeaCreatorChat() {
     <div className="mx-auto flex w-full max-w-3xl flex-col gap-8">
       <section className="rounded-3xl bg-surface-container-low p-6 sm:p-8">
         <p className="mb-2 text-sm font-semibold tracking-wider text-secondary uppercase">Kreator pomysłów</p>
-        <h1 className="text-3xl font-bold tracking-tight text-primary">Zamień pomysł w gotowy dokument</h1>
+        <h1 className="text-3xl font-bold tracking-tight text-primary">Masz pomysł na innowację społeczną w Twoim regionie?</h1>
         <p className="mt-3 max-w-2xl text-on-surface-variant">
-          Opisz swój pomysł własnymi słowami. Agent dopyta tylko o informacje potrzebne do przygotowania kanwy.
+          Opisz swój pomysł własnymi słowami i odpowiedz na pytania.
         </p>
+          <p className="mt-3 max-w-2xl text-on-surface-variant">
+              Pomysł zostanie przekazany do administratorów.
+          </p>
       </section>
 
       {messages.length === 0 ? (
