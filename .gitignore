@@ -48,3 +48,7 @@ next-env.d.ts
 
 # build-cloudflare temp
 *.build-hidden
+
+
+#IDE
+.idea
