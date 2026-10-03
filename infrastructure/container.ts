@@ -1,5 +1,11 @@
+import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { makeFindSupport } from "@/application/use-cases/find-support";
-import { hardcodedSupportMatcher } from "@/infrastructure/support/hardcoded-support-matcher";
+import { createChatModel } from "@/infrastructure/ai/openrouter";
+import { makeOpenRouterSupportMatcher } from "@/infrastructure/support/openrouter-support-matcher";
 
 // Composition root: the only place that picks concrete adapters.
-export const findSupport = makeFindSupport(hardcodedSupportMatcher);
+export async function findSupport(query: string) {
+  const { env } = getCloudflareContext();
+  const model = createChatModel(env.OPENROUTER_API_KEY ?? "");
+  return makeFindSupport(makeOpenRouterSupportMatcher(model))(query);
+}

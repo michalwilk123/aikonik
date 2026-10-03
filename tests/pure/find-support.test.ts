@@ -8,7 +8,7 @@ test("rejects empty input before calling the matcher", async () => {
   const findSupport = makeFindSupport({
     async match() {
       calls++;
-      return { areaLabel: "", offers: [] };
+      return { message: "", areaLabel: "", offers: [] };
     },
   });
 
@@ -23,7 +23,11 @@ test("rejects empty input before calling the matcher", async () => {
 
 test("passes normalized Polish input to the matcher and returns its answer", async () => {
   const queries: string[] = [];
-  const answer: SupportAnswer = { areaLabel: "Małopolska", offers: [] };
+  const answer: SupportAnswer = {
+    message: "Odpowiedź",
+    areaLabel: "Małopolska",
+    offers: [],
+  };
   const findSupport = makeFindSupport({
     async match(query) {
       queries.push(query);

@@ -8,7 +8,12 @@ import { PromptDock } from "./prompt-dock";
 import { SupportOfferCard } from "./support-offer-card";
 import { Welcome } from "./welcome";
 
-type Turn = { id: number; query: string; answer: SupportAnswer | null };
+type Turn = {
+  id: number;
+  query: string;
+  answer: SupportAnswer | null;
+  error?: string;
+};
 
 export function Chat() {
   const [turns, setTurns] = useState<Turn[]>([]);
@@ -17,7 +22,7 @@ export function Chat() {
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const endRef = useRef<HTMLDivElement>(null);
 
-  const pending = turns.some((t) => t.answer === null);
+  const pending = turns.some((t) => t.answer === null && !t.error);
 
   useEffect(() => {
     if (turns.length > 0) {
@@ -37,8 +42,22 @@ export function Chat() {
     const id = turns.length;
     setTurns((prev) => [...prev, { id, query, answer: null }]);
     setDraft("");
-    const answer = await askAssistant(query);
-    setTurns((prev) => prev.map((t) => (t.id === id ? { ...t, answer } : t)));
+    try {
+      const answer = await askAssistant(query);
+      setTurns((prev) => prev.map((t) => (t.id === id ? { ...t, answer } : t)));
+    } catch {
+      setTurns((prev) =>
+        prev.map((t) =>
+          t.id === id
+            ? {
+                ...t,
+                error:
+                  "Nie udało się uzyskać odpowiedzi. Spróbuj ponownie za chwilę.",
+              }
+            : t,
+        ),
+      );
+    }
   }
 
   return (
@@ -62,6 +81,9 @@ export function Chat() {
                   <h2 className="text-xs font-semibold tracking-wider text-secondary uppercase">
                     Rekomendowane wsparcie · {turn.answer.areaLabel}
                   </h2>
+                  <p className="whitespace-pre-wrap text-on-surface">
+                    {turn.answer.message}
+                  </p>
                   {turn.answer.offers.map((offer) => (
                     <SupportOfferCard
                       key={offer.id}
@@ -70,6 +92,10 @@ export function Chat() {
                     />
                   ))}
                 </section>
+              ) : turn.error ? (
+                <p role="alert" className="text-on-surface">
+                  {turn.error}
+                </p>
               ) : (
                 <div
                   role="status"

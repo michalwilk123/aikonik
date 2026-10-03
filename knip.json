@@ -6,5 +6,5 @@
     "db/client.ts",
     "components/ui/*.tsx"
   ],
-  "ignoreDependencies": ["ai", "@openrouter/ai-sdk-provider", "zod"]
+  "ignoreDependencies": []
 }

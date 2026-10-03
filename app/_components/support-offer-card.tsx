@@ -28,7 +28,7 @@ export function SupportOfferCard({ offer, onRequest }: Props) {
           {offer.meta}
         </p>
       </div>
-      {action.kind === "request" && (
+      {action?.kind === "request" && (
         <Button
           onClick={() => onRequest(offer)}
           className="h-11 shrink-0 px-5 text-sm font-semibold"
@@ -36,7 +36,7 @@ export function SupportOfferCard({ offer, onRequest }: Props) {
           {action.label}
         </Button>
       )}
-      {action.kind === "details" && (
+      {action?.kind === "details" && (
         <Button
           type="button"
           className="h-11 shrink-0 bg-surface-container px-5 text-sm font-semibold text-primary hover:bg-surface-container-high"
@@ -44,7 +44,7 @@ export function SupportOfferCard({ offer, onRequest }: Props) {
           {action.label}
         </Button>
       )}
-      {action.kind === "link" && (
+      {action?.kind === "link" && (
         <a
           href="/#"
           className="inline-flex min-h-11 shrink-0 items-center text-sm font-semibold text-secondary underline-offset-4 hover:underline"

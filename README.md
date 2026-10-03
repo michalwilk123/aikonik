@@ -40,6 +40,18 @@ Both CI and deployment checks run only this test suite. Keep any future
 token-backed model evaluations under `evals/`, outside `tests/pure/`, and
 run them explicitly; CI does not supply an OpenRouter key or run evaluations.
 
+## AI model
+
+The chat uses `deepseek/deepseek-v4.1-flash` through OpenRouter. All model-backed
+features should use the shared factory in `infrastructure/ai/openrouter.ts`.
+The Worker reads `OPENROUTER_API_KEY` per request; no secret is bundled into the
+browser. There is no hardcoded answer or fallback model. Responses are validated
+against the card schema, and provider failures show an error in the chat.
+
+The small ROPS report sample provides context, not a verified service catalog.
+Generated recommendations are suggestions; current service lookup and the
+Social Canvas agent remain implementation work described in the architecture.
+
 ## Migrations
 
 Edit `db/schema.ts`, run `bun run db:generate`, commit `drizzle/`, then
