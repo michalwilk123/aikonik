@@ -8,6 +8,7 @@ test("all real agent adapters route distinct instructions and preserve response 
   for (const agentId of agentIds) {
     const requests: Record<string, unknown>[] = [];
     const artifact = {
+      ready: false,
       title: "Szkic",
       fields: [{ label: "Problem", value: "Samotność seniorów" }],
     };

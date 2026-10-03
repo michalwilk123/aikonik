@@ -3,6 +3,7 @@ import { test } from "node:test";
 import { renderToStaticMarkup } from "react-dom/server";
 import { AgentComposer } from "@/agents/composer";
 import { AgentSubmissionForm } from "@/agents/submission-form";
+import { getAgentConfiguration } from "@/infrastructure/chat/agent-config";
 
 for (const source of ["dodaj-pomysl", "testuj-innowacje"] as const) {
   test(`${source} starts with a prefilled editable draft and next/cancel actions`, () => {
@@ -43,3 +44,25 @@ test("the composer disables typing and sending while a form is open", () => {
   assert.match(html, /<button[^>]*disabled/);
   assert.match(html, /Czat zablokowany/);
 });
+
+for (const source of ["dodaj-pomysl", "testuj-innowacje"] as const) {
+  test(`${source} requires AI to explicitly decide draft readiness`, () => {
+    const schema = getAgentConfiguration(source).outputSchema;
+    const output = {
+      message: "Szkic",
+      sourceIds: [],
+      artifact: {
+        title: "Szkic",
+        fields: [{ label: "Problem", value: "Samotność" }],
+      },
+    };
+    assert.equal(schema.safeParse(output).success, false);
+    for (const ready of [false, true]) {
+      assert.equal(
+        schema.safeParse({ ...output, artifact: { ...output.artifact, ready } })
+          .success,
+        true,
+      );
+    }
+  });
+}

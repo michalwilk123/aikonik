@@ -184,6 +184,7 @@ test("all streaming agents keep their role, resolve allowed sources and restrict
   for (const id of ids) {
     let request: Record<string, unknown> = {};
     const artifact = {
+      ready: false,
       title: "Szkic",
       fields: [{ label: "Odbiorcy", value: "Seniorzy w Tarnowie" }],
     };

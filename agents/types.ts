@@ -83,6 +83,10 @@ export const agentOutputSchema = z.object({
   sourceIds: z.array(z.string()).max(8),
   artifact: artifactSchema.nullable(),
 });
+// Require the model's decision for form agents; older persisted drafts remain readable.
+export const submissionAgentOutputSchema = agentOutputSchema.extend({
+  artifact: artifactSchema.extend({ ready: z.boolean() }).nullable(),
+});
 export const readOnlyAgentOutputSchema = agentOutputSchema.omit({
   artifact: true,
 });
