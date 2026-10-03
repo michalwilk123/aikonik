@@ -3,6 +3,10 @@
 import { useEffect, useRef, useState } from "react";
 import { askAssistant } from "@/app/actions";
 import type { SupportAnswer, SupportOffer } from "@/domain/support-offer";
+import {
+  ResponseDeadlineError,
+  withResponseDeadline,
+} from "@/infrastructure/async/response-deadline";
 import { ContactDialog } from "./contact-dialog";
 import { PromptDock } from "./prompt-dock";
 import { SupportOfferCard } from "./support-offer-card";
@@ -43,16 +47,18 @@ export function Chat() {
     setTurns((prev) => [...prev, { id, query, answer: null }]);
     setDraft("");
     try {
-      const answer = await askAssistant(query);
+      const answer = await withResponseDeadline(askAssistant(query));
       setTurns((prev) => prev.map((t) => (t.id === id ? { ...t, answer } : t)));
-    } catch {
+    } catch (error) {
       setTurns((prev) =>
         prev.map((t) =>
           t.id === id
             ? {
                 ...t,
                 error:
-                  "Nie udało się uzyskać odpowiedzi. Spróbuj ponownie za chwilę.",
+                  error instanceof ResponseDeadlineError
+                    ? "Odpowiedź trwa zbyt długo. Spróbuj ponownie za chwilę."
+                    : "Nie udało się uzyskać odpowiedzi. Spróbuj ponownie za chwilę.",
               }
             : t,
         ),

@@ -29,7 +29,7 @@ export function makeOpenRouterSupportMatcher(
         output: Output.object({ schema: supportAnswerSchema }),
         maxOutputTokens: 4000,
         maxRetries: 0,
-        abortSignal: AbortSignal.timeout(60000),
+        abortSignal: AbortSignal.timeout(30000),
       });
       return output;
     },

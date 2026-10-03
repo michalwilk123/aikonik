@@ -2,7 +2,7 @@
 
 Prepared 3 October 2026. This document defines a chat application for Małopolski Hub Innowacji Społecznych, using the challenge PDF, the existing Hubmi repository, aiwise, and current primary documentation. It is a design deliverable; application implementation and paid model evaluations are outside this pass.
 
-Keep the existing Next.js, Cloudflare Workers, D1 and Drizzle stack. Build two agents around one conversation runtime. The latest user instruction selects `deepseek/deepseek-v4.1-flash` through OpenRouter for all model-backed functionality, superseding the earlier local-only search and Gemini proposals. Chat text is therefore transmitted to OpenRouter for inference. Business actions remain restricted by application permissions. The current chat now uses this model; the full two-agent runtime below remains the implementation plan.
+Keep the existing Next.js, Cloudflare Workers, D1 and Drizzle stack. Build two agents around one conversation runtime. The latest user instruction selects `google/gemini-3.1-flash-lite` through OpenRouter for all model-backed functionality, superseding the earlier local-only search and DeepSeek model choice. Chat text is therefore transmitted to OpenRouter for inference. Business actions remain restricted by application permissions. The current chat now uses this model; the full two-agent runtime below remains the implementation plan.
 
 ## Agreed product decisions
 
@@ -11,11 +11,11 @@ Keep the existing Next.js, Cloudflare Workers, D1 and Drizzle stack. Build two a
 | Two agents | Confirmed: search and Kreator pomysłów. |
 | Current chat memory | Confirmed: remember earlier messages in the open chat. Reload starts a new conversation. |
 | Historical conversations | No user history list or restoration across reload. All accepted conversations and messages remain in D1. |
-| Model and inference | Latest decision: DeepSeek V4.1 Flash through OpenRouter for all model-backed functionality. User text may be sent for inference; search has no business mutation tools. |
+| Model and inference | Latest decision: Gemini 3.1 Flash Lite through OpenRouter for all model-backed functionality. User text may be sent for inference; search has no business mutation tools. |
 | Idea creation | Confirmed: extract the Social Canvas from natural-language input, ask follow-up questions, then show a confirmation component. |
 | Disconnect | Confirmed: stop execution and save the interrupted turn. |
 | Deliverable | Confirmed: architecture and research first, without implementation. |
-| Creator inference | Use the same shared DeepSeek model factory as the search chat. |
+| Creator inference | Use the same shared Gemini model factory as the search chat. |
 | Source dataset | Confirmed: use a small part of one report from the ROPS reports page. |
 | Confirmation destination | Confirmed: submit the reviewed Social Canvas to the admin inbox. |
 
@@ -25,7 +25,7 @@ The PDF requires social matchmaking and describes knowledge resources, idea crea
 
 ## Existing implementation
 
-Hubmi already uses Next.js 16.3.8, React 19.2.8, OpenNext, Workers, D1, Drizzle, AI SDK 7.0.127 and the OpenRouter provider 3.1.0. The UI calls a server action backed by DeepSeek with schema-validated text and optional suggestion cards. Deterministic tests cover input validation and the actual provider adapter with fixture HTTP responses. The schema remains empty; conversation persistence, the full two-agent runtime and streaming remain planned work.
+Hubmi already uses Next.js 16.3.8, React 19.2.8, OpenNext, Workers, D1, Drizzle, AI SDK 7.0.127 and the OpenRouter provider 3.1.0. The UI calls a server action backed by Gemini with schema-validated text and optional suggestion cards. Deterministic tests cover input validation and the actual provider adapter with fixture HTTP responses. The schema remains empty; conversation persistence, the full two-agent runtime and streaming remain planned work.
 
 Keep the existing `domain/`, `application/` and `infrastructure/` organization and composition root. Keep the per-request database client in `db/client.ts`. Replace the hardcoded matcher incrementally, preserving reusable presentation elements. Existing sample telephone numbers, addresses and distance claims must not become verified recommendations merely because they are already in code.
 
@@ -33,12 +33,16 @@ Keep the existing `domain/`, `application/` and `infrastructure/` organization a
 
 | Agent | Behavior | Permitted operations |
 | --- | --- | --- |
-| Search and matchmaking | Use DeepSeek and approved evidence to understand the current need; planned retrieval adds matching innovations, source cards and justified charts. | External model inference and reads of approved corpus/statistics. No message sending, submission or arbitrary URL fetching. |
+| Search and matchmaking | Use Gemini and approved evidence to understand the current need; planned retrieval adds matching innovations, source cards and justified charts. | External model inference and reads of approved corpus/statistics. No message sending, submission or arbitrary URL fetching. |
 | Kreator pomysłów | Extract Social Canvas fields from the initial description; ask focused follow-up questions; maintain a reviewed canvas and offer final confirmation. | Read approved materials and update a private draft. Explicit finalization/submission goes through a separate application use case. |
 
 Conversation and diagnostic writes are runtime responsibilities, not agent-granted business permissions. The read-only search agent still has its conversation saved to D1 as required.
 
-Use one shared model factory for search, canvas extraction, follow-up questions and optional evaluations: `infrastructure/ai/openrouter.ts`. Its model ID is fixed to `deepseek/deepseek-v4.1-flash`; provider errors do not silently select another model or return fabricated fallback answers. [OpenRouter model reference](https://openrouter.ai/deepseek/deepseek-v4.1-flash).
+Use one shared model factory for search, canvas extraction, follow-up questions and optional evaluations: `infrastructure/ai/openrouter.ts`. Its model ID is fixed to `google/gemini-3.1-flash-lite`; provider errors do not silently select another model or return fabricated fallback answers. [OpenRouter model reference](https://openrouter.ai/google/gemini-3.1-flash-lite).
+
+Use minimal thinking. In one comparison using the same synthetic Polish question and the application's structured-response pipeline, DeepSeek V4.1 Flash took 49.4 seconds, Gemini 2.5 Flash Lite 3.7 seconds and Gemini 3.1 Flash Lite with minimal thinking 2.8 seconds. These are single observations, not representative latency guarantees or quality benchmarks. A deployed browser test also observed a successful DeepSeek response after 41 seconds; indefinite loading was not reproduced during a successful response, but a deliberately stalled browser request reproduced the missing client deadline.
+
+The model adapter now has a 30-second deadline, and the browser has an independent 45-second deadline. The latter clears pending UI and ignores any late response. It does not cancel a Server Action by itself. The full runtime and durable logging remain planned work; production response timing and failures are not yet stored in D1.
 
 Use an explicit agent selector. Proposed default: switching agents opens a fresh conversation, preventing accidental context sharing. A reviewed idea/source card can be deliberately carried into a new chat as typed input later. Shared infrastructure does not imply two agents run simultaneously or call one another.
 
@@ -244,9 +248,9 @@ Use AI SDK v7 `MockLanguageModelV4` for compatible model contract tests, inspect
 
 Proposed scripts for the implementation phase: `test`, `test:integration`, `test:e2e`, `eval:openrouter`. Deterministic tests plus existing lint/type checks gate changes. Live evaluation remains opt-in, with no paid calls in ordinary CI.
 
-Synthetic live evaluations run the same orchestration and tool adapters against a fixture corpus and disposable database. Load `OPENROUTER_API_KEY` only for explicit local evaluations; ordinary CI runs pure tests with fixture transport. Use the shared fixed DeepSeek model ID. Never commit the key or send real stored conversations in evaluations. A synthetic live request validated the new adapter separately from CI.
+Synthetic live evaluations run the same orchestration and tool adapters against a fixture corpus and disposable database. Load `OPENROUTER_API_KEY` only for explicit local evaluations; ordinary CI runs pure tests with fixture transport. Use the shared fixed Gemini model ID. Never commit the key or send real stored conversations in evaluations. A synthetic live request validated the new adapter separately from CI.
 
-Use `deepseek/deepseek-v4.1-flash` for evaluations as well as production model calls. Record routing, supported schema/tool parameters and an evaluation spend ceiling. [OpenRouter model](https://openrouter.ai/deepseek/deepseek-v4.1-flash), [provider routing](https://openrouter.ai/docs/guides/routing/provider-selection).
+Use `google/gemini-3.1-flash-lite` for evaluations as well as production model calls. Record routing, supported schema/tool parameters and an evaluation spend ceiling. [OpenRouter model](https://openrouter.ai/google/gemini-3.1-flash-lite), [provider routing](https://openrouter.ai/docs/guides/routing/provider-selection).
 
 Evaluation fixtures should include Polish synonyms, no matching evidence, second-turn references, unrelated documents containing instructions, fabricated source IDs, invalid tool arguments, denied mutation attempts, idea edits and ambiguous submission requests. Score schema/citation validity, retrieved IDs, validated tool arguments, actual tool outcomes and final stored effects. Grade usefulness separately with a small human rubric. Exact prose matching is unsuitable.
 
@@ -254,7 +258,7 @@ Proposed first evaluation: 20 scenarios with three repetitions after a low-cost 
 
 ## Implementation sequence and open decisions
 
-1. Settle contact/receipt requirements and the agent-switch proposal. Keep all inference on the shared DeepSeek model.
+1. Settle contact/receipt requirements and the agent-switch proposal. Keep all inference on the shared Gemini model.
 2. Build real D1 migrations, admission/idempotency operations and integration tests. Prove canonical storage before agent development.
 3. Ingest a small approved corpus; create fixed Polish retrieval cases; implement local search and grounded cards.
 4. Add current-chat context and idea drafts with schema validation and revision handling.
@@ -264,4 +268,4 @@ Proposed first evaluation: 20 scenarios with three repetitions after a low-cost 
 
 Do not introduce a vector database, agent framework or Durable Object without evidence that local retrieval, the small runtime interface or D1 admission cannot meet measured requirements. Revisit those choices when Polish retrieval quality, concurrency, latency or background completion demands it.
 
-Before production, settle retention/deletion, expected traffic and support ownership. Monthly cost depends on D1 rows scanned/written, stored corpus/log volume, Worker requests/execution and any approved inference. Measure DeepSeek input/output usage and actual routing prices for the operating budget. Quote an operating budget only after measuring a representative conversation and choosing a traffic estimate.
+Before production, settle retention/deletion, expected traffic and support ownership. Monthly cost depends on D1 rows scanned/written, stored corpus/log volume, Worker requests/execution and any approved inference. Measure Gemini input/output usage and actual routing prices for the operating budget. Quote an operating budget only after measuring a representative conversation and choosing a traffic estimate.

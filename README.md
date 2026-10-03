@@ -42,11 +42,15 @@ run them explicitly; CI does not supply an OpenRouter key or run evaluations.
 
 ## AI model
 
-The chat uses `deepseek/deepseek-v4.1-flash` through OpenRouter. All model-backed
+The chat uses `google/gemini-3.1-flash-lite` with minimal thinking through OpenRouter. All model-backed
 features should use the shared factory in `infrastructure/ai/openrouter.ts`.
 The Worker reads `OPENROUTER_API_KEY` per request; no secret is bundled into the
 browser. There is no hardcoded answer or fallback model. Responses are validated
 against the card schema, and provider failures show an error in the chat.
+Model requests have a 30-second deadline. The browser independently stops
+waiting after 45 seconds, removes the loading indicator, and allows another
+message. This also covers a stalled Server Action transport; it does not itself
+cancel server execution, which has its own deadline.
 
 The small ROPS report sample provides context, not a verified service catalog.
 Generated recommendations are suggestions; current service lookup and the

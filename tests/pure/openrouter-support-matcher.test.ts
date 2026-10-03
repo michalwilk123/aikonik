@@ -23,7 +23,7 @@ function completion(content: unknown) {
   );
 }
 
-test("calls only DeepSeek with the user's query and validates the generated answer", async () => {
+test("calls only Gemini Flash Lite with minimal thinking and validates the generated answer", async () => {
   const requests: Record<string, unknown>[] = [];
   const answer = {
     message: "Komu ma pomagać Twój pomysł?",
@@ -40,7 +40,8 @@ test("calls only DeepSeek with the user's query and validates the generated answ
   );
   assert.deepEqual(result, answer);
   assert.equal(requests.length, 1);
-  assert.equal(requests[0].model, "deepseek/deepseek-v4.1-flash");
+  assert.equal(requests[0].model, "google/gemini-3.1-flash-lite");
+  assert.deepEqual(requests[0].reasoning, { effort: "minimal" });
   const messages = requests[0].messages as { role: string; content: string }[];
   assert.equal(
     messages.filter((message) => message.role === "system").length,
