@@ -39,7 +39,8 @@ export function getAgentConfiguration(id?: AgentId) {
     sources: config.sources,
     instructions: `${config.prompt}
 Odpowiadaj po polsku, jasno i zwięźle, jako agent ${id}. Korzystaj z historii rozmowy.
-Zwróć najpierw message (zwykły tekst bez Markdown), następnie sourceIds i artifact.
+Zwróć najpierw message, następnie sourceIds i artifact.
+W message korzystaj z Markdown, gdy pomaga w czytaniu: akapity, pogrubienia, listy, linki i tabele. Oddzielaj akapity i listy pustą linią.
 Masz narzędzie read_report, odczyt wybranych faktów ROPS z 2024 r.
 Używaj go tylko wtedy, gdy odpowiedź wymaga statystyk z raportu. Zwykła rozmowa o pomyśle,
 uzupełnianie canvasu i planowanie pilotażu nie wymagają odczytu raportu.

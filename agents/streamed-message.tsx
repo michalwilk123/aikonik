@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { MarkdownMessage } from "@/agents/markdown-message";
 import { ObservatoryVisualizationCard } from "@/agents/observatory-visualization";
 import { agents } from "@/agents/registry";
 import type { AgentMessage, AgentReply } from "@/agents/types";
@@ -37,8 +38,8 @@ export function StreamedMessage({
         Asystent
       </p>
       {text ? (
-        <p className="chat-text whitespace-pre-wrap break-words text-[16px] leading-7 text-foreground">
-          {text}
+        <div className="chat-text text-[16px] leading-7 text-foreground">
+          <MarkdownMessage>{text}</MarkdownMessage>
           {(pending || revealing) && (
             <span
               className="chat-cursor"
@@ -46,7 +47,7 @@ export function StreamedMessage({
               style={{ backgroundColor: agent.color }}
             />
           )}
-        </p>
+        </div>
       ) : pending ? (
         <div
           role="status"
