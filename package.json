@@ -6,6 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "test": "bun run test:pure",
+    "test:pure": "bun test ./tests/pure",
     "lint": "biome check .",
     "format": "biome format --write .",
     "check": "biome check --write .",

@@ -32,6 +32,14 @@ bun run dev
 `build:cloudflare`, `preview`, `deploy`, `db:generate`, `db:migrate:local`,
 `db:migrate:remote`.
 
+## Tests
+
+Run `bun run test:pure` (or `bun run test`) for deterministic tests in
+`tests/pure/`. These tests require no AI credentials or external services.
+Both CI and deployment checks run only this test suite. Keep any future
+token-backed model evaluations under `evals/`, outside `tests/pure/`, and
+run them explicitly; CI does not supply an OpenRouter key or run evaluations.
+
 ## Migrations
 
 Edit `db/schema.ts`, run `bun run db:generate`, commit `drizzle/`, then
