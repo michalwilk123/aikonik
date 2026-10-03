@@ -101,6 +101,8 @@ Edit `db/schema.ts`, run `bun run db:generate`, commit `drizzle/`, then
 Repository: https://github.com/michalwilk123/aikonik. Production runs on the
 `aikonik` Worker at https://aikonik.michalwilk139.workers.dev. Its D1 binding
 continues to use the existing `hubmi` database, preserving stored data.
+The old `hubmi.michalwilk139.workers.dev` address redirects to the new origin,
+preserving paths and query strings. `wrangler.redirect.jsonc` manages that redirect.
 
 Pushes to `main` run `.github/workflows/deploy.yml` (checks, build, D1
 migrations, deploy). Required GitHub secrets: `CLOUDFLARE_API_TOKEN`,

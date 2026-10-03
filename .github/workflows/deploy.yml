@@ -32,3 +32,4 @@ jobs:
       - run: bun run build:cloudflare
       - run: bunx wrangler d1 migrations apply hubmi --remote
       - run: bunx opennextjs-cloudflare deploy
+      - run: bunx wrangler deploy --config wrangler.redirect.jsonc
