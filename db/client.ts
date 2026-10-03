@@ -1,6 +1,6 @@
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { drizzle } from "drizzle-orm/d1";
-import * as schema from "./schema";
+import * as schema from "@/db/schema";
 
 /**
  * Per-request D1 client. Never memoize across requests: a binding captured

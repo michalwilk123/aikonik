@@ -48,3 +48,8 @@ next-env.d.ts
 
 # build-cloudflare temp
 *.build-hidden
+
+# chat verification artifacts
+/test-results/
+/playwright-report/
+/evals/results/

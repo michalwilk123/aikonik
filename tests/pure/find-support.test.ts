@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { makeFindSupport } from "../../application/use-cases/find-support";
-import type { SupportAnswer } from "../../domain/support-offer";
+import { makeFindSupport } from "@/application/use-cases/find-support";
+import type { SupportAnswer } from "@/domain/support-offer";
 
 test("rejects empty input before calling the matcher", async () => {
   let calls = 0;

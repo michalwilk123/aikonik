@@ -1,0 +1,27 @@
+{
+  "version": "7",
+  "dialect": "sqlite",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "6",
+      "when": 1791038701465,
+      "tag": "0000_confused_adam_warlock",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1791039887110,
+      "tag": "0001_workable_cammi",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1791040278105,
+      "tag": "0002_bright_mister_sinister",
+      "breakpoints": true
+    }
+  ]
+}

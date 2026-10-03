@@ -25,9 +25,9 @@ The PDF requires social matchmaking and describes knowledge resources, idea crea
 
 ## Existing implementation
 
-Hubmi already uses Next.js 16.3.8, React 19.2.8, OpenNext, Workers, D1, Drizzle, AI SDK 7.0.127 and the OpenRouter provider 3.1.0. The UI calls a server action backed by Gemini with schema-validated text and optional suggestion cards. Deterministic tests cover input validation and the actual provider adapter with fixture HTTP responses. The schema remains empty; conversation persistence, the full two-agent runtime and streaming remain planned work.
+Hubmi already uses Next.js 16.3.8, React 19.2.8, OpenNext, Workers, D1, Drizzle, AI SDK 7.0.127 and the OpenRouter provider 3.1.0. The UI uses a streaming HTTP endpoint backed by Gemini with schema-validated final output. The runtime saves normalized conversations, user and assistant messages, timing, browser metadata, model calls and tool calls in D1. Deterministic adapter, D1 integration and browser tests exercise progressive output before provider completion. See [streaming implementation](streaming.md).
 
-Keep the existing `domain/`, `application/` and `infrastructure/` organization and composition root. Keep the per-request database client in `db/client.ts`. Replace the hardcoded matcher incrementally, preserving reusable presentation elements. Existing sample telephone numbers, addresses and distance claims must not become verified recommendations merely because they are already in code.
+Keep the existing `domain/`, `application/` and `infrastructure/` organization. The HTTP route composes a per-request D1 store and model adapter; the hardcoded matcher has been replaced. Existing sample telephone numbers, addresses and distance claims must not become verified recommendations merely because they are already in code.
 
 ## Agent behavior and permissions
 
@@ -42,7 +42,7 @@ Use one shared model factory for search, canvas extraction, follow-up questions 
 
 Use minimal thinking. In one comparison using the same synthetic Polish question and the application's structured-response pipeline, DeepSeek V4.1 Flash took 49.4 seconds, Gemini 2.5 Flash Lite 3.7 seconds and Gemini 3.1 Flash Lite with minimal thinking 2.8 seconds. These are single observations, not representative latency guarantees or quality benchmarks. A deployed browser test also observed a successful DeepSeek response after 41 seconds; indefinite loading was not reproduced during a successful response, but a deliberately stalled browser request reproduced the missing client deadline.
 
-The model adapter now has a 30-second deadline, and the browser has an independent 45-second deadline. The latter clears pending UI and ignores any late response. It does not cancel a Server Action by itself. The full runtime and durable logging remain planned work; production response timing and failures are not yet stored in D1.
+The model adapter now has a 30-second deadline, and the browser has an independent 45-second deadline. The latter aborts the streaming HTTP request and clears pending UI. Runtime logging records response timing and failures in D1; interrupted turns preserve the received partial answer.
 
 Use an explicit agent selector. Proposed default: switching agents opens a fresh conversation, preventing accidental context sharing. A reviewed idea/source card can be deliberately carried into a new chat as typed input later. Shared infrastructure does not imply two agents run simultaneously or call one another.
 
@@ -196,7 +196,7 @@ Confirmed destination: a ROPS admin inbox. Proposed implementation: authenticate
 
 ## Streaming and smooth reveal
 
-Use typed events: `accepted`, `status`, `text_delta`, `artifact`, `complete` and `error`, each with run ID and ordered event ID. Buffered model generation may produce one complete validated answer and then animate it. Describe this honestly as progressive reveal, not model token streaming.
+The implemented NDJSON protocol uses `start`, `text`, `complete` and `error`. Text events carry cumulative readable snapshots from partial model output, while `complete` carries the validated final answer and artifacts. The browser animates received text independently; it does not wait for model completion. The request ID identifies the turn, and sequential D1 writes preserve published ordering.
 
 Separate received canonical content from displayed content. Use elapsed time and backlog to set a bounded reveal speed, segment Polish text and emoji by grapheme, and render complete structured artifacts atomically. Proposed starting settings are a short initial buffer and at most two seconds of reveal backlog; tune using UX measurements. These are design targets, not measured performance claims.
 

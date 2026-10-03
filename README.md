@@ -32,29 +32,26 @@ bun run dev
 `build:cloudflare`, `preview`, `deploy`, `db:generate`, `db:migrate:local`,
 `db:migrate:remote`.
 
-## Tests
+## Chat and tests
 
-Run `bun run test:pure` (or `bun run test`) for deterministic tests in
-`tests/pure/`. These tests require no AI credentials or external services.
-Both CI and deployment checks run only this test suite. Keep any future
-token-backed model evaluations under `evals/`, outside `tests/pure/`, and
-run them explicitly; CI does not supply an OpenRouter key or run evaluations.
+The four-agent assistant uses true server streaming, smooth client reveal and
+D1-backed conversation history. Accepted user and assistant messages, partial
+responses, model timings/usage/errors, tool calls and browser metadata are
+persisted without copying the transcript on each request.
 
-## AI model
+Run `bun run test` for deterministic pure and actual D1 tests, then
+`bunx playwright install chromium` and `bun run test:e2e` for browser checks.
+CI and deployment run these suites without AI credentials.
 
-The chat uses `google/gemini-3.1-flash-lite` with minimal thinking through OpenRouter. All model-backed
-features should use the shared factory in `infrastructure/ai/openrouter.ts`.
-The Worker reads `OPENROUTER_API_KEY` per request; no secret is bundled into the
-browser. There is no hardcoded answer or fallback model. Responses are validated
-against the card schema, and provider failures show an error in the chat.
-Model requests have a 30-second deadline. The browser independently stops
-waiting after 45 seconds, removes the loading indicator, and allows another
-message. This also covers a stalled Server Action transport; it does not itself
-cancel server execution, which has its own deadline.
+Live model evaluations are separate: supply `OPENROUTER_API_KEY` in your
+shell and run `bun run eval:openrouter`. They use synthetic conversations,
+Gemini 3.1 Flash Lite with minimal thinking, bounded provider calls and a
+disposable database. They report every attempt and never gate ordinary CI.
 
-The small ROPS report sample provides context, not a verified service catalog.
-Generated recommendations are suggestions; current service lookup and the
-Social Canvas agent remain implementation work described in the architecture.
+See [chat testing and storage](docs/chat-testing.md) for commands, coverage,
+streaming behavior and D1 guarantees. The selected ROPS report facts describe
+2024, not current service availability. No business submission or messaging
+operation is available to the agents.
 
 ## Migrations
 

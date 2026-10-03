@@ -40,7 +40,18 @@
       },
       "style": {
         "useConst": "error",
-        "useImportType": "error"
+        "useImportType": "error",
+        "noRestrictedImports": {
+          "level": "error",
+          "options": {
+            "patterns": [
+              {
+                "group": ["./**", "../**"],
+                "message": "Use the @/ alias instead of relative imports."
+              }
+            ]
+          }
+        }
       },
       "suspicious": {
         "noExplicitAny": "error",

@@ -1,0 +1,1 @@
+ALTER TABLE `conversations` ADD `agent_id` text DEFAULT 'support' NOT NULL;

@@ -6,7 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "test": "bun run test:pure",
+    "test": "bun run test:pure && bun run test:integration",
     "test:pure": "bun test ./tests/pure",
     "lint": "biome check .",
     "format": "biome format --write .",
@@ -19,7 +19,10 @@
     "deploy": "bun run build:cloudflare && opennextjs-cloudflare deploy",
     "db:generate": "drizzle-kit generate",
     "db:migrate:local": "wrangler d1 migrations apply hubmi --local",
-    "db:migrate:remote": "wrangler d1 migrations apply hubmi --remote"
+    "db:migrate:remote": "wrangler d1 migrations apply hubmi --remote",
+    "test:integration": "bun test ./tests/integration",
+    "test:e2e": "playwright test",
+    "eval:openrouter": "bun run evals/openrouter.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",
@@ -40,6 +43,7 @@
   "devDependencies": {
     "@biomejs/biome": "^2.5.15",
     "@cloudflare/workers-types": "^5.20261003.1",
+    "@playwright/test": "^1.63.0",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
@@ -47,6 +51,7 @@
     "babel-plugin-react-compiler": "1.0.0",
     "drizzle-kit": "^0.31.11",
     "knip": "^6.39.0",
+    "miniflare": "^5.20261001.0-alpha",
     "tailwindcss": "^4",
     "typescript": "^5",
     "wrangler": "^4.147.0"

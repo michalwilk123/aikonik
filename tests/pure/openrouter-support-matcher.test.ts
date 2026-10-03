@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { createChatModel, MODEL_ID } from "../../infrastructure/ai/openrouter";
-import { makeOpenRouterSupportMatcher } from "../../infrastructure/support/openrouter-support-matcher";
+import { createChatModel, MODEL_ID } from "@/infrastructure/ai/openrouter";
+import { makeOpenRouterSupportMatcher } from "@/infrastructure/support/openrouter-support-matcher";
 
 function completion(content: unknown) {
   return new Response(
@@ -81,4 +81,34 @@ test("provider errors do not trigger retries or a model fallback", async () => {
 
 test("missing credentials fail before any model request", () => {
   assert.throws(() => createChatModel(" "), /OPENROUTER_API_KEY is missing/);
+});
+
+test("includes previous user and assistant messages once before the new question", async () => {
+  let request: Record<string, unknown> = {};
+  const model = createChatModel("fixture-key", async (_url, init) => {
+    request = JSON.parse(String(init?.body));
+    return completion({
+      message: "W Tarnowie",
+      areaLabel: "Tarnów",
+      offers: [],
+    });
+  });
+  const matcher = makeOpenRouterSupportMatcher(model);
+  // The old adapter accepts only the last question and silently loses history.
+  await Reflect.apply(matcher.match, matcher, [
+    "A dla mamy?",
+    [
+      { role: "user", content: "Mieszkam w Tarnowie" },
+      { role: "assistant", content: "Jakiego wsparcia potrzebujesz?" },
+    ],
+  ]);
+  const messages = request.messages as { role: string; content: string }[];
+  assert.deepEqual(
+    messages.filter((m) => m.role !== "system"),
+    [
+      { role: "user", content: "Mieszkam w Tarnowie" },
+      { role: "assistant", content: "Jakiego wsparcia potrzebujesz?" },
+      { role: "user", content: "A dla mamy?" },
+    ],
+  );
 });
