@@ -6,7 +6,8 @@
     "open-next.config.ts",
     "scripts/*.ts",
     "db/client.ts",
-    "components/ui/*.tsx"
+    "components/ui/*.tsx",
+    "tests/integration/*.test.ts"
   ],
   "ignoreDependencies": [],
   "ignore": ["payload-types.ts"],
