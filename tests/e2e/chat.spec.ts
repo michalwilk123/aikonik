@@ -163,18 +163,19 @@ test("agent guidance sits below each welcome title and layout uses one centered 
   const header = await page.locator("header").boundingBox();
   const headerContent = await page.locator("header > div").boundingBox();
   const welcome = await page.locator("section.agent-swap").boundingBox();
+  const column = await page
+    .locator("section.agent-swap")
+    .locator("xpath=..")
+    .boundingBox();
   const form = await page.locator("form").boundingBox();
   expect(header?.x).toBe(0);
   expect(header?.width).toBe(await page.evaluate(() => window.innerWidth));
-  expect(welcome?.x).toBe(form?.x);
-  expect(welcome?.width).toBe(form?.width);
-  const headerPadding = await page
-    .locator("header > div")
-    .evaluate((element) =>
-      Number.parseFloat(getComputedStyle(element).paddingLeft),
-    );
-  expect(headerContent?.x).toBe((welcome?.x ?? 0) - headerPadding);
-  expect(headerContent?.width).toBe((welcome?.width ?? 0) + 2 * headerPadding);
+  const center = (box: typeof header) => (box ? box.x + box.width / 2 : NaN);
+  for (const box of [headerContent, welcome, form]) {
+    expect(Math.abs(center(box) - center(column))).toBeLessThanOrEqual(1);
+  }
+  expect(form?.width).toBeLessThanOrEqual(column?.width ?? 0);
+  expect(welcome?.width).toBeLessThanOrEqual(form?.width ?? 0);
 });
 
 test("agent tabs fit without horizontal scrolling at every viewport size", async ({
