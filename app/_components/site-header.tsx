@@ -18,12 +18,9 @@ export function SiteHeader({ current }: Props) {
         <Link
           href="/"
           className="flex min-h-11 items-center gap-3 rounded-full"
-          aria-label="AIkonik — strona główna"
+          aria-label="AiKonik — strona główna"
         >
           <Wordmark className="text-2xl" />
-          <span className="font-hand hidden text-lg leading-none text-on-surface-variant md:block">
-            dla Małopolski, na co dzień
-          </span>
         </Link>
         <nav aria-label="Główna" className="flex items-center gap-1 sm:gap-4">
           {links.map((link) => (

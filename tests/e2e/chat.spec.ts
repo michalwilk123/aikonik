@@ -177,6 +177,47 @@ test("agent guidance sits below each welcome title and layout uses one centered 
   expect(headerContent?.width).toBe((welcome?.width ?? 0) + 2 * headerPadding);
 });
 
+test("agent tabs fit without horizontal scrolling at every viewport size", async ({
+  page,
+}) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await fixture(page);
+  const nav = page.getByRole("navigation", { name: "Wybierz agenta" });
+  const tabs = nav.locator("> div");
+  for (const width of [320, 390, 640, 768, 1280]) {
+    await page.setViewportSize({ width, height: 900 });
+    for (const label of [
+      "Odkrywaj",
+      "Dodaj pomysł",
+      "Testuj innowacje",
+      "Wdrażanie innowacji",
+    ]) {
+      const button = nav.getByRole("button", { name: label, exact: true });
+      await expect(button).toBeInViewport();
+      await button.click();
+      await expect(button).toHaveAttribute("aria-pressed", "true");
+      await expect
+        .poll(() =>
+          tabs.evaluate(
+            (element) => element.scrollWidth <= element.clientWidth,
+          ),
+        )
+        .toBe(true);
+      const fits = await button.evaluate((element) => {
+        const container = element.parentElement?.getBoundingClientRect();
+        const bounds = element.getBoundingClientRect();
+        return (
+          container &&
+          bounds.left >= container.left &&
+          bounds.right <= container.right &&
+          element.scrollWidth <= element.clientWidth
+        );
+      });
+      expect(fits).toBe(true);
+    }
+  }
+});
+
 test("stop releases a stalled request and leaves a usable composer", async ({
   page,
 }) => {

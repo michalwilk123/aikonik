@@ -18,7 +18,13 @@ const icons = {
   "wdrazanie-innowacji": Workflow,
 };
 
-type Pill = { left: number; width: number; ready: boolean };
+type Pill = {
+  left: number;
+  top: number;
+  width: number;
+  height: number;
+  ready: boolean;
+};
 
 export function AgentTopBar({
   activeAgent,
@@ -28,7 +34,13 @@ export function AgentTopBar({
   onSwitch: (id: AgentId) => void;
 }) {
   const buttons = useRef(new Map<AgentId, HTMLButtonElement>());
-  const [pill, setPill] = useState<Pill>({ left: 0, width: 0, ready: false });
+  const [pill, setPill] = useState<Pill>({
+    left: 0,
+    top: 0,
+    width: 0,
+    height: 0,
+    ready: false,
+  });
   const active = agents[activeAgent];
 
   useLayoutEffect(() => {
@@ -37,12 +49,13 @@ export function AgentTopBar({
     const measure = () =>
       setPill((current) => ({
         left: button.offsetLeft,
+        top: button.offsetTop,
         width: button.offsetWidth,
+        height: button.offsetHeight,
         // Skip the slide on first paint; animate every switch after that.
         ready: current.width > 0,
       }));
     measure();
-    button.scrollIntoView({ block: "nearest", inline: "nearest" });
     const observer = new ResizeObserver(measure);
     observer.observe(button);
     return () => observer.disconnect();
@@ -53,14 +66,16 @@ export function AgentTopBar({
       aria-label="Wybierz agenta"
       className="sticky top-16 z-20 border-b border-outline-variant bg-background/95 py-3 backdrop-blur px-4 sm:px-6"
     >
-      <div className="relative mx-auto flex max-w-[calc(48rem-2rem)] sm:max-w-[calc(48rem-3rem)] gap-1 overflow-x-auto">
+      <div className="relative mx-auto grid max-w-[calc(48rem-2rem)] grid-cols-2 gap-1 overflow-clip sm:max-w-[calc(48rem-3rem)] sm:grid-cols-4">
         <span
           aria-hidden="true"
           className="agent-pill"
           data-ready={pill.ready || undefined}
           style={{
             width: pill.width,
-            transform: `translateX(${pill.left}px)`,
+            height: pill.height,
+            bottom: "auto",
+            transform: `translate(${pill.left}px, ${pill.top}px)`,
             backgroundColor: active.tint,
             boxShadow: `inset 0 0 0 1px color-mix(in srgb, ${active.color} 18%, transparent), 0 1px 2px color-mix(in srgb, ${active.color} 14%, transparent)`,
             opacity: pill.width ? 1 : 0,
@@ -80,17 +95,17 @@ export function AgentTopBar({
               type="button"
               onClick={() => onSwitch(id)}
               aria-pressed={isActive}
-              className="relative z-10 flex min-h-11 shrink-0 items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-colors duration-500 hover:text-foreground sm:flex-1 sm:justify-center"
+              className="relative z-10 flex min-h-11 min-w-0 items-center justify-center gap-2 rounded-full px-3 py-2 text-sm font-medium transition-colors duration-500 hover:text-foreground"
               style={{ color: isActive ? agent.color : "#5B6075" }}
             >
               <Icon
-                className="size-4 transition-transform duration-500 ease-out"
+                className="size-4 shrink-0 transition-transform duration-500 ease-out"
                 style={{ transform: isActive ? "scale(1.1)" : undefined }}
                 aria-hidden="true"
               />
-              <span>{agent.label}</span>
+              <span className="min-w-0 break-words">{agent.label}</span>
               <Check
-                className="agent-check size-3.5"
+                className="agent-check size-3.5 shrink-0"
                 data-on={isActive || undefined}
                 aria-hidden="true"
               />

@@ -2,10 +2,10 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "AIkonik — Twój asystent w sprawach codziennych w Małopolsce",
-    short_name: "AIkonik",
+    name: "AiKonik — Twój asystent w sprawach codziennych w Małopolsce",
+    short_name: "AiKonik",
     description:
-      "AIkonik — przyjazny asystent AI do spraw urzędowych i codziennych w Małopolsce. Proste odpowiedzi, pomoc 24/7.",
+      "AiKonik — przyjazny asystent AI do spraw urzędowych i codziennych w Małopolsce. Proste odpowiedzi, pomoc 24/7.",
     lang: "pl",
     start_url: "/",
     display: "standalone",

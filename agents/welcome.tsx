@@ -37,18 +37,12 @@ export function AgentWelcome({
   const agent = agents[agentId];
   const info = guidance[agentId];
   return (
-    <section className="agent-swap flex flex-col gap-7 py-6 sm:py-10">
-      <span
-        className="w-fit rounded-full px-3 py-1 text-xs font-semibold"
-        style={{ color: agent.color, backgroundColor: agent.tint }}
-      >
-        {agent.badge}
-      </span>
+    <section className="agent-swap mx-auto flex max-w-xl flex-col items-center gap-7 py-8 text-center sm:py-14">
       <div className="space-y-4">
-        <h1 className="max-w-xl text-3xl leading-tight font-black tracking-tight text-foreground sm:text-5xl">
+        <h1 className="text-3xl leading-tight font-black tracking-tight text-foreground sm:text-5xl">
           {agent.title}
         </h1>
-        <p className="max-w-xl text-base leading-7 text-on-surface-variant">
+        <p className="text-base leading-7 text-on-surface-variant">
           {agent.description}
         </p>
         <p className="text-sm leading-6 text-on-surface-variant">{info.text}</p>
@@ -62,10 +56,7 @@ export function AgentWelcome({
           {info.linkLabel}
         </a>
       </div>
-      <div className="space-y-3">
-        <h2 className="text-xs font-semibold tracking-wider text-on-surface-variant uppercase">
-          Zacznij rozmowę
-        </h2>
+      <div className="w-full space-y-3">
         {agent.examples.map((text) => (
           <button
             key={text}
@@ -82,10 +73,6 @@ export function AgentWelcome({
           </button>
         ))}
       </div>
-      <p className="text-xs leading-5 text-on-surface-variant">
-        Każdy etap ma własnego asystenta i osobną rozmowę. Możesz przełączać
-        etapy w górnym pasku.
-      </p>
     </section>
   );
 }

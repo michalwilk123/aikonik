@@ -9,7 +9,6 @@ export const agents = {
     title: "Od potrzeby do możliwości.",
     description:
       "Poznaj wyzwania Małopolski i szukaj kierunków rozwiązań w wiedzy ROPS. Zacznij od problemu, który chcesz lepiej zrozumieć.",
-    badge: "Wiedza ROPS · tylko odczyt",
     placeholder: "Jaki problem społeczny chcesz poznać?",
     examples: [
       "Co raporty ROPS mówią o starzeniu się Małopolski?",
@@ -25,7 +24,6 @@ export const agents = {
     title: "Twój pomysł ma dobry początek.",
     description:
       "Opowiedz o swojej idei. Asystent zada kolejne pytania i pomoże ułożyć roboczą Canvę Innowacji Społecznej.",
-    badge: "Wywiad · Social Canvas",
     placeholder: "Opowiedz o swoim pomyśle lub odpowiedz na pytanie…",
     examples: [
       "Chcę stworzyć sieć sąsiedzkiej pomocy seniorom.",
@@ -41,7 +39,6 @@ export const agents = {
     title: "Mały test. Ważna zmiana.",
     description:
       "Zaplanuj pierwszy pilotaż, ustal co chcesz sprawdzić i zbierz opinie uczestników. Znajdź kolejne usprawnienie swojego rozwiązania.",
-    badge: "Pilotaż · opinie · usprawnienia",
     placeholder: "Co chcesz przetestować i z kim?",
     examples: [
       "Jak przetestować telefoniczną pomoc sąsiedzką?",
@@ -57,7 +54,6 @@ export const agents = {
     title: "Sprawdzone rozwiązanie. Nowe miejsce.",
     description:
       "Middleman Innowacji pomoże dopasować rozwiązanie do Twojej instytucji: odbiorców, zasobów, partnerów i sposobu świadczenia usługi.",
-    badge: "Middleman Innowacji · adaptacja usługi",
     placeholder: "Jaką innowację chcesz wdrożyć w swojej instytucji?",
     examples: [
       "Chcemy uruchomić pomoc sąsiedzką w naszym CUS.",
@@ -74,7 +70,6 @@ export const agents = {
     step: string;
     title: string;
     description: string;
-    badge: string;
     placeholder: string;
     examples: string[];
   }

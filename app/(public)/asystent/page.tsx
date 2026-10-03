@@ -8,7 +8,7 @@ export default function AssistantPage() {
   return (
     <>
       <SiteHeader current="/asystent" />
-      <main id="tresc" tabIndex={-1} className="flex-1 pt-16 pb-64">
+      <main id="tresc" tabIndex={-1} className="flex flex-1 flex-col pt-16">
         <Chat />
       </main>
     </>

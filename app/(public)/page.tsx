@@ -112,19 +112,13 @@ export default function HomePage() {
         >
           <div className="mx-auto grid max-w-5xl items-center gap-10 md:grid-cols-2">
             <div>
-              <p
-                className="intro font-hand text-2xl text-primary"
-                style={{ "--d": "0ms" } as CSSProperties}
-              >
-                Dla Ciebie, dla Małopolski, na co dzień
-              </p>
               <h1
                 id="hero-title"
-                className="intro-text mt-3 text-5xl font-black tracking-tight text-foreground sm:text-6xl"
+                className="intro-text text-5xl font-black tracking-tight text-foreground sm:text-6xl"
               >
-                <RevealText text="AI" by="letter" delay={120} step={60} />
+                <RevealText text="Ai" by="letter" delay={120} step={60} />
                 <span className="text-primary">
-                  <RevealText text="konik" by="letter" delay={240} step={60} />
+                  <RevealText text="Konik" by="letter" delay={240} step={60} />
                 </span>
               </h1>
               <p className="intro-text mt-4 text-lg leading-relaxed text-on-surface-variant">
@@ -143,7 +137,7 @@ export default function HomePage() {
                   render={<Link href="/asystent" />}
                   className="h-14 px-8 text-lg"
                 >
-                  Zapytaj AIkonika →
+                  Zapytaj AiKonika →
                 </Button>
                 <a
                   href="#jak-to-dziala"
@@ -159,7 +153,7 @@ export default function HomePage() {
             >
               <HeroArt
                 className="h-auto w-full"
-                title="Schemat: trzy potrzeby mieszkańców, na przykład opieka dla mamy, trafiają do AIkonika, który wskazuje pasujące rozwiązania w małopolskich miejscowościach."
+                title="Schemat: trzy potrzeby mieszkańców, na przykład opieka dla mamy, trafiają do AiKonika, który wskazuje pasujące rozwiązania w małopolskich miejscowościach."
               />
             </div>
           </div>
@@ -172,16 +166,16 @@ export default function HomePage() {
         >
           <div className="mx-auto max-w-3xl">
             <h2 id="co-to-jest" className={sectionTitle} data-reveal>
-              <RevealText text="Co to jest AIkonik?" />
+              <RevealText text="Co to jest AiKonik?" />
             </h2>
             <p className="mt-4 text-lg leading-relaxed text-on-surface-variant">
-              AIkonik to prototyp Małopolskiego Hubu Innowacji Społecznych.
+              AiKonik to prototyp Małopolskiego Hubu Innowacji Społecznych.
               Tworzy go Regionalny Ośrodek Polityki Społecznej w Krakowie.
             </p>
             <p className="mt-4 text-lg leading-relaxed text-on-surface-variant">
               W Małopolsce działa już około 200 sprawdzonych pomysłów, które
               pomagają ludziom w codziennych sprawach. Trudno jest je znaleźć.
-              AIkonik ma to ułatwić: łączy to, czego potrzebują mieszkańcy, z
+              AiKonik ma to ułatwić: łączy to, czego potrzebują mieszkańcy, z
               rozwiązaniami, które już działają.
             </p>
           </div>
@@ -274,8 +268,9 @@ export default function HomePage() {
               <RevealText text="Tak wygląda asystent" />
             </h2>
             <p className="mt-4 max-w-2xl text-lg leading-relaxed text-on-surface-variant">
-              Ekran jest prosty. Na górze widzisz krótkie wyjaśnienie, a na dole
-              pole, w którym piszesz swoją wiadomość.
+              Na górze wybierasz, w czym AiKonik ma pomóc: odkrywanie potrzeb,
+              nowy pomysł, testowanie albo wdrażanie. Możesz kliknąć gotowe
+              pytanie albo wpisać własne w polu na dole.
             </p>
             <div
               className="mt-8 flex flex-col items-center gap-8 md:flex-row md:items-end"
@@ -288,7 +283,7 @@ export default function HomePage() {
                   height={800}
                   unoptimized
                   className="h-auto w-full rounded-2xl border border-outline-variant shadow-soft"
-                  alt="Zrzut ekranu asystenta na komputerze. Na górze nagłówek „Dzień dobry. W czym możemy Ci dzisiaj pomóc?”, pod nim trzy karty z krokami: opisz potrzebę, darmowe dopasowanie, adres i telefon. Niżej przykładowe pytania mieszkańców, a na dole pole do wpisania wiadomości."
+                  alt="Zrzut ekranu asystenta na komputerze. Na górze zakładki etapów: Odkrywaj, Dodaj pomysł, Testuj innowacje i Wdrażanie innowacji. Pośrodku białej kolumny nagłówek „Od potrzeby do możliwości.”, krótki opis i trzy przykładowe pytania, a na dole pole do wpisania wiadomości."
                 />
                 <figcaption className="mt-2 text-sm text-on-surface-variant">
                   Widok na komputerze.
@@ -301,7 +296,7 @@ export default function HomePage() {
                   height={1688}
                   unoptimized
                   className="h-auto w-full rounded-3xl border border-outline-variant shadow-soft"
-                  alt="Zrzut ekranu asystenta na telefonie. Widać powitanie „Dzień dobry. W czym możemy Ci dzisiaj pomóc?”, krótki opis, pierwsze karty z krokami oraz pole do wpisania wiadomości na dole ekranu."
+                  alt="Zrzut ekranu asystenta na telefonie. Widać zakładki etapów, nagłówek „Od potrzeby do możliwości.”, krótki opis, przykładowe pytania oraz pole do wpisania wiadomości na dole ekranu."
                 />
                 <figcaption className="mt-2 text-sm text-on-surface-variant">
                   Widok na telefonie.
@@ -354,7 +349,7 @@ export default function HomePage() {
               <RevealText text="Dostępny dla każdego" />
             </h2>
             <p className="mt-4 text-lg leading-relaxed text-on-surface-variant">
-              Chcemy, żeby z AIkonika mógł korzystać każdy. Dlatego tworzymy go
+              Chcemy, żeby z AiKonika mógł korzystać każdy. Dlatego tworzymy go
               zgodnie ze standardem WCAG 2.1, na poziomie AA. To jest nasz cel.
               Prototyp jest jeszcze w trakcie prac.
             </p>
@@ -408,7 +403,7 @@ export default function HomePage() {
               render={<Link href="/asystent" />}
               className="mt-8 h-14 px-8 text-lg"
             >
-              Zapytaj AIkonika →
+              Zapytaj AiKonika →
             </Button>
           </div>
         </section>

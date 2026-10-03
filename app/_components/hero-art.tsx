@@ -55,91 +55,66 @@ export function HeroArt({
         />
       </g>
 
-      {/* handwritten note */}
-      <g transform="rotate(-4 90 70)">
-        <text
-          className="font-hand"
-          fill="#8A7C6E"
-          fontSize="27"
-          fontWeight="600"
-        >
-          <tspan x="30" y="52">
-            Dla Ciebie,
-          </tspan>
-          <tspan x="30" y="80">
-            dla Małopolski,
-          </tspan>
-          <tspan x="30" y="108">
-            na co dzień
-          </tspan>
-        </text>
-        <path
-          d="M30 122 C 80 112, 140 118, 190 110"
-          fill="none"
-          stroke="#8A7C6E"
-          strokeWidth="2"
-          strokeLinecap="round"
-        />
-      </g>
-
       {/* chat card */}
-      <g className="hx-card">
-        <rect
-          x="26"
-          y="156"
-          width="226"
-          height="214"
-          rx="22"
-          fill="#fff"
-          stroke="#EADFD3"
-          strokeWidth="2"
-        />
-        <rect x="46" y="176" width="186" height="52" rx="16" fill="#F4EEE6" />
-        <text
-          className="font-sans"
-          x="62"
-          y="209"
-          fontSize="17"
-          fontWeight="800"
-          fill={NAVY}
-        >
-          W czym mogę pomóc?
-        </text>
-        {chips.map((c, i) => (
-          <g key={c}>
-            <rect
-              x="46"
-              y={244 + i * 46}
-              width="186"
-              height="38"
-              rx="12"
-              fill="#FBF7F1"
-              stroke="#EADFD3"
-              strokeWidth="1.5"
-            />
-            <circle cx="66" cy={263 + i * 46} r="7" fill={RED} />
-            <text
-              className="font-sans"
-              x="82"
-              y={269 + i * 46}
-              fontSize="14.5"
-              fontWeight="700"
-              fill={NAVY}
-            >
-              {c}
-            </text>
-          </g>
-        ))}
-        <rect x="46" y="336" width="140" height="22" rx="11" fill="#F4EEE6" />
-        <circle cx="218" cy="347" r="13" fill={RED} />
-        <path
-          d="M212 347 H224 M219 342 L224 347 L219 352"
-          fill="none"
-          stroke="#fff"
-          strokeWidth="2.4"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
+      <g transform="translate(0 -70)">
+        <g className="hx-card">
+          <rect
+            x="26"
+            y="156"
+            width="226"
+            height="214"
+            rx="22"
+            fill="#fff"
+            stroke="#EADFD3"
+            strokeWidth="2"
+          />
+          <rect x="46" y="176" width="186" height="52" rx="16" fill="#F4EEE6" />
+          <text
+            className="font-sans"
+            x="62"
+            y="209"
+            fontSize="17"
+            fontWeight="800"
+            fill={NAVY}
+          >
+            W czym mogę pomóc?
+          </text>
+          {chips.map((c, i) => (
+            <g key={c}>
+              <rect
+                x="46"
+                y={244 + i * 46}
+                width="186"
+                height="38"
+                rx="12"
+                fill="#FBF7F1"
+                stroke="#EADFD3"
+                strokeWidth="1.5"
+              />
+              <circle cx="66" cy={263 + i * 46} r="7" fill={RED} />
+              <text
+                className="font-sans"
+                x="82"
+                y={269 + i * 46}
+                fontSize="14.5"
+                fontWeight="700"
+                fill={NAVY}
+              >
+                {c}
+              </text>
+            </g>
+          ))}
+          <rect x="46" y="336" width="140" height="22" rx="11" fill="#F4EEE6" />
+          <circle cx="218" cy="347" r="13" fill={RED} />
+          <path
+            d="M212 347 H224 M219 342 L224 347 L219 352"
+            fill="none"
+            stroke="#fff"
+            strokeWidth="2.4"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </g>
       </g>
 
       {/* mascot */}

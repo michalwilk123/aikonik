@@ -1,5 +1,5 @@
 // Hand-authored "folded paper" Lajkonik: flat polygon facets in light/shade
-// tones fake the 3D look. Palette comes from the AIkonik brand brief.
+// tones fake the 3D look. Palette comes from the AiKonik brand brief.
 const C = {
   red: "#C62832",
   redShade: "#A81F29",

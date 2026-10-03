@@ -231,7 +231,7 @@ export function AgentWorkspace() {
           setFollow(true);
         }}
       />
-      <div className="mx-auto w-full max-w-3xl px-4 sm:px-6">
+      <div className="mx-auto w-full max-w-3xl flex-1 bg-white px-4 pb-64 shadow-soft sm:border-x sm:border-outline-variant sm:px-8">
         {session.messages.length === 0 ? (
           <AgentWelcome
             key={activeAgent}

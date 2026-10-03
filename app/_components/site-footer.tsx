@@ -23,9 +23,6 @@ export function SiteFooter() {
             Asystent, który łączy potrzeby mieszkańców Małopolski ze
             sprawdzonymi rozwiązaniami społecznymi.
           </p>
-          <p className="font-hand mt-2 text-xl text-on-surface-variant">
-            Dla Ciebie, dla Małopolski, na co dzień
-          </p>
         </div>
 
         {/* TODO: verify these contact details with ROPS Kraków before release. */}

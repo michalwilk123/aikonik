@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Caveat, Nunito } from "next/font/google";
+import { Nunito } from "next/font/google";
 import "@/app/globals.css";
 
 const nunito = Nunito({
@@ -8,19 +8,13 @@ const nunito = Nunito({
   weight: ["400", "500", "600", "700", "800", "900"],
 });
 
-const caveat = Caveat({
-  variable: "--font-caveat",
-  subsets: ["latin", "latin-ext"],
-  weight: ["500", "600"],
-});
-
 export const metadata: Metadata = {
   title: {
-    default: "AIkonik — Twój asystent w sprawach codziennych w Małopolsce",
-    template: "%s · AIkonik",
+    default: "AiKonik — Twój asystent w sprawach codziennych w Małopolsce",
+    template: "%s · AiKonik",
   },
   description:
-    "AIkonik to przyjazny asystent AI, który pomaga mieszkańcom województwa małopolskiego załatwiać sprawy urzędowe i codzienne: proste odpowiedzi, jasne wyjaśnienia, pomoc 24/7.",
+    "AiKonik to przyjazny asystent AI, który pomaga mieszkańcom województwa małopolskiego załatwiać sprawy urzędowe i codzienne: proste odpowiedzi, jasne wyjaśnienia, pomoc 24/7.",
   generator: "hubmi",
 };
 
@@ -28,10 +22,7 @@ export const viewport: Viewport = { themeColor: "#C62832" };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html
-      lang="pl"
-      className={`${nunito.variable} ${caveat.variable} h-full antialiased`}
-    >
+    <html lang="pl" className={`${nunito.variable} h-full antialiased`}>
       <body className="flex min-h-full flex-col">
         <a
           href="#tresc"
