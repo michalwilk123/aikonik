@@ -51,7 +51,15 @@ export default buildConfig({
   routes: { api: "/api/cms" },
   admin: {
     user: "users",
-    meta: { titleSuffix: " · Hubmi" },
+    meta: { titleSuffix: " · AIkonik", icons: { icon: "/icon.svg" } },
+    theme: "light",
+    components: {
+      graphics: {
+        Logo: "@/infrastructure/cms/branding#StaffLogo",
+        Icon: "@/infrastructure/cms/branding#StaffIcon",
+      },
+      beforeNavLinks: ["@/infrastructure/cms/branding#StaffLogo"],
+    },
     autoLogin: false,
   },
   i18n: { supportedLanguages: { pl }, fallbackLanguage: "pl" },

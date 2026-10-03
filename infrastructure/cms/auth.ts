@@ -59,8 +59,10 @@ export function staffAuthPlugins(secret: string, baseURL: string): Plugin[] {
         }),
       admin: {
         enableManagementUI: false,
+        loginViewComponent: "@/infrastructure/cms/branding#StaffLogin",
         login: {
-          title: "Zaloguj się do AIkonika",
+          title: "Panel pracownika",
+          enablePassword: true,
           requiredRole: ["cms", "admin"],
           enableSignUp: false,
           enableForgotPassword: false,
