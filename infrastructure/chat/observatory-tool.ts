@@ -1,7 +1,11 @@
 import { tool } from "ai";
 import { z } from "zod";
 import type { AgentId } from "@/agents/types";
-import type { ObservatoryVisualization } from "@/domain/observatory";
+import {
+  type ObservatoryVisualization,
+  observatoryVisualizationSchema,
+  summarizeObservatoryData,
+} from "@/domain/observatory";
 import { loadObservatoryVisualization } from "@/infrastructure/observatory/source";
 
 export const observatoryInputSchema = z
@@ -26,7 +30,21 @@ export function makeObservatoryTools(
           ? "Pokaż interaktywną mapę wskaźnika z Małopolskiego Obserwatora ROPS w wiadomości czatu. Wybierz indicatorId z zatwierdzonego katalogu. Rok pominięty oznacza najnowszy dostępny. Nie każdy wskaźnik ma dane powiatowe; brak mapy jest zwracany jako błąd."
           : "Pokaż interaktywny wykres słupkowy wskaźnika z Małopolskiego Obserwatora ROPS w wiadomości czatu. Wybierz indicatorId z zatwierdzonego katalogu. Rok pominięty oznacza najnowszy dostępny. Dzietność to wskaźnik 135; porównuje Małopolskę i Polskę.",
       inputSchema: observatoryInputSchema,
-      execute: async (input, options) => {
+      toModelOutput: ({ output }) => {
+        const chart = observatoryVisualizationSchema.safeParse(output);
+        return {
+          type: "text",
+          value: JSON.stringify(
+            chart.success ? summarizeObservatoryData(chart.data) : output,
+          ),
+        };
+      },
+      execute: async (
+        input,
+        options,
+      ): Promise<
+        ObservatoryVisualization | { error: string; message: string }
+      > => {
         try {
           const visualization = await load({
             ...input,

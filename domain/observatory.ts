@@ -29,3 +29,37 @@ export const observatoryVisualizationSchema = z.object({
 export type ObservatoryVisualization = z.infer<
   typeof observatoryVisualizationSchema
 >;
+
+/** Compact numerical evidence shared by tool results and subsequent chat turns. */
+export function summarizeObservatoryData(chart: ObservatoryVisualization) {
+  const available = chart.points.filter(
+    (point): point is typeof point & { value: number } => point.value !== null,
+  );
+  const ranked = [...available].sort((a, b) => a.value - b.value);
+  const extreme = (point: (typeof available)[number] | undefined) =>
+    point ? { area: point.label, value: point.value } : null;
+  return {
+    indicatorId: chart.indicatorId,
+    title: chart.title,
+    year: chart.year,
+    unit: chart.unit ?? null,
+    sourceUrl: chart.sourceUrl,
+    kind: chart.kind,
+    summary: {
+      areasWithData: available.length,
+      areasWithoutData: chart.points.length - available.length,
+      minimum: extreme(ranked[0]),
+      maximum: extreme(ranked.at(-1)),
+      ...(available.length &&
+      chart.points.every((point) => point.id.startsWith("POW_"))
+        ? {
+            unweightedCountyMean:
+              available.reduce((total, point) => total + point.value, 0) /
+              available.length,
+          }
+        : {}),
+    },
+    columns: ["obszar", "wartość (null = brak danych)"],
+    data: chart.points.map(({ label, value }) => [label, value]),
+  };
+}

@@ -5,6 +5,7 @@ import {
   type HistoryMessage,
   type SendTurn,
 } from "@/domain/chat/types";
+import { summarizeObservatoryData } from "@/domain/observatory";
 import { getAgentConfiguration } from "@/infrastructure/chat/agent-config";
 
 async function digest(value: string) {
@@ -162,12 +163,7 @@ export function makeD1ChatStore(db: D1Database): ChatStore {
               ...(value.visualizations?.length
                 ? {
                     visualizations: value.visualizations.map(
-                      ({ indicatorId, kind, year, title }) => ({
-                        indicatorId,
-                        kind,
-                        year,
-                        title,
-                      }),
+                      summarizeObservatoryData,
                     ),
                   }
                 : {}),
