@@ -9,21 +9,28 @@ import { sseChunk, streamResponse } from "@/tests/helpers/openrouter-stream";
 test("assistants one and four stream and persist a source-backed fertility chart from a tool call", async () => {
   const realFetch = globalThis.fetch;
   const upstreamRequests: string[] = [];
-  globalThis.fetch = (async (input) => {
-    const url = String(input);
-    upstreamRequests.push(url);
-    if (url.endsWith("/differenceanalysis/135"))
-      return new Response(null, {
-        status: 302,
-        headers: { location: "/trendanalysis/135" },
-      });
-    assert.equal(url, "https://obserwator.rops.krakow.pl/trendanalysis/135");
-    return new Response(`<select id="trendanalysis_year"><option value="2024" selected="selected">2024</option></select>
+  // Miniflare talks to workerd over fetch, so the mock is only installed once
+  // the database exists and is removed again before it is disposed.
+  const mockObservatory = () => {
+    globalThis.fetch = (async (input, init) => {
+      const url = String(input);
+      if (!url.startsWith("https://obserwator.rops.krakow.pl"))
+        return realFetch(input, init);
+      upstreamRequests.push(url);
+      if (url.endsWith("/differenceanalysis/135"))
+        return new Response(null, {
+          status: 302,
+          headers: { location: "/trendanalysis/135" },
+        });
+      assert.equal(url, "https://obserwator.rops.krakow.pl/trendanalysis/135");
+      return new Response(`<select id="trendanalysis_year"><option value="2024" selected="selected">2024</option></select>
       <script>var myChartValuesmyChartTA = [1.15]; var myChartValues2myChartTA = [1.10];</script>`);
-  }) as typeof fetch;
+    }) as typeof fetch;
+  };
   try {
     for (const agentId of ["odkrywaj", "wdrazanie-innowacji"] as const) {
       const fixture = await testDatabase();
+      mockObservatory();
       let calls = 0;
       const model = createChatModel("fixture-key", async (_url, init) => {
         calls++;
@@ -105,6 +112,7 @@ test("assistants one and four stream and persist a source-backed fertility chart
         );
         assert.equal(calls, 2);
       } finally {
+        globalThis.fetch = realFetch;
         await fixture.dispose();
       }
     }
