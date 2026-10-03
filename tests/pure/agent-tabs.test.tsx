@@ -93,8 +93,8 @@ test("Wiedza shows charts and maps while Dopasuj shows project videos", () => {
     assert.ok(!match.includes("Statystyka testowa"));
     assert.ok(knowledge.includes("Statystyka testowa"));
     assert.ok(!knowledge.includes("youtube-nocookie.com/embed/"));
-    assert.ok(!match.includes("Źródła"));
-    assert.ok(!match.includes("Dokumentacja projektu"));
+    assert.ok(match.includes("Źródła"));
+    assert.ok(match.includes("Dokumentacja projektu"));
     assert.ok(knowledge.includes("Źródła"));
     assert.ok(knowledge.includes("Dokumentacja projektu"));
     assert.ok(!match.includes("Roboczy szkic"));
@@ -102,5 +102,8 @@ test("Wiedza shows charts and maps while Dopasuj shows project videos", () => {
     assert.ok(
       renderAnswer("wdrazanie-innowacji", kind).includes("Statystyka testowa"),
     );
+    assert.ok(renderAnswer("wdrazanie-innowacji", kind).includes("Źródła"));
+    assert.ok(!renderAnswer("dodaj-pomysl", kind).includes("Źródła"));
+    assert.ok(!renderAnswer("testuj-innowacje", kind).includes("Źródła"));
   }
 });

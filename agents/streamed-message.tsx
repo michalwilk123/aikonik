@@ -89,6 +89,7 @@ export function StreamedMessage({
       {reply?.artifact &&
         !revealing &&
         message.agentId !== "dodaj-pomysl" &&
+        message.agentId !== "testuj-innowacje" &&
         message.agentId !== "odkrywaj" &&
         message.agentId !== "wiedza" && (
           <section
@@ -114,7 +115,9 @@ export function StreamedMessage({
         )}
       {reply &&
         !revealing &&
-        message.agentId !== "odkrywaj" &&
+        (message.agentId === "wiedza" ||
+          message.agentId === "odkrywaj" ||
+          message.agentId === "wdrazanie-innowacji") &&
         reply.sources.length > 0 && (
           <details className="chat-enter mt-4 rounded-2xl border border-outline-variant bg-white px-4 py-3 text-xs text-on-surface-variant">
             <summary className="cursor-pointer font-medium">

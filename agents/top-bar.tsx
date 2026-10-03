@@ -80,7 +80,7 @@ export function AgentTopBar({
               type="button"
               onClick={() => onSwitch(id)}
               aria-pressed={isActive}
-              className="relative z-10 flex min-h-10 min-w-0 items-center justify-center gap-2 rounded-md px-3 py-2 text-sm leading-tight font-medium transition-colors duration-500 hover:text-foreground"
+              className="relative z-10 flex min-h-12 min-w-0 items-center justify-center gap-2 rounded-lg px-4 py-3 text-base leading-tight font-semibold transition-colors duration-500 hover:text-foreground"
               style={{ color: isActive ? agent.color : "#5B6075" }}
             >
               <span className="min-w-0 break-words">{agent.label}</span>

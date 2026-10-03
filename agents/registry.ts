@@ -1,4 +1,4 @@
-import type { AgentId } from "@/agents/types";
+import { type AgentId, agentIdSchema } from "@/agents/types";
 
 export const agents = {
   odkrywaj: {
@@ -91,3 +91,14 @@ export const agents = {
 >;
 export const agentIds = Object.keys(agents) as AgentId[];
 export const defaultAgentId: AgentId = "odkrywaj";
+
+export function agentHref(id: AgentId) {
+  return `/asystent/${id === "odkrywaj" ? "dopasuj" : id}`;
+}
+
+export function agentIdFromSlug(slug: string) {
+  const parsed = agentIdSchema.safeParse(
+    slug === "dopasuj" ? "odkrywaj" : slug,
+  );
+  return parsed.success ? parsed.data : undefined;
+}

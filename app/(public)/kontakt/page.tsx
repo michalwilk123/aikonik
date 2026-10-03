@@ -61,7 +61,7 @@ export default function KontaktPage() {
       <main
         id="tresc"
         tabIndex={-1}
-        className="mx-auto flex w-full max-w-3xl flex-col gap-12 px-4 pt-28 pb-16 outline-none sm:px-6"
+        className="mx-auto flex w-full max-w-5xl flex-col gap-12 px-4 pt-28 pb-16 outline-none sm:px-6"
       >
         <header className="flex flex-col items-start gap-6 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex flex-col gap-3">

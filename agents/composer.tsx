@@ -1,4 +1,4 @@
-import { ArrowUp, Square } from "lucide-react";
+import { ArrowUp, LockKeyhole, Square } from "lucide-react";
 import type { Ref } from "react";
 import { agents } from "@/agents/registry";
 import type { AgentId } from "@/agents/types";
@@ -13,6 +13,7 @@ export function AgentComposer({
   onStop,
   pending,
   inputRef,
+  disabled = false,
 }: {
   agentId: AgentId;
   value: string;
@@ -20,6 +21,7 @@ export function AgentComposer({
   onSubmit: () => void;
   onStop: () => void;
   pending: boolean;
+  disabled?: boolean;
   inputRef: Ref<HTMLTextAreaElement>;
 }) {
   const agent = agents[agentId];
@@ -29,7 +31,7 @@ export function AgentComposer({
         <form
           onSubmit={(event) => {
             event.preventDefault();
-            onSubmit();
+            if (!disabled) onSubmit();
           }}
           className="flex items-end gap-2 rounded-3xl border border-outline-variant bg-white p-2 shadow-dock"
         >
@@ -38,6 +40,7 @@ export function AgentComposer({
           </label>
           <Textarea
             id="agent-prompt"
+            disabled={disabled}
             ref={inputRef}
             rows={1}
             maxLength={4000}
@@ -45,6 +48,7 @@ export function AgentComposer({
             onChange={(event) => onChange(event.target.value)}
             onKeyDown={(event) => {
               if (
+                !disabled &&
                 event.key === "Enter" &&
                 !event.shiftKey &&
                 !event.nativeEvent.isComposing
@@ -53,18 +57,30 @@ export function AgentComposer({
                 onSubmit();
               }
             }}
-            placeholder={agent.placeholder}
+            placeholder={
+              disabled
+                ? "Zatwierdź formularz lub anuluj, aby wrócić do rozmowy"
+                : agent.placeholder
+            }
             className="field-sizing-content max-h-40 min-h-12 flex-1 resize-none border-0 bg-transparent px-3 py-3 text-[15px] focus-visible:ring-0"
           />
           <Button
             type={pending ? "button" : "submit"}
             onClick={pending ? onStop : undefined}
-            disabled={!pending && !value.trim()}
-            aria-label={pending ? "Zatrzymaj" : "Wyślij wiadomość"}
-            style={{ backgroundColor: agent.color }}
+            disabled={disabled || (!pending && !value.trim())}
+            aria-label={
+              disabled
+                ? "Czat zablokowany podczas wypełniania formularza"
+                : pending
+                  ? "Zatrzymaj"
+                  : "Wyślij wiadomość"
+            }
+            style={{ backgroundColor: disabled ? "#d1d5db" : agent.color }}
             className="size-12 shrink-0 rounded-md transition-[background-color,transform] duration-500 active:scale-95"
           >
-            {pending ? (
+            {disabled ? (
+              <LockKeyhole className="size-5" />
+            ) : pending ? (
               <Square className="size-4" fill="currentColor" />
             ) : (
               <ArrowUp className="size-5" />

@@ -1,6 +1,12 @@
 # Five-agent assistant
 
-The assistant at `/asystent` renders `agents/workspace.tsx`. The landing page is maintained separately. The chat shell now uses the shared
+Each assistant has a shareable URL: `/asystent/dopasuj`, `/asystent/wiedza`,
+`/asystent/dodaj-pomysl`, `/asystent/testuj-innowacje` and
+`/asystent/wdrazanie-innowacji`. Switching tabs updates the URL; browser back/forward
+restores the selected tab. `/asystent` opens Dopasuj and legacy `?agent=<id>` links
+redirect to the corresponding path. The shared assistant layout renders
+`agents/workspace.tsx` and preserves conversations across tab navigation.
+The landing page is maintained separately. The chat shell now uses the shared
 streaming runtime and D1 persistence described in [chat testing](chat-testing.md).
 
 | Agent directory | Tab | Behavior |
@@ -31,7 +37,7 @@ and stable request ID. It shares D1 admission/history, streaming, validation and
 telemetry with `/api/chat`; client-supplied transcripts are rejected. Set
 `OPENROUTER_API_KEY` in `.dev.vars` for local development. Missing credentials
 and generation failures are saved and shown explicitly. There is no canned
-fallback. Requests have a 30-second server deadline and a 45-second browser
+fallback in normal mode. Requests have a 30-second server deadline and a 45-second browser
 deadline. Text streams during generation, with a separate smooth reveal buffer;
 sources and artifacts are exposed after final validation.
 Generation allows up to three model steps, with the final step reserved for an
@@ -64,8 +70,23 @@ call produces a recorded error without invoking any implementation.
 
 Read-only agents do not receive historical artifacts or a draft creation schema.
 Dopasuj retains internal evidence identifiers to select verified project videos,
-but its UI does not render the sources section. Tests inspect actual provider
+and its UI renders the sources section alongside Wiedza and Wdrażanie innowacji.
+Dodaj pomysł and Testuj innowacje do not display a sources section. Tests inspect actual provider
 requests and deliberately return forbidden tool calls to verify non-execution.
+
+## Local previews without AI
+
+Set `DEV=true` in `.dev.vars` and run `bun dev`. The assistant shows preview
+buttons in each tab: catalog video, map, bar chart, Social Canvas with its
+submission form, pilot plan and adaptation plan. Any chat message receives a
+hardcoded reply. Map and chart values are explicitly fictional; videos and report
+excerpts come from the saved catalog. No AI credentials or statistics-service
+requests are needed. The existing streaming and local D1 persistence remain active,
+including submission validation and saving. The Canvas form is available after the
+first preview reply, without completing the usual interview.
+
+Set `DEV=false` and restart to use the model again. Production always ignores
+the flag. YouTube playback still needs access to YouTube.
 
 ## Next steps
 

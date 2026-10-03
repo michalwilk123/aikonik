@@ -1,3 +1,6 @@
 # Secrets for local dev. Copy to .dev.vars (gitignored).
 OPENROUTER_API_KEY=
 PAYLOAD_SECRET=
+
+# Hardcoded agent previews for localhost; ignored in production.
+DEV=true

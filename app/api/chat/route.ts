@@ -7,6 +7,8 @@ import {
 } from "@/domain/chat/types";
 import { createChatModel } from "@/infrastructure/ai/openrouter";
 import { makeD1ChatStore } from "@/infrastructure/chat/d1-store";
+import { makeDevChatAgent } from "@/infrastructure/chat/dev-agent";
+import { isDevMode } from "@/infrastructure/chat/dev-mode";
 import { makeChatAgent } from "@/infrastructure/chat/openrouter-agent";
 import { eventResponse } from "@/infrastructure/chat/transport";
 
@@ -36,15 +38,13 @@ export async function POST(request: Request) {
     const store = makeD1ChatStore(env.DB);
     // Credential errors are generated inside the runtime, after the accepted
     // question/placeholder are saved, and therefore recorded like model errors.
-    const agent: ReturnType<typeof makeChatAgent> = (
-      history,
-      agentSignal,
-      log,
-    ) =>
-      makeChatAgent(
-        createChatModel(env.OPENROUTER_API_KEY ?? ""),
-        input.agentId,
-      )(history, agentSignal, log);
+    const agent: ReturnType<typeof makeChatAgent> = isDevMode(env.DEV)
+      ? makeDevChatAgent(input.agentId)
+      : (history, agentSignal, log) =>
+          makeChatAgent(
+            createChatModel(env.OPENROUTER_API_KEY ?? ""),
+            input.agentId,
+          )(history, agentSignal, log);
     const events = await startTurn(
       store,
       agent,

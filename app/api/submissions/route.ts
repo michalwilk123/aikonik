@@ -47,7 +47,7 @@ export async function POST(request: Request) {
     const receipt = await saveSubmission({
       id: input.id,
       source: input.source,
-      name: input.name,
+      name: `${input.name} ${input.surname}`,
       email: input.email,
       subject: artifact.title,
       artifact,

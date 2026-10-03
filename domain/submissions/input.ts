@@ -25,6 +25,7 @@ export const submissionInputSchema = z.discriminatedUnion("source", [
     .object({
       ...contactFields,
       source: z.enum(["dodaj-pomysl", "testuj-innowacje"]),
+      surname: z.string().trim().min(1).max(150),
       consent: z.literal(true),
       conversationId: z.uuid(),
       capability: z.uuid(),

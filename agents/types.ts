@@ -20,6 +20,10 @@ export const sourceSchema = z.object({
 });
 export type AgentSource = z.infer<typeof sourceSchema>;
 export const artifactSchema = z.object({
+  ready: z
+    .boolean()
+    .optional()
+    .describe("Czy szkic jest gotowy do edycji i zatwierdzenia w formularzu"),
   title: z.string().min(1).max(200),
   fields: z
     .array(

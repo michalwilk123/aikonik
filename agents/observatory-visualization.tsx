@@ -2,7 +2,10 @@
 
 import { useState } from "react";
 import type { ObservatoryVisualization } from "@/domain/observatory";
-import { COUNTY_PATHS } from "@/infrastructure/observatory/geometry";
+import {
+  COUNTY_PATHS,
+  COUNTY_VIEW_BOX,
+} from "@/infrastructure/observatory/geometry";
 
 const shades = ["#e1eef7", "#a9cde4", "#6aa8ce", "#357eaf", "#165780"];
 const numberFormat = new Intl.NumberFormat("pl-PL", {
@@ -49,7 +52,7 @@ export function ObservatoryVisualizationCard({
   );
 
   return (
-    <figure className="mt-4 overflow-hidden rounded-2xl border border-outline-variant bg-white p-4 sm:p-5">
+    <figure className="mt-4 min-w-0 overflow-hidden rounded-2xl border border-outline-variant bg-white p-4 sm:p-5">
       <figcaption>
         <h2 className="font-semibold text-foreground">{title}</h2>
         <p className="mt-1 text-xs text-on-surface-variant">
@@ -62,8 +65,11 @@ export function ObservatoryVisualizationCard({
         <>
           {/* biome-ignore lint/a11y/useSemanticElements: SVG groups cannot be replaced with HTML fieldsets. */}
           <svg
-            viewBox="0 0 793 650"
-            className="mx-auto mt-4 max-h-[400px] w-full"
+            viewBox={COUNTY_VIEW_BOX}
+            width={482}
+            height={429}
+            preserveAspectRatio="xMidYMid meet"
+            className="mx-auto mt-4 block h-auto w-full max-w-md"
             role="group"
             aria-label={`Mapa: ${title}, ${year}. Wybierz powiat, aby poznać wartość.`}
           >
@@ -81,8 +87,10 @@ export function ObservatoryVisualizationCard({
                 aria-label={`${point.label}: ${formatValue(point.value)}`}
                 aria-pressed={selectedId === point.id}
                 className="cursor-pointer transition-colors focus:outline-none focus:stroke-gray-900 focus:stroke-[3px]"
-                onMouseEnter={() => setHoveredId(point.id)}
-                onMouseLeave={() => setHoveredId(null)}
+                onPointerEnter={(event) => {
+                  if (event.pointerType !== "touch") setHoveredId(point.id);
+                }}
+                onPointerLeave={() => setHoveredId(null)}
                 onFocus={() => setHoveredId(point.id)}
                 onBlur={() => setHoveredId(null)}
                 onClick={() => setSelectedId(point.id)}
@@ -119,6 +127,24 @@ export function ObservatoryVisualizationCard({
               </p>
             )}
           </div>
+          <label className="mx-auto mt-4 block max-w-sm text-sm text-foreground sm:hidden">
+            Wybierz powiat
+            <select
+              className="mt-1 min-h-11 w-full rounded-lg border border-outline-variant bg-white px-3 py-2"
+              value={selectedId ?? ""}
+              onChange={(event) => {
+                setHoveredId(null);
+                setSelectedId(event.target.value || null);
+              }}
+            >
+              <option value="">Wybierz obszar…</option>
+              {points.map((point) => (
+                <option key={point.id} value={point.id}>
+                  {point.label}
+                </option>
+              ))}
+            </select>
+          </label>
         </>
       ) : (
         <fieldset

@@ -1,16 +1,11 @@
-import type { Metadata } from "next";
-import { Chat } from "@/app/_components/chat";
-import { SiteHeader } from "@/app/_components/site-header";
+import { redirect } from "next/navigation";
+import { agentHref, agentIdFromSlug, defaultAgentId } from "@/agents/registry";
 
-export const metadata: Metadata = { title: "Asystent" };
-
-export default function AssistantPage() {
-  return (
-    <>
-      <SiteHeader current="/asystent" />
-      <main id="tresc" tabIndex={-1} className="flex flex-1 flex-col pt-16">
-        <Chat />
-      </main>
-    </>
-  );
+export default async function AssistantPage({
+  searchParams,
+}: PageProps<"/asystent">) {
+  const { agent } = await searchParams;
+  // Preserve existing links that used ?agent=<id>.
+  const id = typeof agent === "string" ? agentIdFromSlug(agent) : undefined;
+  redirect(agentHref(id ?? defaultAgentId));
 }

@@ -47,11 +47,15 @@ export async function verifyAgentSubmission(
   const result = artifactSchema.safeParse(JSON.parse(latest.answer).artifact);
   if (
     !result.success ||
-    JSON.stringify(result.data) !== JSON.stringify(input.artifact)
+    result.data.title !== input.artifact.title ||
+    result.data.fields.length !== input.artifact.fields.length ||
+    result.data.fields.some(
+      (field, index) => field.label !== input.artifact.fields[index]?.label,
+    )
   )
     throw new ChatConflict(
       409,
       "Szkic nie odpowiada zapisanej wersji. Przejrzyj najnowszą odpowiedź.",
     );
-  return result.data;
+  return { ...result.data, fields: input.artifact.fields };
 }

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import type { CSSProperties } from "react";
-import { agents } from "@/agents/registry";
+import { agentHref, agents } from "@/agents/registry";
 import type { AgentId } from "@/agents/types";
 import { HeroArt } from "@/app/_components/hero-art";
 import {
@@ -189,7 +189,7 @@ export default function HomePage() {
           aria-labelledby="co-to-jest"
           className="px-4 py-12 sm:px-6 sm:py-16"
         >
-          <div className="mx-auto max-w-3xl">
+          <div className="mx-auto max-w-5xl">
             <h2 id="co-to-jest" className={sectionTitle} data-reveal>
               <RevealText text="Co to jest AiKonik?" />
             </h2>
@@ -271,7 +271,7 @@ export default function HomePage() {
                   </p>
                   <Button
                     nativeButton={false}
-                    render={<Link href={`/asystent?agent=${f.agent}`} />}
+                    render={<Link href={agentHref(f.agent)} />}
                     className="mt-5 h-12 self-start px-6 text-base"
                   >
                     Otwórz asystenta
@@ -368,7 +368,7 @@ export default function HomePage() {
           aria-labelledby="dostepnosc"
           className="bg-surface-container-low px-4 py-12 sm:px-6 sm:py-16"
         >
-          <div className="mx-auto max-w-3xl">
+          <div className="mx-auto max-w-5xl">
             <h2 id="dostepnosc" className={sectionTitle} data-reveal>
               <RevealText text="Dostępny dla każdego" />
             </h2>

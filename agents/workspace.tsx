@@ -1,9 +1,15 @@
 "use client";
 
+import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AgentComposer } from "@/agents/composer";
 import { AgentContact } from "@/agents/contact";
-import { agents, defaultAgentId } from "@/agents/registry";
+import {
+  agentHref,
+  agentIdFromSlug,
+  agents,
+  defaultAgentId,
+} from "@/agents/registry";
 import { StreamedMessage } from "@/agents/streamed-message";
 import { AgentSubmissionForm } from "@/agents/submission-form";
 import { AgentTopBar } from "@/agents/top-bar";
@@ -11,7 +17,6 @@ import {
   type AgentId,
   type AgentMessage,
   type AgentReply,
-  agentIdSchema,
   agentReplySchema,
 } from "@/agents/types";
 import { AgentWelcome } from "@/agents/welcome";
@@ -25,6 +30,10 @@ type Session = {
   pending: boolean;
   error: string | null;
   revealing: string[];
+  submission: {
+    requestId: string;
+    status: "open" | "cancelled" | "submitted";
+  } | null;
 };
 const emptySession = (): Session => ({
   messages: [],
@@ -33,24 +42,14 @@ const emptySession = (): Session => ({
   pending: false,
   error: null,
   revealing: [],
+  submission: null,
 });
 
-const MIN_QUESTIONS = 2;
-
-// The form appears only after the assistant asked at least MIN_QUESTIONS
-// questions and its latest reply no longer ends with a question.
-function isInterviewDone(
-  messages: { role: string; content: string }[],
-  latest: string,
-) {
-  const asked = messages.filter(
-    (entry) => entry.role === "assistant" && entry.content.includes("?"),
-  ).length;
-  return asked >= MIN_QUESTIONS && !latest.includes("?");
-}
-
-export function AgentWorkspace() {
-  const [activeAgent, setActiveAgent] = useState<AgentId>(defaultAgentId);
+export function AgentWorkspace({ devMode = false }: { devMode?: boolean }) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const activeAgent =
+    agentIdFromSlug(pathname.split("/")[2] ?? "") ?? defaultAgentId;
   const [sessions, setSessions] = useState<Record<AgentId, Session>>({
     odkrywaj: emptySession(),
     wiedza: emptySession(),
@@ -65,16 +64,9 @@ export function AgentWorkspace() {
   const [follow, setFollow] = useState(true);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const endRef = useRef<HTMLDivElement>(null);
-  // Deep link from the landing page: /asystent?agent=<id> opens that tab.
-  useEffect(() => {
-    const requested = agentIdSchema.safeParse(
-      new URLSearchParams(window.location.search).get("agent"),
-    );
-    if (requested.success) setActiveAgent(requested.data);
-  }, []);
   const session = sessions[activeAgent];
   const agent = agents[activeAgent];
-  const submissionIdentity = identities.current.get(activeAgent);
+  const chatDisabled = session.submission?.status === "open";
 
   useEffect(() => {
     const active = requests.current;
@@ -125,7 +117,7 @@ export function AgentWorkspace() {
   async function submit(text = session.draft) {
     const agentId = activeAgent;
     const content = text.trim();
-    if (!content || requests.current.has(agentId)) return;
+    if (!content || requests.current.has(agentId) || chatDisabled) return;
     const controller = new AbortController();
     requests.current.set(agentId, controller);
     const message: AgentMessage = {
@@ -212,7 +204,7 @@ export function AgentWorkspace() {
             artifact: event.answer.artifact ?? null,
             visualizations: event.answer.visualizations ?? [],
             videos: event.answer.videos ?? [],
-            model: MODEL_ID,
+            model: devMode ? "dev-fixture" : MODEL_ID,
           });
           update(agentId, (current) => ({
             ...current,
@@ -220,6 +212,12 @@ export function AgentWorkspace() {
               entry.id === assistant.id ? reply.message : entry,
             ),
             replies: [...current.replies, reply],
+            submission:
+              (agentId === "dodaj-pomysl" || agentId === "testuj-innowacje") &&
+              reply.artifact?.ready === true &&
+              reply.artifact.fields.length > 0
+                ? { requestId: reply.requestId, status: "open" }
+                : null,
             pending: false,
           }));
         }
@@ -252,11 +250,46 @@ export function AgentWorkspace() {
       <AgentTopBar
         activeAgent={activeAgent}
         onSwitch={(id) => {
-          setActiveAgent(id);
+          if (id !== activeAgent) router.push(agentHref(id), { scroll: false });
           setFollow(true);
         }}
       />
       <div className="mx-auto w-full max-w-5xl flex-1 bg-white px-4 pb-64 shadow-soft sm:border-x sm:border-outline-variant sm:px-8">
+        {devMode && (
+          <aside className="my-4 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm">
+            <p className="font-semibold">DEV — podgląd bez modelu AI</p>
+            <p className="mt-1">
+              Odpowiedzi są przykładowe. Zgłoszenia zapisują się w lokalnej
+              bazie.
+            </p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {(activeAgent === "odkrywaj"
+                ? ["Pokaż film innowacji"]
+                : activeAgent === "wiedza"
+                  ? [
+                      "Pokaż mapę",
+                      "Pokaż wykres",
+                      "Pokaż raport i wizualizacje",
+                    ]
+                  : activeAgent === "dodaj-pomysl"
+                    ? ["Pokaż Social Canvas i formularz"]
+                    : activeAgent === "testuj-innowacje"
+                      ? ["Pokaż plan pilotażu"]
+                      : ["Pokaż plan wdrożenia i wizualizacje"]
+              ).map((text) => (
+                <button
+                  key={text}
+                  type="button"
+                  disabled={session.pending || chatDisabled}
+                  className="rounded-lg border border-amber-300 bg-white px-3 py-2 disabled:opacity-50"
+                  onClick={() => void submit(text)}
+                >
+                  {text}
+                </button>
+              ))}
+            </div>
+          </aside>
+        )}
         {Object.values(sessions).every(
           (entry) => entry.messages.length === 0,
         ) && <AgentContact />}
@@ -288,23 +321,6 @@ export function AgentWorkspace() {
                       animate={session.revealing.includes(message.id)}
                       onRevealed={onRevealed}
                     />
-                    {reply?.artifact &&
-                      reply.artifact.fields.length > 0 &&
-                      !session.pending &&
-                      !session.error &&
-                      !session.revealing.includes(message.id) &&
-                      session.messages.at(-1)?.id === message.id &&
-                      isInterviewDone(session.messages, message.content) &&
-                      activeAgent === "dodaj-pomysl" &&
-                      submissionIdentity && (
-                        <AgentSubmissionForm
-                          key={reply.requestId}
-                          source={activeAgent}
-                          requestId={reply.requestId}
-                          artifact={reply.artifact}
-                          identity={submissionIdentity}
-                        />
-                      )}
                   </div>
                 );
               return (
@@ -322,7 +338,7 @@ export function AgentWorkspace() {
                   >
                     Ty
                   </p>
-                  <p className="whitespace-pre-wrap text-sm leading-7 text-foreground">
+                  <p className="whitespace-pre-wrap text-[16px] leading-7 text-foreground">
                     {message.content}
                   </p>
                 </article>
@@ -359,9 +375,57 @@ export function AgentWorkspace() {
                 </button>
               </div>
             )}
-            <div ref={endRef} className="scroll-mb-48" />
           </div>
         )}
+        {(["dodaj-pomysl", "testuj-innowacje"] as const).map((id) => {
+          const entry = sessions[id];
+          const submission = entry.submission;
+          const reply = entry.replies.find(
+            (reply) => reply.requestId === submission?.requestId,
+          );
+          const identity = identities.current.get(id);
+          if (
+            !submission ||
+            submission.status === "cancelled" ||
+            !reply?.artifact ||
+            !identity ||
+            entry.pending ||
+            entry.error ||
+            entry.revealing.includes(reply.message.id)
+          )
+            return null;
+          return (
+            <div key={id} hidden={activeAgent !== id}>
+              <AgentSubmissionForm
+                key={reply.requestId}
+                source={id}
+                requestId={reply.requestId}
+                artifact={reply.artifact}
+                identity={identity}
+                onCancel={() => {
+                  update(id, (current) => ({
+                    ...current,
+                    submission: {
+                      requestId: reply.requestId,
+                      status: "cancelled",
+                    },
+                  }));
+                  requestAnimationFrame(() => inputRef.current?.focus());
+                }}
+                onSubmitted={() =>
+                  update(id, (current) => ({
+                    ...current,
+                    submission: {
+                      requestId: reply.requestId,
+                      status: "submitted",
+                    },
+                  }))
+                }
+              />
+            </div>
+          );
+        })}
+        <div ref={endRef} className="scroll-mb-48" />
       </div>
       <AgentComposer
         agentId={activeAgent}
@@ -372,6 +436,7 @@ export function AgentWorkspace() {
         onSubmit={submit}
         onStop={() => requests.current.get(activeAgent)?.abort()}
         pending={session.pending}
+        disabled={chatDisabled}
         inputRef={inputRef}
       />
     </>

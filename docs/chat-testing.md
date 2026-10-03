@@ -49,6 +49,36 @@ The fixture database is isolated from `.wrangler` and disposed after the tests.
 | Text reveal | Burst reveal, acceleration/draining, reduced motion and grapheme boundaries |
 | Agent behavior | Per-agent executable tool registries, forbidden calls recorded without execution, role-specific output schemas, isolated history and artifacts |
 
+## Submission forms in the browser
+
+„Dodaj pomysł” and „Testuj innowacje” collect missing basics with suggested
+answers. Their artifacts use `ready: false` during the interview and
+`ready: true` when a useful first draft can be reviewed. Readiness does not depend
+on question marks or a minimum number of turns.
+
+The ready draft opens an editable HTML form with „Dalej” and „Anuluj”. „Dalej”
+opens first name, surname and email fields with „Wstecz” and „Wyślij”. Chat stays
+disabled through both steps and submission retries. Cancelling hides the form
+and enables chat; successful submission shows a receipt and also enables chat.
+Edits and contact fields survive going back or switching agents. The backend
+checks conversation ownership and the latest draft's title and field labels,
+then saves the edited values. Saved submissions remain immutable.
+
+With `bun dev` running in another terminal:
+
+```sh
+bunx playwright-core install chromium
+bun run test:browser
+# For a different local port:
+TEST_BASE_URL=http://localhost:3001 bun run test:browser
+```
+
+The browser check runs both assistants with intercepted AI and submission
+responses, without model calls or writing to the local database. It covers the
+interview, editing, back, tab switching, failed submission/retry, send and cancel.
+Real D1 integration tests separately verify saving edited fields, ownership,
+stale drafts and immutable retries.
+
 ## Opt-in live evaluation
 
 Provide `OPENROUTER_API_KEY` as an environment variable and run:
@@ -103,7 +133,8 @@ removing complete oldest turns, while D1 keeps the full transcript.
 
 ## Local and production setup
 
-Copy `.dev.vars.example` to `.dev.vars` and fill `OPENROUTER_API_KEY` for interactive
-chat. Apply local migrations before running dev. Production uses the existing
+Copy `.dev.vars.example` to `.dev.vars`. `DEV=true` enables hardcoded previews of
+all five agents without AI calls. For model responses, set `DEV=false` and fill
+`OPENROUTER_API_KEY`. Apply local migrations before running `bun dev`. Production uses the existing
 D1 binding and deployment migration step. No remote migration or deployment is
 performed by local tests.

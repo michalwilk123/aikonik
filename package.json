@@ -23,7 +23,8 @@
     "db:migrate:remote": "wrangler d1 migrations apply hubmi --remote",
     "test:integration": "for f in tests/integration/*.test.ts; do bun test --timeout 30000 \"$f\" || exit 1; done",
     "eval:openrouter": "bun run evals/openrouter.ts",
-    "cms:seed": "bun scripts/seed-staff.ts"
+    "cms:seed": "bun scripts/seed-staff.ts",
+    "test:browser": "bun tests/browser/submission-flow.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",
@@ -61,6 +62,7 @@
     "drizzle-kit": "^0.31.11",
     "knip": "^6.39.0",
     "miniflare": "^5.20261001.0-alpha",
+    "playwright-core": "^1.63.0",
     "tailwindcss": "^4",
     "typescript": "^5",
     "wrangler": "^4.147.0"

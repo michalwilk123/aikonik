@@ -54,6 +54,7 @@ async function conversation(
     ...identity,
     requestId,
     name: "Anna",
+    surname: "Kowalska",
     email: "anna@example.pl",
     consent: true as const,
     artifact,
@@ -86,7 +87,7 @@ test("contact submissions require validated contact information without a consen
   );
 });
 
-test("only the conversation owner can submit the exact persisted agent draft", async () => {
+test("only the conversation owner can submit fields from the latest agent draft", async () => {
   const input = await conversation();
   assert.equal(submissionInputSchema.safeParse(input).success, true);
   assert.equal(
@@ -117,6 +118,20 @@ test("only the conversation owner can submit the exact persisted agent draft", a
       artifact: { ...artifact, title: "Changed title" },
     }),
     (error) => error instanceof ChatConflict && error.status === 409,
+  );
+  await assert.rejects(
+    verifyAgentSubmission(fixture.db as unknown as D1Database, {
+      ...input,
+      artifact: {
+        ...artifact,
+        fields: [{ label: "Inne pole", value: "Seniorzy" }],
+      },
+    }),
+    (error) => error instanceof ChatConflict && error.status === 409,
+  );
+  assert.equal(
+    submissionInputSchema.safeParse({ ...input, surname: " " }).success,
+    false,
   );
 });
 
@@ -259,3 +274,51 @@ test("Testuj innowacje submissions use the same owned immutable snapshot flow", 
     "testuj-innowacje",
   );
 });
+
+for (const source of ["dodaj-pomysl", "testuj-innowacje"] as const) {
+  test(`${source} saves the user's edited draft values`, async () => {
+    const input = await conversation(source);
+    const edited = {
+      ...artifact,
+      fields: [{ label: "Odbiorcy", value: "Rodziny z dziećmi" }],
+    };
+    const db = fixture.db as unknown as D1Database;
+    const verified = await verifyAgentSubmission(db, {
+      ...input,
+      artifact: edited,
+    });
+    assert.deepEqual(verified, edited);
+    await insertSubmission(db, {
+      id: input.id,
+      source,
+      name: input.name,
+      email: input.email,
+      subject: verified.title,
+      artifact: verified,
+      conversationId: input.conversationId,
+      sourceTurnId: input.requestId,
+    });
+    const saved = await fixture.db
+      .prepare("SELECT artifact FROM submissions WHERE id = ?")
+      .bind(input.id)
+      .first<string>("artifact");
+    assert.deepEqual(JSON.parse(saved ?? "null"), edited);
+    assert.deepEqual(
+      await verifyAgentSubmission(db, { ...input, artifact: edited }),
+      edited,
+    );
+    await assert.rejects(
+      insertSubmission(db, {
+        id: input.id,
+        source,
+        name: input.name,
+        email: input.email,
+        subject: artifact.title,
+        artifact,
+        conversationId: input.conversationId,
+        sourceTurnId: input.requestId,
+      }),
+      (error) => error instanceof ChatConflict && error.status === 409,
+    );
+  });
+}
