@@ -3,6 +3,10 @@ import { expect, test } from "@playwright/test";
 
 const password = "LocalStaff-Test1";
 
+// next dev compiles the Payload admin and API routes on first request, which
+// can take longer than the default 30s on a cold CI runner.
+test.describe.configure({ timeout: 120_000 });
+
 test.beforeAll(() => {
   execFileSync("bun", ["run", "db:migrate:local"], { stdio: "pipe" });
   execFileSync("bun", ["run", "cms:seed"], {
