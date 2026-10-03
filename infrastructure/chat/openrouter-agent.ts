@@ -18,11 +18,16 @@ import type { ChatAnswer } from "@/domain/chat/types";
 import type { ObservatoryVisualization } from "@/domain/observatory";
 import { type SupportOffer, supportAnswerSchema } from "@/domain/support-offer";
 import { getAgentConfiguration } from "@/infrastructure/chat/agent-config";
+import { makeInnovationTools } from "@/infrastructure/chat/innovation-tools";
 import {
   makeObservatoryTools,
   supportsObservatory,
 } from "@/infrastructure/chat/observatory-tool";
 import { makeReportTool } from "@/infrastructure/chat/report-tool";
+import {
+  getInnovationVideos,
+  resolveInnovationSources,
+} from "@/infrastructure/innovations/source";
 
 export function makeChatAgent(
   model: LanguageModel,
@@ -31,6 +36,26 @@ export function makeChatAgent(
   return async function* (history, signal, log) {
     const started = Date.now();
     const config = getAgentConfiguration(agentId);
+    const messages = compileHistory(history);
+    const availableSources = [...config.sources];
+    if (agentId === "odkrywaj") {
+      for (const message of messages) {
+        if (message.role !== "assistant") continue;
+        try {
+          const previous = JSON.parse(message.content);
+          if (Array.isArray(previous.sourceIds))
+            availableSources.push(
+              ...resolveInnovationSources(
+                previous.sourceIds.filter(
+                  (id: unknown): id is string => typeof id === "string",
+                ),
+              ),
+            );
+        } catch {
+          // Older replies may be plain text rather than a persisted answer.
+        }
+      }
+    }
     type ModelAnswer = {
       message: string;
       areaLabel?: string;
@@ -46,6 +71,19 @@ export function makeChatAgent(
     const toolEvents: Extract<AgentEvent, { type: "tool" }>[] = [];
     const visualizations: ObservatoryVisualization[] = [];
     const tools: ToolSet = { read_report: makeReportTool() };
+    if (agentId === "odkrywaj")
+      Object.assign(
+        tools,
+        makeInnovationTools((sources) => {
+          for (const source of sources) {
+            const index = availableSources.findIndex(
+              (existing) => existing.id === source.id,
+            );
+            if (index === -1) availableSources.push(source);
+            else availableSources[index] = source;
+          }
+        }),
+      );
     if (supportsObservatory(agentId))
       Object.assign(
         tools,
@@ -68,7 +106,7 @@ export function makeChatAgent(
     const result = streamText({
       model,
       instructions: config.instructions,
-      messages: compileHistory(history),
+      messages,
       tools,
       stopWhen: isStepCount(3),
       // Reserve the final step for an answer; tool-only steps have no object
@@ -163,17 +201,22 @@ export function makeChatAgent(
           }
         }
         const generated = await output;
+        const sources = resolveSources(generated.sourceIds ?? [], [
+          ...new Map(
+            availableSources.map((source) => [source.id, source]),
+          ).values(),
+        ]);
+        const videos =
+          agentId === "odkrywaj" ? getInnovationVideos(sources) : [];
         answer = {
           message: generated.message,
           areaLabel: generated.areaLabel ?? "Małopolska",
           offers: generated.offers ?? [],
           ...(visualizations.length ? { visualizations } : {}),
+          ...(videos.length ? { videos } : {}),
           ...(agentId
             ? {
-                sources: resolveSources(
-                  generated.sourceIds ?? [],
-                  config.sources,
-                ),
+                sources,
                 artifact:
                   agentId === "odkrywaj" ? null : (generated.artifact ?? null),
               }

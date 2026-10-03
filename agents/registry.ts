@@ -8,11 +8,11 @@ export const agents = {
     step: "01",
     title: "Od potrzeby do możliwości.",
     description:
-      "Poznaj wyzwania Małopolski i szukaj kierunków rozwiązań w wiedzy ROPS. Zacznij od problemu, który chcesz lepiej zrozumieć.",
-    placeholder: "Jaki problem społeczny chcesz poznać?",
+      "Opisz problem, a asystent poszuka pasujących rozwiązań w Bibliotece Innowacji Społecznych ROPS. Możesz też pytać o dokumentację projektów i dane społeczne.",
+    placeholder: "Jaki problem chcesz rozwiązać lub lepiej zrozumieć?",
     examples: [
       "Co raporty ROPS mówią o starzeniu się Małopolski?",
-      "Jak rozwijać pomoc sąsiedzką dla seniorów?",
+      "Starsza osoba czuje się samotna. Jakie innowacje mogą pomóc?",
       "Jakie są luki w usługach opiekuńczych?",
     ],
   },

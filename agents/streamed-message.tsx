@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { ObservatoryVisualizationCard } from "@/agents/observatory-visualization";
 import { agents } from "@/agents/registry";
 import type { AgentMessage, AgentReply } from "@/agents/types";
+import { YouTubeVideo } from "@/agents/youtube-video";
 import { useSmoothText } from "@/app/_hooks/use-smooth-text";
 
 export function StreamedMessage({
@@ -77,6 +78,13 @@ export function StreamedMessage({
             ))}
           </div>
         )}
+      {reply?.videos && !revealing && message.agentId === "odkrywaj" && (
+        <div className="mt-4 space-y-4">
+          {reply.videos.map((video) => (
+            <YouTubeVideo key={video.url} url={video.url} title={video.title} />
+          ))}
+        </div>
+      )}
       {reply?.artifact && !revealing && message.agentId !== "dodaj-pomysl" && (
         <section
           className="mt-4 rounded-2xl border border-outline-variant bg-white p-5"

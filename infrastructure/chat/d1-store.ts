@@ -157,8 +157,23 @@ export function makeD1ChatStore(db: D1Database): ChatStore {
               areaLabel: value.areaLabel,
               ...(value.offers.length ? { offers: value.offers } : {}),
               ...(value.sources?.length
-                ? { sourceIds: value.sources.map((source) => source.id) }
+                ? {
+                    sourceIds: value.sources.map((source) => source.id),
+                    // Keep bounded innovation evidence for follow-up questions.
+                    // Other agents' report excerpts remain behind read_report.
+                    sources: value.sources
+                      .filter(
+                        (source) =>
+                          source.id.startsWith("innovation:") ||
+                          source.id.startsWith("social-challenges:"),
+                      )
+                      .map((source) => ({
+                        ...source,
+                        excerpt: source.excerpt.slice(0, 1200),
+                      })),
+                  }
                 : {}),
+              ...(value.videos?.length ? { videos: value.videos } : {}),
               ...(value.artifact ? { artifact: value.artifact } : {}),
               ...(value.visualizations?.length
                 ? {

@@ -201,6 +201,7 @@ export function AgentWorkspace() {
             sources: event.answer.sources ?? [],
             artifact: event.answer.artifact ?? null,
             visualizations: event.answer.visualizations ?? [],
+            videos: event.answer.videos ?? [],
             model: MODEL_ID,
           });
           update(agentId, (current) => ({

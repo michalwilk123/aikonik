@@ -360,6 +360,41 @@ test("D1 enforces agent ownership and preserves drafts without copying sources i
   }
 });
 
+test("D1 preserves bounded innovation evidence and catalog videos for follow-up questions", async () => {
+  const { store } = await freshDatabase();
+  const first = { ...input(), agentId: "odkrywaj" as const };
+  const sources = [
+    {
+      id: "innovation:senior-cuder:page",
+      title: "Senior CUDER",
+      url: "https://rops.krakow.pl/",
+      excerpt: "seniorzy ".repeat(1000),
+    },
+  ];
+  const videos = [
+    {
+      projectId: "senior-cuder",
+      title: "Senior CUDER",
+      url: "https://www.youtube.com/watch?v=o5TP10ZStNA",
+    },
+  ];
+  const discovery: ChatAgent = async function* () {
+    yield {
+      type: "answer",
+      answer: { ...answer, sources, videos, artifact: null },
+    };
+  };
+  await drain(await startTurn(store, discovery, first, {}, signal()));
+  const next = await store.accept(
+    { ...first, requestId: crypto.randomUUID(), text: "Jak to działa?" },
+    {},
+  );
+  const prior = JSON.parse(next.history[1].content);
+  assert.deepEqual(prior.sourceIds, [sources[0].id]);
+  assert.equal(prior.sources[0].excerpt.length, 1200);
+  assert.deepEqual(prior.videos, videos);
+});
+
 test("cancelling immediately after admission/start finalizes the assistant placeholder", async () => {
   const { db, store, dispose } = await freshDatabase();
   try {

@@ -1,14 +1,13 @@
 import { ArrowUpRight } from "lucide-react";
 import { canvasSource } from "@/agents/dodaj-pomysl/canvas";
-import { knowledgeScope } from "@/agents/odkrywaj/knowledge";
 import { agents } from "@/agents/registry";
 import type { AgentId } from "@/agents/types";
 
 const guidance = {
   odkrywaj: {
-    text: knowledgeScope,
-    link: "https://rops.krakow.pl/badania-analizy-raporty/raporty-z-badan",
-    linkLabel: "Zobacz raporty ROPS",
+    text: "Korzystamy z opisów innowacji, ich dokumentacji i Mapy Wyzwań Społecznych ROPS. Pomagamy ocenić dopasowanie rozwiązania; biblioteka nie potwierdza aktualnego naboru ani dostępności usług w Twojej okolicy.",
+    link: "https://rops.krakow.pl/innowacje-spoleczne/biblioteka-innowacji-spolecznych/kategorie",
+    linkLabel: "Zobacz Bibliotekę Innowacji Społecznych",
   },
   "dodaj-pomysl": {
     text: "Krok po kroku zbierzemy Twoje odpowiedzi w roboczy Social Canvas. Zacznij od kilku słów o pomyśle — nie musisz znać budżetu ani mieć gotowego rozwiązania.",

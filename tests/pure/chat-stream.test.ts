@@ -208,9 +208,18 @@ test("all four streaming agents keep their role, resolve allowed sources and res
     const tools = request.tools as { function: { name: string } }[];
     assert.deepEqual(
       tools.map((entry) => entry.function.name),
-      id === "odkrywaj" || id === "wdrazanie-innowacji"
-        ? ["read_report", "show_map", "show_bar_chart"]
-        : ["read_report"],
+      id === "odkrywaj"
+        ? [
+            "read_report",
+            "search_innovations",
+            "read_innovation",
+            "read_social_challenges",
+            "show_map",
+            "show_bar_chart",
+          ]
+        : id === "wdrazanie-innowacji"
+          ? ["read_report", "show_map", "show_bar_chart"]
+          : ["read_report"],
     );
     const messages = request.messages as { role: string; content: string }[];
     assert.equal(

@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { agentIdSchema, artifactSchema, sourceSchema } from "@/agents/types";
+import { innovationVideoSchema } from "@/domain/innovation-video";
 import { observatoryVisualizationSchema } from "@/domain/observatory";
 import { supportAnswerSchema } from "@/domain/support-offer";
 
@@ -7,6 +8,7 @@ const chatAnswerSchema = supportAnswerSchema.extend({
   sources: z.array(sourceSchema).max(8).optional(),
   artifact: artifactSchema.nullable().optional(),
   visualizations: z.array(observatoryVisualizationSchema).max(4).optional(),
+  videos: z.array(innovationVideoSchema).max(3).optional(),
 });
 export type ChatAnswer = z.infer<typeof chatAnswerSchema>;
 
