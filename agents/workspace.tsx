@@ -1,14 +1,11 @@
 "use client";
 
-import { ArrowDown, Download, RotateCcw } from "lucide-react";
+import { ArrowDown } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AgentComposer } from "@/agents/composer";
-import { AgentPanel as CanvasPanel } from "@/agents/dodaj-pomysl/components";
-import { AgentPanel as DiscoveryPanel } from "@/agents/odkrywaj/components";
 import { agents, defaultAgentId } from "@/agents/registry";
 import { StreamedMessage } from "@/agents/streamed-message";
 import { AgentSubmissionForm } from "@/agents/submission-form";
-import { AgentPanel as TestingPanel } from "@/agents/testuj-innowacje/components";
 import { AgentTopBar } from "@/agents/top-bar";
 import {
   type AgentId,
@@ -16,7 +13,6 @@ import {
   type AgentReply,
   agentReplySchema,
 } from "@/agents/types";
-import { AgentPanel as RolloutPanel } from "@/agents/wdrazanie-innowacji/components";
 import { AgentWelcome } from "@/agents/welcome";
 import { MODEL_ID } from "@/domain/chat/model";
 import { readChatEvents } from "@/infrastructure/chat/transport";
@@ -37,12 +33,6 @@ const emptySession = (): Session => ({
   error: null,
   revealing: [],
 });
-const panels = {
-  odkrywaj: DiscoveryPanel,
-  "dodaj-pomysl": CanvasPanel,
-  "testuj-innowacje": TestingPanel,
-  "wdrazanie-innowacji": RolloutPanel,
-};
 
 export function AgentWorkspace() {
   const [activeAgent, setActiveAgent] = useState<AgentId>(defaultAgentId);
@@ -62,10 +52,6 @@ export function AgentWorkspace() {
   const session = sessions[activeAgent];
   const agent = agents[activeAgent];
   const submissionIdentity = identities.current.get(activeAgent);
-  const Panel = panels[activeAgent];
-  const artifactReply = session.replies.findLast(
-    (reply) => reply.artifact !== null,
-  );
 
   useEffect(() => {
     const active = requests.current;
@@ -236,31 +222,6 @@ export function AgentWorkspace() {
     }
   }
 
-  function exportConversation() {
-    const file = new Blob(
-      [
-        JSON.stringify(
-          {
-            agentId: activeAgent,
-            agentLabel: agent.label,
-            messages: session.messages,
-            replies: session.replies,
-            exportedAt: new Date().toISOString(),
-          },
-          null,
-          2,
-        ),
-      ],
-      { type: "application/json" },
-    );
-    const url = URL.createObjectURL(file);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `hubmi-${activeAgent}.json`;
-    link.click();
-    URL.revokeObjectURL(url);
-  }
-
   return (
     <>
       <AgentTopBar
@@ -270,158 +231,109 @@ export function AgentWorkspace() {
           setFollow(true);
         }}
       />
-      <div className="mx-auto grid w-full max-w-6xl gap-8 pt-7 lg:grid-cols-[minmax(0,1fr)_320px] lg:gap-12">
-        <div className="min-w-0">
-          <div className="flex items-center justify-between gap-3 border-b border-slate-200 pb-4">
-            <div
-              className="flex items-center gap-2 text-sm font-semibold"
-              style={{ color: agent.color }}
-            >
-              <span
-                className="size-2 rounded-full"
-                style={{ backgroundColor: agent.color }}
-              />
-              <span>{agent.label}</span>
-              <span className="text-xs font-normal text-slate-400">
-                / {agent.step}
-              </span>
-            </div>
-            <div className="flex items-center gap-3">
-              <button
-                type="button"
-                disabled={session.pending}
-                onClick={() => {
-                  identities.current.delete(activeAgent);
-                  update(activeAgent, emptySession);
-                  inputRef.current?.focus();
-                }}
-                className="flex min-h-10 items-center gap-1.5 text-xs text-slate-500 hover:text-slate-900 disabled:opacity-40"
-              >
-                <RotateCcw className="size-3.5" aria-hidden="true" />
-                Nowa rozmowa
-              </button>
-              <button
-                type="button"
-                disabled={!session.messages.length || session.pending}
-                onClick={exportConversation}
-                className="flex min-h-10 items-center gap-1.5 text-xs text-slate-500 hover:text-slate-900 disabled:opacity-40"
-              >
-                <Download className="size-3.5" aria-hidden="true" />
-                Pobierz rozmowę
-              </button>
-            </div>
-          </div>
-          {session.messages.length === 0 ? (
-            <AgentWelcome
-              agentId={activeAgent}
-              onPick={(draft) => {
-                update(activeAgent, (current) => ({ ...current, draft }));
-                inputRef.current?.focus();
-              }}
-            />
-          ) : (
-            <div className="flex flex-col gap-7 py-7">
-              {session.messages.map((message) => {
-                const reply = session.replies.find(
-                  (entry) => entry.message.id === message.id,
-                );
-                if (message.role === "assistant")
-                  return (
-                    <div key={message.id} className="flex flex-col gap-4">
-                      <StreamedMessage
-                        message={message}
-                        reply={reply}
-                        pending={
-                          session.pending &&
-                          session.messages.at(-1)?.id === message.id
-                        }
-                        animate={session.revealing.includes(message.id)}
-                        onRevealed={onRevealed}
-                      />
-                      {reply?.artifact &&
-                        reply.artifact.fields.length > 0 &&
-                        !session.pending &&
-                        !session.error &&
-                        !session.revealing.includes(message.id) &&
-                        session.messages.at(-1)?.id === message.id &&
-                        (activeAgent === "dodaj-pomysl" ||
-                          activeAgent === "testuj-innowacje") &&
-                        submissionIdentity && (
-                          <AgentSubmissionForm
-                            key={reply.requestId}
-                            source={activeAgent}
-                            requestId={reply.requestId}
-                            artifact={reply.artifact}
-                            identity={submissionIdentity}
-                          />
-                        )}
-                    </div>
-                  );
+      <div className="mx-auto w-full max-w-3xl px-4 sm:px-6">
+        {session.messages.length === 0 ? (
+          <AgentWelcome
+            key={activeAgent}
+            agentId={activeAgent}
+            onPick={(draft) => {
+              update(activeAgent, (current) => ({ ...current, draft }));
+              inputRef.current?.focus();
+            }}
+          />
+        ) : (
+          <div className="flex flex-col gap-7 py-7">
+            {session.messages.map((message) => {
+              const reply = session.replies.find(
+                (entry) => entry.message.id === message.id,
+              );
+              if (message.role === "assistant")
                 return (
-                  <article
-                    key={message.id}
-                    className={
-                      message.role === "user"
-                        ? "max-w-[90%] self-end rounded-2xl bg-white px-5 py-4 shadow-soft"
-                        : "w-full"
-                    }
-                  >
-                    <p
-                      className="mb-2 text-xs font-semibold"
-                      style={{ color: agent.color }}
-                    >
-                      {message.role === "user" ? "Ty" : "Asystent"} ·{" "}
-                      {agents[message.agentId].label}
-                    </p>
-                    <p className="whitespace-pre-wrap text-sm leading-7 text-slate-800">
-                      {message.content}
-                    </p>
-                  </article>
+                  <div key={message.id} className="flex flex-col gap-4">
+                    <StreamedMessage
+                      message={message}
+                      reply={reply}
+                      pending={
+                        session.pending &&
+                        session.messages.at(-1)?.id === message.id
+                      }
+                      animate={session.revealing.includes(message.id)}
+                      onRevealed={onRevealed}
+                    />
+                    {reply?.artifact &&
+                      reply.artifact.fields.length > 0 &&
+                      !session.pending &&
+                      !session.error &&
+                      !session.revealing.includes(message.id) &&
+                      session.messages.at(-1)?.id === message.id &&
+                      (activeAgent === "dodaj-pomysl" ||
+                        activeAgent === "testuj-innowacje") &&
+                      submissionIdentity && (
+                        <AgentSubmissionForm
+                          key={reply.requestId}
+                          source={activeAgent}
+                          requestId={reply.requestId}
+                          artifact={reply.artifact}
+                          identity={submissionIdentity}
+                        />
+                      )}
+                  </div>
                 );
-              })}
-              {session.error && (
-                <div
-                  role="alert"
-                  className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800"
+              return (
+                <article
+                  key={message.id}
+                  className={
+                    message.role === "user"
+                      ? "max-w-[90%] self-end rounded-2xl bg-white px-5 py-4 shadow-soft"
+                      : "w-full"
+                  }
                 >
-                  <p>{session.error}</p>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      update(activeAgent, (current) => {
-                        // Drop the failed exchange; resending adds it again.
-                        const last = current.messages.findLastIndex(
-                          (message) => message.role === "user",
-                        );
-                        return {
-                          ...current,
-                          messages:
-                            last < 0
-                              ? current.messages
-                              : current.messages.slice(0, last),
-                          draft: current.messages[last]?.content ?? "",
-                          error: null,
-                        };
-                      })
-                    }
-                    className="mt-2 underline underline-offset-4"
+                  <p
+                    className="mb-2 text-xs font-semibold"
+                    style={{ color: agent.color }}
                   >
-                    Przygotuj wiadomość ponownie
-                  </button>
-                </div>
-              )}
-              <div ref={endRef} className="scroll-mb-48" />
-            </div>
-          )}
-        </div>
-        <aside className="lg:sticky lg:top-36 lg:self-start" key={activeAgent}>
-          <Panel artifact={artifactReply?.artifact ?? undefined} />
-          {artifactReply && (
-            <p className="mt-4 text-xs text-slate-500">
-              Szkic · {agent.label} · na podstawie tej rozmowy
-            </p>
-          )}
-        </aside>
+                    Ty
+                  </p>
+                  <p className="whitespace-pre-wrap text-sm leading-7 text-foreground">
+                    {message.content}
+                  </p>
+                </article>
+              );
+            })}
+            {session.error && (
+              <div
+                role="alert"
+                className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800"
+              >
+                <p>{session.error}</p>
+                <button
+                  type="button"
+                  onClick={() =>
+                    update(activeAgent, (current) => {
+                      // Drop the failed exchange; resending adds it again.
+                      const last = current.messages.findLastIndex(
+                        (message) => message.role === "user",
+                      );
+                      return {
+                        ...current,
+                        messages:
+                          last < 0
+                            ? current.messages
+                            : current.messages.slice(0, last),
+                        draft: current.messages[last]?.content ?? "",
+                        error: null,
+                      };
+                    })
+                  }
+                  className="mt-2 underline underline-offset-4"
+                >
+                  Przygotuj wiadomość ponownie
+                </button>
+              </div>
+            )}
+            <div ref={endRef} className="scroll-mb-48" />
+          </div>
+        )}
       </div>
       {!follow && session.messages.length > 0 && (
         <button
@@ -433,7 +345,7 @@ export function AgentWorkspace() {
               block: "end",
             });
           }}
-          className="fixed right-6 bottom-48 z-20 flex min-h-11 items-center gap-2 rounded-full border border-slate-200 bg-white px-4 text-sm shadow-dock"
+          className="fixed right-6 bottom-48 z-20 flex min-h-11 items-center gap-2 rounded-full border border-outline-variant bg-white px-4 text-sm shadow-dock"
         >
           <ArrowDown className="size-4" aria-hidden="true" />
           Najnowsza wiadomość

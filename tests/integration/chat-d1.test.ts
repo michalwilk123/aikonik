@@ -2,7 +2,10 @@ import assert from "node:assert/strict";
 import { after, before, beforeEach, test } from "node:test";
 import { type ChatAgent, startTurn } from "@/application/chat/runtime";
 import { ChatConflict, type SendTurn } from "@/domain/chat/types";
+import { createChatModel } from "@/infrastructure/ai/openrouter";
+import { makeChatAgent } from "@/infrastructure/chat/openrouter-agent";
 import { testDatabase } from "@/tests/helpers/d1";
+import { sseChunk } from "@/tests/helpers/openrouter-stream";
 
 let fixture: Awaited<ReturnType<typeof testDatabase>>;
 before(async () => {
@@ -377,6 +380,110 @@ test("cancelling immediately after admission/start finalizes the assistant place
       {},
     );
   } finally {
+    await dispose();
+  }
+});
+
+test("real provider failures are logged with status and model-call metrics, without copying private errors", async () => {
+  const { db, store, dispose } = await freshDatabase();
+  try {
+    const model = createChatModel(
+      "fixture-key",
+      async () =>
+        new Response(
+          JSON.stringify({
+            error: { message: "Private upstream fixture-key" },
+          }),
+          { status: 503, headers: { "Content-Type": "application/json" } },
+        ),
+    );
+    const events = await drain(
+      await startTurn(store, makeChatAgent(model), input(), {}, signal()),
+    );
+    assert.equal(events.at(-1)?.type, "error");
+    const turn = await db
+      .prepare("SELECT error_status, error_type, error_code FROM turns")
+      .first();
+    assert.equal(turn?.error_status, 503);
+    assert.equal(turn?.error_code, "generation_failed");
+    assert.match(String(turn?.error_type), /APICallError/);
+    assert.equal(
+      await db.prepare("SELECT count(*) AS n FROM model_calls").first("n"),
+      1,
+    );
+    assert.equal(
+      await db
+        .prepare("SELECT finish_reason FROM model_calls")
+        .first("finish_reason"),
+      "error",
+    );
+    assert.ok(
+      !JSON.stringify(await db.prepare("SELECT * FROM turns").all()).includes(
+        "fixture-key",
+      ),
+    );
+    assert.ok(!JSON.stringify(events).includes("Private upstream"));
+  } finally {
+    await dispose();
+  }
+});
+
+test("a model call is durable before text, and cancelling a live model stream records interruption", async () => {
+  const { db, store, dispose } = await freshDatabase();
+  const controller = new AbortController();
+  let provider!: ReadableStreamDefaultController<Uint8Array>;
+  try {
+    const body = new ReadableStream<Uint8Array>({
+      start(c) {
+        provider = c;
+        c.enqueue(sseChunk({ content: '{"message":"partial' }));
+      },
+    });
+    const model = createChatModel(
+      "fixture-key",
+      async () =>
+        new Response(body, {
+          headers: { "Content-Type": "text/event-stream" },
+        }),
+    );
+    const events = await startTurn(
+      store,
+      makeChatAgent(model),
+      input(),
+      {},
+      controller.signal,
+    );
+    await events.next();
+    assert.equal((await events.next()).value?.type, "text");
+    assert.equal(
+      await db.prepare("SELECT count(*) AS n FROM model_calls").first("n"),
+      1,
+    );
+    controller.abort();
+    await events.return(undefined);
+    assert.equal(
+      await db
+        .prepare("SELECT finish_reason FROM model_calls")
+        .first("finish_reason"),
+      "aborted",
+    );
+    assert.equal(
+      await db.prepare("SELECT status FROM turns").first("status"),
+      "interrupted",
+    );
+    assert.equal(
+      await db
+        .prepare("SELECT content FROM messages WHERE role = 'assistant'")
+        .first("content"),
+      "partial",
+    );
+  } finally {
+    controller.abort();
+    try {
+      provider?.close();
+    } catch {
+      /* Already closed by abort. */
+    }
     await dispose();
   }
 });

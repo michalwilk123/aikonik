@@ -42,6 +42,10 @@ export function makeChatAgent(
       messages: compileHistory(history),
       tools: { read_report: makeReportTool() },
       stopWhen: isStepCount(3),
+      // Reserve the final step for an answer; tool-only steps have no object
+      // output and would otherwise exhaust the limit with an empty response.
+      prepareStep: ({ stepNumber }) =>
+        stepNumber >= 2 ? { toolChoice: "none", activeTools: [] } : {},
       output: Output.object({ schema }),
       maxOutputTokens: 4000,
       maxRetries: 0,

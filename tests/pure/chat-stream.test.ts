@@ -269,3 +269,57 @@ test("invalid tool arguments and unavailable tools never execute and their attem
     assert.equal(events.at(-1)?.type, "answer");
   }
 });
+
+test("repeated report calls reserve the last model step for a complete answer", async () => {
+  const requests: Record<string, unknown>[] = [];
+  const model = createChatModel("fixture-key", async (_url, init) => {
+    const request = JSON.parse(String(init?.body));
+    requests.push(request);
+    if (!request.tools || request.tool_choice === "none")
+      return streamResponse([
+        sseChunk({
+          content: JSON.stringify({
+            message: "Komu ma pomóc wspólne budowanie karmników?",
+            sourceIds: [],
+            artifact: {
+              title: "Mój Social Canvas",
+              fields: [
+                {
+                  label: "Opis pomysłu",
+                  value: "Budowanie karmników dla ptaków",
+                },
+              ],
+            },
+          }),
+        }),
+        sseChunk({}, "stop"),
+      ]);
+    return streamResponse([
+      sseChunk({
+        tool_calls: [
+          {
+            index: 0,
+            id: `report-${requests.length}`,
+            type: "function",
+            function: {
+              name: "read_report",
+              arguments: '{"topic":"wszystkie"}',
+            },
+          },
+        ],
+      }),
+      sseChunk({}, "tool_calls"),
+    ]);
+  });
+  const events: AgentEvent[] = [];
+  for await (const event of makeChatAgent(model, "dodaj-pomysl")(
+    [{ id: "q", role: "user", content: "Chce zbudowac karmniki dla ptakow" }],
+    new AbortController().signal,
+  ))
+    events.push(event);
+  assert.equal(requests.length, 3);
+  assert.equal(requests[2].tools, undefined);
+  assert.notEqual(requests[2].tool_choice, "auto");
+  assert.equal(events.filter((event) => event.type === "tool").length, 2);
+  assert.equal(events.at(-1)?.type, "answer");
+});

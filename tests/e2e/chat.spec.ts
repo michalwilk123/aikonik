@@ -26,16 +26,16 @@ const answer = {
   ],
   artifact: null,
 };
-async function fixture(page: Page) {
+async function fixture(page: Page, responseMessage = message) {
   const requests: Record<string, unknown>[] = [];
   await page.route("**/api/agents", async (route) => {
     requests.push(route.request().postDataJSON());
     await route.fulfill({
       contentType: "application/x-ndjson",
       body: `${[
-        { type: "text", text: message.slice(0, 50) },
-        { type: "text", text: message },
-        { type: "complete", answer },
+        { type: "text", text: responseMessage.slice(0, 50) },
+        { type: "text", text: responseMessage },
+        { type: "complete", answer: { ...answer, message: responseMessage } },
       ]
         .map((event) => JSON.stringify(event))
         .join("\n")}\n`,
@@ -50,7 +50,7 @@ test("burst response reveals smoothly, holds cards until text drains and sends o
 }) => {
   const requests = await fixture(page);
   await page
-    .getByRole("textbox", { name: "Wiadomość · Odkrywaj" })
+    .getByRole("textbox", { name: "Wiadomość" })
     .fill("Mieszkam w Tarnowie");
   await page.getByRole("textbox").press("Enter");
   const text = page.locator(".chat-text").first();
@@ -76,20 +76,105 @@ test("burst response reveals smoothly, holds cards until text drains and sends o
   });
 });
 
-test("reduced motion reveals immediately and new conversation clears only the current UI identity", async ({
+test("prepared idea sends successfully and keeps its generated canvas inside the chat", async ({
   page,
 }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
-  const requests = await fixture(page);
-  await page.getByRole("textbox").fill("Pierwsza rozmowa");
-  await page.getByRole("textbox").press("Enter");
+  const requests: Record<string, unknown>[] = [];
+  await page.route("**/api/agents", async (route) => {
+    const request = route.request().postDataJSON();
+    requests.push(request);
+    await route.fulfill({
+      contentType: "application/x-ndjson",
+      body: `${JSON.stringify({
+        type: "complete",
+        answer: {
+          ...answer,
+          artifact: {
+            title: "Sieć pomocy sąsiedzkiej",
+            fields: [{ label: "Odbiorcy", value: "Seniorzy" }],
+          },
+        },
+      })}\n`,
+    });
+  });
+  await page.goto("/asystent");
+  await page.getByRole("button", { name: "Dodaj pomysł", exact: true }).click();
+  await page
+    .getByRole("button", {
+      name: "Chcę stworzyć sieć sąsiedzkiej pomocy seniorom.",
+    })
+    .click();
+  await expect(page.getByRole("textbox")).toHaveValue(
+    "Chcę stworzyć sieć sąsiedzkiej pomocy seniorom.",
+  );
+  await page.getByRole("button", { name: "Wyślij wiadomość" }).click();
   await expect(page.locator(".chat-text")).toHaveText(message);
-  await page.getByRole("button", { name: "Nowa rozmowa" }).click();
-  await expect(page.locator(".chat-text")).toHaveCount(0);
-  await page.getByRole("textbox").fill("Druga rozmowa");
-  await page.getByRole("textbox").press("Enter");
-  await expect.poll(() => requests.length).toBe(2);
-  expect(requests[0].conversationId).not.toBe(requests[1].conversationId);
+  expect(requests[0].agentId).toBe("dodaj-pomysl");
+  expect(requests[0].text).toBe(
+    "Chcę stworzyć sieć sąsiedzkiej pomocy seniorom.",
+  );
+  await expect(
+    page.getByRole("region", { name: "Roboczy szkic" }),
+  ).toContainText("Seniorzy");
+  await expect(
+    page.getByRole("alert").filter({ hasText: "Nie udało" }),
+  ).toHaveCount(0);
+  await expect(
+    page.getByText("Asystent · Dodaj pomysł", { exact: true }),
+  ).toHaveCount(0);
+});
+
+test("agent guidance sits below each welcome title and layout uses one centered width", async ({
+  page,
+}) => {
+  await fixture(page);
+  await expect(page.locator("aside")).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Nowa rozmowa" })).toHaveCount(
+    0,
+  );
+  await expect(
+    page.getByRole("button", { name: "Pobierz rozmowę" }),
+  ).toHaveCount(0);
+  for (const [agent, title, link] of [
+    ["Odkrywaj", "Od potrzeby do możliwości.", "Zobacz raporty ROPS"],
+    [
+      "Dodaj pomysł",
+      "Twój pomysł ma dobry początek.",
+      "Otwórz arkusz Social Canvas (PDF)",
+    ],
+    [
+      "Testuj innowacje",
+      "Mały test. Ważna zmiana.",
+      "Metoda: Nesta · plan testowania",
+    ],
+    [
+      "Wdrażanie innowacji",
+      "Sprawdzone rozwiązanie. Nowe miejsce.",
+      "ROPS · innowacje w usługach społecznych",
+    ],
+  ]) {
+    await page.getByRole("button", { name: agent, exact: true }).click();
+    await expect(page.getByRole("heading", { name: title })).toBeVisible();
+    await expect(
+      page.getByRole("link", { name: link, exact: true }),
+    ).toBeVisible();
+  }
+  const header = await page.locator("header").boundingBox();
+  const headerContent = await page.locator("header > div").boundingBox();
+  const welcome = await page.locator("section.agent-swap").boundingBox();
+  const form = await page.locator("form").boundingBox();
+  expect(header?.x).toBe(0);
+  expect(header?.width).toBe(await page.evaluate(() => window.innerWidth));
+  expect(welcome?.x).toBe(form?.x);
+  expect(welcome?.width).toBe(form?.width);
+  const headerPadding = await page
+    .locator("header > div")
+    .evaluate((element) =>
+      Number.parseFloat(getComputedStyle(element).paddingLeft),
+    );
+  expect(headerContent?.x).toBe((welcome?.x ?? 0) - headerPadding);
+  expect(headerContent?.width).toBe((welcome?.width ?? 0) + 2 * headerPadding);
 });
 
 test("stop releases a stalled request and leaves a usable composer", async ({
@@ -102,7 +187,7 @@ test("stop releases a stalled request and leaves a usable composer", async ({
   await page.goto("/asystent");
   await page.getByRole("textbox").fill("Wiadomość");
   await page.getByRole("textbox").press("Enter");
-  await page.getByRole("button", { name: "Zatrzymaj · Odkrywaj" }).click();
+  await page.getByRole("button", { name: "Zatrzymaj" }).click();
   await expect(
     page
       .getByRole("alert")
@@ -110,11 +195,11 @@ test("stop releases a stalled request and leaves a usable composer", async ({
       .filter({ hasText: "Odpowiedź" }),
   ).toContainText("zatrzymana");
   await expect(
-    page.getByRole("button", { name: "Wyślij wiadomość · Odkrywaj" }),
+    page.getByRole("button", { name: "Wyślij wiadomość" }),
   ).toBeVisible();
   await page.getByRole("textbox").fill("Dalsze pytanie");
   await expect(
-    page.getByRole("button", { name: "Wyślij wiadomość · Odkrywaj" }),
+    page.getByRole("button", { name: "Wyślij wiadomość" }),
   ).toBeEnabled();
 });
 
@@ -129,7 +214,7 @@ test("mobile composer supports multiline input and stays inside the viewport", a
   await textbox.pressSequentially("Druga linia");
   await expect(textbox).toHaveValue("Pierwsza linia\nDruga linia");
   const button = page.getByRole("button", {
-    name: "Wyślij wiadomość · Odkrywaj",
+    name: "Wyślij wiadomość",
   });
   await expect(button).toBeInViewport();
   await button.click();
@@ -149,19 +234,32 @@ test("scrolling up is respected while more text is revealed", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 390, height: 600 });
-  await fixture(page);
+  const longMessage = message.repeat(4);
+  await fixture(page, longMessage);
   await page.getByRole("textbox").fill("Potrzebuję wsparcia");
   await page.getByRole("textbox").press("Enter");
   await expect(page.locator(".chat-text")).not.toBeEmpty();
   await expect
-    .poll(() => page.evaluate(() => document.documentElement.scrollHeight))
-    .toBeGreaterThan(1000);
+    .poll(() =>
+      page.evaluate(
+        () => document.documentElement.scrollHeight - window.innerHeight,
+      ),
+    )
+    .toBeGreaterThan(320);
+  await expect
+    .poll(() => page.evaluate(() => window.scrollY))
+    .toBeGreaterThan(320);
   await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
   await expect(
     page.getByRole("button", { name: "Najnowsza wiadomość" }),
   ).toBeVisible();
   const scroll = await page.evaluate(() => window.scrollY);
-  await page.waitForTimeout(250);
+  const text = page.locator(".chat-text");
+  const revealed = (await text.textContent())?.length ?? 0;
+  expect(revealed).toBeLessThan(longMessage.length);
+  await expect
+    .poll(async () => (await text.textContent())?.length ?? 0)
+    .toBeGreaterThan(revealed);
   expect(await page.evaluate(() => window.scrollY)).toBe(scroll);
 });
 
@@ -210,9 +308,7 @@ test("rapid streamed packets reveal before completion and reduced motion drains 
   await page.getByRole("textbox").press("Enter");
   const text = page.locator(".chat-text");
   await expect(text).not.toBeEmpty();
-  await expect(
-    page.getByRole("button", { name: "Zatrzymaj · Odkrywaj" }),
-  ).toBeVisible();
+  await expect(page.getByRole("button", { name: "Zatrzymaj" })).toBeVisible();
   const first = (await text.textContent())?.length ?? 0;
   await expect
     .poll(async () => (await text.textContent())?.length ?? 0)

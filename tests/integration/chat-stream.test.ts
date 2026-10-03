@@ -59,6 +59,18 @@ test("provider → D1 → HTTP → client emits saved text before model completi
       await fixture.db.prepare("SELECT status FROM turns").first("status"),
       "running",
     );
+    assert.equal(
+      await fixture.db
+        .prepare("SELECT count(*) AS n FROM model_calls")
+        .first("n"),
+      1,
+    );
+    assert.equal(
+      await fixture.db
+        .prepare("SELECT finish_reason FROM model_calls")
+        .first("finish_reason"),
+      "running",
+    );
     provider.enqueue(
       sseChunk({
         content: ' i reszta.","areaLabel":"Małopolska","offers":[]}',

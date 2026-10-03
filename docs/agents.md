@@ -10,10 +10,10 @@ streaming runtime and D1 persistence described in [chat testing](chat-testing.md
 | `agents/testuj-innowacje/` | Amber | Pilot hypotheses, success measures, feedback and improvements |
 | `agents/wdrazanie-innowacji/` | Rose | Middleman: adapt an innovation to an institution's service, resources and partners |
 
-Each directory owns its prompt, knowledge and components. Only the active
-agent's panel is rendered. `registry.ts` contains the navigation copy and colors.
-The shared shell selects known components; model responses cannot create
-executable components or render arbitrary HTML.
+Each directory owns its prompt and knowledge. `registry.ts` contains the navigation
+copy and colors. Agent guidance appears below the welcome title; generated
+artifacts appear inline with their assistant response. Model responses cannot
+create executable components or render arbitrary HTML.
 
 ## Chat and attribution
 
@@ -23,8 +23,7 @@ until a page reload. Nothing is copied between agents automatically.
 
 Every user/assistant message has an `agentId`, UUID and timestamp. Each response
 also has its request ID, model, trusted source records and optional artifact.
-The conversation download exports this attributed data as JSON. Artifacts are
-associated with the assistant response that produced them.
+Artifacts are associated with the assistant response that produced them.
 
 `POST /api/agents` accepts the latest message, agent ID, conversation capability
 and stable request ID. It shares D1 admission/history, streaming, validation and
@@ -34,6 +33,8 @@ and generation failures are saved and shown explicitly. There is no canned
 fallback. Requests have a 30-second server deadline and a 45-second browser
 deadline. Text streams during generation, with a separate smooth reveal buffer;
 sources and artifacts are exposed after final validation.
+Generation allows up to three model steps, with the final step reserved for an
+answer without tools so repeated report reads cannot exhaust the entire budget.
 
 The model only selects source IDs; source links are resolved against the selected
 agent's supplied knowledge. Odkrywaj has no tools that write data and its artifact

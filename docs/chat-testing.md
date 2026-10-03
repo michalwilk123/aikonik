@@ -3,8 +3,8 @@
 `/asystent` uses the four-agent workspace through the `Chat` component. Both
 `POST /api/agents` and `POST /api/chat` use the same streaming runtime. The old
 buffered Server Action is retired. Each agent has a separate in-memory opaque
-conversation capability. Switching agents preserves its conversation; starting
-anew or reloading creates a new conversation. Existing transcripts remain in D1.
+conversation capability. Switching agents preserves its conversation; reloading
+creates a new conversation. Existing transcripts remain in D1.
 
 ## Run deterministic checks
 
@@ -34,11 +34,11 @@ The fixture database is isolated from `.wrangler` and disposed after the tests.
 | --- | --- |
 | History and prompt construction | Real outgoing OpenRouter request: one instruction message, previous user/assistant turns, new message once, whole-turn budgets, no browser data or credentials |
 | Streaming | Real provider adapter with an open SSE fixture: readable text arrives before provider completion; structured JSON stays private |
-| Report tool | Actual tool invocation, topic validation, approved facts/pages, matched call/result ID, instructions and tool descriptions on continuation |
+| Report tool | Actual tool invocation, topic validation, approved facts/pages, matched call/result ID, instructions on continuation, final answer after repeated tool calls |
 | Canonical persistence | Two message rows per turn, one conversation across turns, writes before publication, atomic admission/finalization, prompt version saved once |
 | Retry/concurrency | Existing request replay never invokes a model, changed payload rejected, one running turn across concurrent D1 admissions |
 | Failures | Schema/provider failures, missing completion, partial response preservation, cancellation, stale-turn recovery, no fabricated fallback |
-| UI | Burst reveal, acceleration/draining, reduced motion, mobile layout and multiline input, stop, new conversation, scroll-up preservation |
+| UI | Burst reveal, acceleration/draining, reduced motion, mobile layout and multiline input, stop, prepared messages, inline artifacts, aligned header/chat/composer, scroll-up preservation |
 | Agent behavior | Four distinct prompts, source ID allowlist, isolated conversations and artifacts |
 
 ## Opt-in live evaluation
