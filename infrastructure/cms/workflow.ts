@@ -12,21 +12,18 @@ export const submissionInboxes = [
   {
     source: "contact",
     label: "Zgłoszenia kontaktowe",
-    description: "Pytania i wiadomości od mieszkańców.",
     icon: "✉",
     color: "blue",
   },
   {
     source: "dodaj-pomysl",
     label: "Pomysły mieszkańców",
-    description: "Innowacje społeczne opisane w Social Canvasie.",
     icon: "✦",
     color: "red",
   },
   {
     source: "testuj-innowacje",
     label: "Zgłoszenia do testowania",
-    description: "Osoby i instytucje chętne do testowania innowacji.",
     icon: "✓",
     color: "gold",
   },

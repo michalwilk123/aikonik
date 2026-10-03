@@ -43,7 +43,7 @@ export async function StaffDashboard({ initPageResult }: AdminViewServerProps) {
   const { req } = initPageResult;
   if (!req.user || !["cms", "admin"].includes(req.user.role)) return null;
   const { payload } = req;
-  const [inboxes, recent, assigned] = await Promise.all([
+  const [inboxes, recent] = await Promise.all([
     Promise.all(
       submissionInboxes.map(async (inbox) => {
         const [total, fresh] = await Promise.all([
@@ -76,41 +76,10 @@ export async function StaffDashboard({ initPageResult }: AdminViewServerProps) {
       req,
       overrideAccess: false,
     }),
-    payload.count({
-      collection: "submissions",
-      where: {
-        and: [
-          { assignedTo: { equals: req.user.id } },
-          { status: { not_in: ["completed", "rejected"] } },
-        ],
-      },
-      req,
-      overrideAccess: false,
-    }),
   ]);
   return (
     <Gutter className="staff-dashboard">
-      <div className="staff-dashboard-heading">
-        <div>
-          <p className="staff-eyebrow">PANEL PRACOWNIKA · ROPS KRAKÓW</p>
-          <h1>Sprawy mieszkańców</h1>
-          <p>
-            Przejrzyj zgłoszenia, przypisz osobę prowadzącą i zadbaj o kolejny
-            krok.
-          </p>
-        </div>
-        <Link
-          className="staff-my-cases"
-          href={inboxURL({
-            and: [
-              { assignedTo: { equals: req.user.id } },
-              { status: { not_in: ["completed", "rejected"] } },
-            ],
-          })}
-        >
-          Moje otwarte sprawy <strong>{assigned.totalDocs}</strong>
-        </Link>
-      </div>
+      <h1>Sprawy mieszkańców</h1>
       <div className="staff-inbox-grid">
         {inboxes.map((inbox) => (
           <Link
@@ -118,15 +87,10 @@ export async function StaffDashboard({ initPageResult }: AdminViewServerProps) {
             key={inbox.source}
             href={inboxURL({ source: { equals: inbox.source } })}
           >
-            <span className="staff-inbox-icon" aria-hidden="true">
-              {inbox.icon}
-            </span>
-            <span className="staff-inbox-count">Nowe: {inbox.fresh}</span>
-            <h2>{inbox.label}</h2>
-            <p>{inbox.description}</p>
-            <span className="staff-inbox-footer">
-              Wszystkie: {inbox.total}{" "}
-              <span aria-hidden="true">Otwórz skrzynkę →</span>
+            <span className="staff-inbox-count">{inbox.fresh}</span>
+            <span className="staff-inbox-label">
+              <strong>{inbox.label}</strong>
+              <small>nowe z {inbox.total}</small>
             </span>
           </Link>
         ))}
@@ -134,7 +98,7 @@ export async function StaffDashboard({ initPageResult }: AdminViewServerProps) {
       <section className="staff-recent" aria-labelledby="staff-recent-title">
         <div className="staff-section-heading">
           <h2 id="staff-recent-title">Ostatnie zgłoszenia</h2>
-          <Link href="/admin/collections/submissions">Zobacz wszystkie →</Link>
+          <Link href="/admin/collections/submissions">Zobacz wszystkie</Link>
         </div>
         {recent.docs.length === 0 ? (
           <div className="staff-empty">

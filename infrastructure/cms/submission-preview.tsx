@@ -2,6 +2,37 @@ import type { UIFieldServerProps } from "payload";
 import { canvasSteps } from "@/agents/dodaj-pomysl/canvas";
 import { artifactSchema } from "@/agents/types";
 
+// Zones follow the colour grouping of the printed canvas: who has the problem,
+// the solution, the money, the value, the reach and the impact.
+const zones: Record<string, string> = {
+  Problem: "problem",
+  Odbiorcy: "people",
+  "Aktorzy zmiany": "people",
+  Rozwiązanie: "solution",
+  "Struktura kosztów": "money",
+  "Płatnicy i decydenci": "money",
+  "Źródła dochodów": "money",
+  "Propozycja wartości": "value",
+  "Kanały dotarcia": "reach",
+  "Konstelacja partnerów": "reach",
+  Wpływ: "impact",
+};
+
+// Position on the 4-column board, in reading order of the printed canvas.
+const boardOrder = [
+  "Problem",
+  "Aktorzy zmiany",
+  "Rozwiązanie",
+  "Struktura kosztów",
+  "Odbiorcy",
+  "Płatnicy i decydenci",
+  "Źródła dochodów",
+  "Propozycja wartości",
+  "Kanały dotarcia",
+  "Konstelacja partnerów",
+  "Wpływ",
+];
+
 export function SubmissionPreview({ data }: UIFieldServerProps) {
   if (data.source === "contact") return null;
   const parsed = artifactSchema.safeParse(data.artifact);
@@ -16,60 +47,68 @@ export function SubmissionPreview({ data }: UIFieldServerProps) {
     );
   }
   const artifact = parsed.data;
-  const isIdea = data.source === "dodaj-pomysl";
-  const sections = isIdea
-    ? canvasSteps.map((step) => ({
-        label: step.label,
-        value: artifact.fields.find((field) => field.label === step.label)
-          ?.value,
-      }))
-    : artifact.fields;
-  const extraFields = isIdea
-    ? artifact.fields.filter(
-        (field) => !canvasSteps.some((step) => step.label === field.label),
-      )
-    : [];
-  return (
-    <section
-      className="staff-canvas"
-      aria-label={isIdea ? "Social Canvas pomysłu" : "Zgłoszenie do testowania"}
-    >
-      <div className="staff-section-heading">
-        <div>
-          <p className="staff-eyebrow">
-            {isIdea
-              ? "POMYSŁ MIESZKAŃCA · SOCIAL CANVAS"
-              : "TESTOWANIE INNOWACJI"}
-          </p>
-          <h2>{artifact.title}</h2>
+  if (data.source !== "dodaj-pomysl") {
+    return (
+      <section className="staff-canvas" aria-label="Zgłoszenie do testowania">
+        <h2>{artifact.title}</h2>
+        <div className="staff-canvas-list">
+          {artifact.fields.map((field) => (
+            <div className="staff-cell" key={field.label}>
+              <h3>{field.label}</h3>
+              <p className="staff-canvas-value">{field.value}</p>
+            </div>
+          ))}
         </div>
-        {isIdea && (
-          <span className="staff-canvas-progress">
-            {sections.filter((section) => section.value).length} /{" "}
-            {canvasSteps.length} obszarów
-          </span>
-        )}
-      </div>
-      {isIdea && (
-        <p className="staff-canvas-intro">
-          Szkic przekazany przez mieszkańca. Niewypełnione obszary można
-          uzupełnić podczas kontaktu; „nie wiem” oznacza odpowiedź wymagającą
-          wspólnego dopracowania.
-        </p>
-      )}
-      <div className="staff-canvas-grid">
-        {[...sections, ...extraFields].map((section, index) => (
-          <article
-            className={`staff-canvas-section${section.value ? "" : " staff-canvas-section--empty"}`}
-            key={section.label}
-          >
-            <p className="staff-eyebrow">
-              {String(index + 1).padStart(2, "0")}
-            </p>
-            <h3>{section.label}</h3>
-            <p className="staff-canvas-value">
-              {section.value || "Nie omówiono w zgłoszeniu"}
-            </p>
+      </section>
+    );
+  }
+  const answerFor = (label: string) =>
+    artifact.fields.find((field) => field.label === label)?.value;
+  const known = new Set<string>(canvasSteps.map((step) => step.label));
+  const extra = artifact.fields.filter((field) => !known.has(field.label));
+  const filled = canvasSteps.filter((step) => answerFor(step.label)).length;
+  const description = answerFor("Opis pomysłu");
+  return (
+    <section className="staff-canvas" aria-label="Social Canvas pomysłu">
+      <header className="staff-canvas-head">
+        <h2>{artifact.title}</h2>
+        {description && <p className="staff-canvas-lede">{description}</p>}
+        <div
+          className="staff-coverage"
+          role="img"
+          aria-label={`Wypełnione obszary: ${filled} z ${canvasSteps.length}`}
+        >
+          {canvasSteps.map((step) => (
+            <span
+              key={step.label}
+              title={step.label}
+              className={`staff-coverage-seg staff-zone--${zones[step.label] ?? "idea"}${answerFor(step.label) ? " is-filled" : ""}`}
+            />
+          ))}
+          <b>
+            {filled}/{canvasSteps.length}
+          </b>
+        </div>
+      </header>
+      <div className="staff-board">
+        {boardOrder.map((label) => {
+          const value = answerFor(label);
+          return (
+            <article
+              key={label}
+              className={`staff-cell staff-zone--${zones[label]}${value ? "" : " staff-cell--empty"}`}
+            >
+              <h3>{label}</h3>
+              <p className="staff-canvas-value">
+                {value || "Nie omówiono w zgłoszeniu"}
+              </p>
+            </article>
+          );
+        })}
+        {extra.map((field) => (
+          <article className="staff-cell staff-zone--idea" key={field.label}>
+            <h3>{field.label}</h3>
+            <p className="staff-canvas-value">{field.value}</p>
           </article>
         ))}
       </div>
