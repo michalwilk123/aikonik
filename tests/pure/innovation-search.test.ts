@@ -15,10 +15,10 @@ import {
 } from "@/infrastructure/innovations/search";
 import {
   getInnovationVideos,
-  innovations,
   resolveInnovationSources,
   socialChallenges,
 } from "@/infrastructure/innovations/source";
+import { innovations } from "@/tests/helpers/innovations";
 
 const options = { toolCallId: "fixture", messages: [], context: {} };
 
@@ -136,7 +136,10 @@ test("tools register only retrieved sources and reject URLs or unbounded inputs"
     false,
   );
   const published: AgentSource[] = [];
-  const tools = makeInnovationTools((sources) => published.push(...sources));
+  const tools = makeInnovationTools(
+    (sources) => published.push(...sources),
+    async () => innovations,
+  );
   const search = await tools.search_innovations.execute?.(
     { query: "samotność seniorów", limit: 2 },
     options,
@@ -156,19 +159,32 @@ test("tools register only retrieved sources and reject URLs or unbounded inputs"
   assert.equal(published.length, before);
 });
 
-test("videos require known cited project sources and valid YouTube links", () => {
+test("videos require known cited project sources and valid YouTube links", async () => {
   const project = innovations.find((entry) =>
     entry.videos.some((url) => url.includes("youtu")),
   );
   assert.ok(project);
-  const source = resolveInnovationSources([`innovation:${project.id}:page`])[0];
-  assert.ok(getInnovationVideos([source]).length > 0);
+  const source = (
+    await resolveInnovationSources(
+      [`innovation:${project.id}:page`],
+      async () => innovations,
+    )
+  )[0];
+  assert.ok(
+    (await getInnovationVideos([source], async () => innovations)).length > 0,
+  );
   assert.deepEqual(
-    getInnovationVideos([{ ...source, id: "innovation:invented:page" }]),
+    await getInnovationVideos(
+      [{ ...source, id: "innovation:invented:page" }],
+      async () => innovations,
+    ),
     [],
   );
   assert.deepEqual(
-    getInnovationVideos([{ ...source, url: "https://example.com" }]),
+    await getInnovationVideos(
+      [{ ...source, url: "https://example.com" }],
+      async () => innovations,
+    ),
     [],
   );
   assert.deepEqual(
@@ -179,10 +195,10 @@ test("videos require known cited project sources and valid YouTube links", () =>
     [],
   );
   assert.deepEqual(
-    resolveInnovationSources([
-      "innovation:invented:page",
-      "social-challenges:page:999",
-    ]),
+    await resolveInnovationSources(
+      ["innovation:invented:page", "social-challenges:page:999"],
+      async () => innovations,
+    ),
     [],
   );
 });

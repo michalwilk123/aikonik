@@ -6,10 +6,12 @@ import {
   readSocialChallenges,
   searchInnovations,
 } from "@/infrastructure/innovations/search";
+import { socialChallenges } from "@/infrastructure/innovations/source";
+
 import {
-  innovations,
-  socialChallenges,
-} from "@/infrastructure/innovations/source";
+  type InnovationLoader,
+  loadInnovations,
+} from "@/infrastructure/innovations/store";
 
 export const innovationSearchSchema = z
   .object({
@@ -29,6 +31,7 @@ const socialChallengesSchema = z
 
 export function makeInnovationTools(
   onSources: (sources: AgentSource[]) => void,
+  load: InnovationLoader = loadInnovations,
 ) {
   return {
     search_innovations: tool({
@@ -36,7 +39,7 @@ export function makeInnovationTools(
         "Przeszukaj lokalną bibliotekę innowacji ROPS według potrzeb, odbiorców lub dokładnej nazwy. Zwraca maksymalnie 5 kandydatów, nie rekomendacje ani ranking skuteczności. Brak trafień oznacza brak dopasowania; nie zmieniaj problemu użytkownika, żeby dopasować projekt. Przed poleceniem odczytaj kandydata przez read_innovation.",
       inputSchema: innovationSearchSchema,
       execute: async ({ query, limit }) => {
-        const candidates = searchInnovations(innovations, query, limit);
+        const candidates = searchInnovations(await load(), query, limit);
         onSources(candidates.map((candidate) => candidate.source));
         return {
           candidates,
@@ -50,7 +53,7 @@ export function makeInnovationTools(
         "Odczytaj źródłowy opis konkretnej innowacji i maksymalnie trzy pasujące fragmenty stron PDF. projectId wybierz z search_innovations. question zawęża fragmenty do potrzeb, działań, wymagań lub dowodów, o które pyta użytkownik. Zwrócone sourceIds identyfikują wykorzystaną dokumentację; brak PDF albo informacji nie uprawnia do ich wymyślania.",
       inputSchema: innovationReadSchema,
       execute: async ({ projectId, question }) => {
-        const result = readInnovation(innovations, projectId, question);
+        const result = readInnovation(await load(), projectId, question);
         onSources(result.sources);
         return result;
       },

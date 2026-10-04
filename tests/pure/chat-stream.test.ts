@@ -4,6 +4,7 @@ import type { AgentEvent } from "@/application/chat/runtime";
 import { createChatModel } from "@/infrastructure/ai/openrouter";
 import { makeChatAgent } from "@/infrastructure/chat/openrouter-agent";
 import { readReport } from "@/infrastructure/chat/report-tool";
+import { innovations } from "@/tests/helpers/innovations";
 import {
   answerStream,
   sseChunk,
@@ -202,10 +203,11 @@ test("all streaming agents keep their role, resolve allowed sources and restrict
       ]);
     });
     const events: AgentEvent[] = [];
-    for await (const event of makeChatAgent(model, id)(
-      history,
-      new AbortController().signal,
-    ))
+    for await (const event of makeChatAgent(
+      model,
+      id,
+      async () => innovations,
+    )(history, new AbortController().signal))
       events.push(event);
     const tools = (request.tools ?? []) as { function: { name: string } }[];
     assert.deepEqual(
@@ -334,7 +336,11 @@ test("repeated report calls reserve the last model step for a complete answer", 
     ]);
   });
   const events: AgentEvent[] = [];
-  for await (const event of makeChatAgent(model, "wiedza")(
+  for await (const event of makeChatAgent(
+    model,
+    "wiedza",
+    async () => innovations,
+  )(
     [{ id: "q", role: "user", content: "Podaj dane o seniorach" }],
     new AbortController().signal,
   ))

@@ -3,6 +3,7 @@ import { test } from "node:test";
 import type { AgentEvent } from "@/application/chat/runtime";
 import { createChatModel } from "@/infrastructure/ai/openrouter";
 import { makeChatAgent } from "@/infrastructure/chat/openrouter-agent";
+import { innovations } from "@/tests/helpers/innovations";
 import { sseChunk, streamResponse } from "@/tests/helpers/openrouter-stream";
 
 for (const agentId of ["odkrywaj", "wdrazanie-innowacji"] as const) {
@@ -76,7 +77,11 @@ for (const agentId of ["odkrywaj", "wdrazanie-innowacji"] as const) {
     }) as typeof fetch;
     try {
       const events: AgentEvent[] = [];
-      for await (const event of makeChatAgent(model, agentId)(
+      for await (const event of makeChatAgent(
+        model,
+        agentId,
+        async () => innovations,
+      )(
         [
           {
             id: "question",
@@ -138,10 +143,11 @@ for (const agentId of ["odkrywaj", "wdrazanie-innowacji"] as const) {
       { id: "followup", role: "user" as const, content: "Jak to działa?" },
     ];
     const events: AgentEvent[] = [];
-    for await (const event of makeChatAgent(model, agentId)(
-      history,
-      new AbortController().signal,
-    ))
+    for await (const event of makeChatAgent(
+      model,
+      agentId,
+      async () => innovations,
+    )(history, new AbortController().signal))
       events.push(event);
     const final = events.at(-1);
     assert.equal(final?.type, "answer");
@@ -180,7 +186,11 @@ test("project retrieval tools are unavailable to agents outside matchmaking and 
         sseChunk({}, "stop"),
       ]);
     });
-    for await (const _event of makeChatAgent(model, agentId)(
+    for await (const _event of makeChatAgent(
+      model,
+      agentId,
+      async () => innovations,
+    )(
       [{ id: "question", role: "user", content: "Pomysł" }],
       new AbortController().signal,
     )) {
@@ -235,7 +245,11 @@ test("knowledge reads social challenges, preserves citations on follow-up and ex
     ]);
   });
   const firstEvents: AgentEvent[] = [];
-  for await (const event of makeChatAgent(model, "wiedza")(
+  for await (const event of makeChatAgent(
+    model,
+    "wiedza",
+    async () => innovations,
+  )(
     [
       {
         id: "question",
@@ -256,7 +270,11 @@ test("knowledge reads social challenges, preserves citations on follow-up and ex
   assert.equal(first.answer.videos, undefined);
   assert.equal(first.answer.artifact, null);
   const followupEvents: AgentEvent[] = [];
-  for await (const event of makeChatAgent(model, "wiedza")(
+  for await (const event of makeChatAgent(
+    model,
+    "wiedza",
+    async () => innovations,
+  )(
     [
       {
         id: "question",
@@ -325,7 +343,11 @@ test("implementation preserves the service brief and catalog evidence on resourc
     ]);
   });
   const events: AgentEvent[] = [];
-  for await (const event of makeChatAgent(model, "wdrazanie-innowacji")(
+  for await (const event of makeChatAgent(
+    model,
+    "wdrazanie-innowacji",
+    async () => innovations,
+  )(
     [
       {
         id: "first",

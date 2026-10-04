@@ -2,32 +2,37 @@ import type { AgentSource } from "@/agents/types";
 import catalog from "@/data/rops/catalog.json";
 import {
   type ChallengeMap,
-  type Innovation,
   videosForSources,
 } from "@/infrastructure/innovations/search";
+import {
+  type InnovationLoader,
+  loadInnovations,
+} from "@/infrastructure/innovations/store";
 
-// Imported only by the server-side chat tools; no network or database scan at query time.
-export const innovations: Innovation[] = catalog.projects.map((project) => ({
-  ...project,
-  pdfs: project.pdfs.map((pdf) => ({
-    url: pdf.url,
-    pages: "pages" in pdf ? (pdf.pages ?? []) : [],
-  })),
-}));
 export const socialChallenges: ChallengeMap = {
   title: "Mapa wyzwań społecznych",
   url: catalog.challengeMap.url,
   pages: catalog.challengeMap.pages,
 };
 
-export function getInnovationVideos(sources: AgentSource[]) {
-  return videosForSources(innovations, sources);
+export async function getInnovationVideos(
+  sources: AgentSource[],
+  load: InnovationLoader = loadInnovations,
+) {
+  if (!sources.some((source) => source.id.startsWith("innovation:"))) return [];
+  return videosForSources(await load(), sources);
 }
 
-export function resolveInnovationSources(ids: string[]): AgentSource[] {
+export async function resolveInnovationSources(
+  ids: string[],
+  load: InnovationLoader = loadInnovations,
+): Promise<AgentSource[]> {
   const requested = new Set(ids.slice(0, 8));
   const sources: AgentSource[] = [];
-  for (const project of innovations) {
+  const projects = ids.some((id) => id.startsWith("innovation:"))
+    ? await load()
+    : [];
+  for (const project of projects) {
     const pageId = `innovation:${project.id}:page`;
     if (requested.has(pageId))
       sources.push({

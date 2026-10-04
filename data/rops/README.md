@@ -1,6 +1,6 @@
 # ROPS social innovation snapshot
 
-`catalog.json` contains the authoritative source URLs, 115 project descriptions, nine category labels, linked materials and videos, and the extracted text of the downloadable PDFs. `pdfs/` keeps the original source files with SHA-256 hashes recorded in the catalog. This is a versioned, immutable snapshot: application requests use the local catalog and do not fetch ROPS.
+`catalog.json` contains the authoritative source URLs, 115 project descriptions, nine category labels, linked materials and videos, and the extracted text of the downloadable PDFs. `pdfs/` keeps the original source files with SHA-256 hashes recorded in the catalog. This is a versioned, immutable import snapshot. Migration `0009_innovations.sql` imports project entries and their PDF evidence into D1; workers and administrators edit project metadata in the CMS. Application requests read those shared database entries without fetching ROPS. The social challenge map remains a read-only local snapshot.
 
 The initial snapshot downloaded 33 distinct PDFs successfully: 32 documents linked by the library and the 44-page *Mapa wyzwań społecznych*. This includes documents reused by multiple projects, such as licensing guidance. There are 26 project entries with YouTube links. The catalog is approximately 1.6 MB; original PDF files total approximately 41 MB. This size suits a bounded local keyword index rather than a managed external search service or adding the entire corpus to each model prompt.
 

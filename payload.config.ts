@@ -5,6 +5,7 @@ import { buildConfig } from "payload";
 import { staffAuthPlugins } from "@/infrastructure/cms/auth";
 import { chatCollections } from "@/infrastructure/cms/chat-collections";
 import { submissions, users } from "@/infrastructure/cms/collections";
+import { innovations } from "@/infrastructure/cms/innovations";
 
 const isCLI = process.argv.some(
   (value) =>
@@ -69,7 +70,7 @@ export default buildConfig({
     autoLogin: false,
   },
   i18n: { supportedLanguages: { pl }, fallbackLanguage: "pl" },
-  collections: [submissions, users, ...chatCollections],
+  collections: [submissions, users, innovations, ...chatCollections],
   plugins: staffAuthPlugins(authSecret, baseURL),
   logger: workerLogger,
   db: sqliteD1Adapter({ binding: cloudflare.env.DB, push: false }),

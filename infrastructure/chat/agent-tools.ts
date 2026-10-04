@@ -5,7 +5,7 @@ import { makeObservatoryTools } from "@/infrastructure/chat/observatory-tool";
 export { makeReportTool } from "@/infrastructure/chat/report-tool";
 
 export function innovationTools(context: AgentToolContext) {
-  return makeInnovationTools(context.onSources);
+  return makeInnovationTools(context.onSources, context.loadInnovations);
 }
 
 export function observatoryTools(context: AgentToolContext) {

@@ -27,6 +27,7 @@ export function StaffInboxLinks({ user }: ServerProps) {
   return (
     <nav className="staff-inbox-nav" aria-label="Skrzynki zgłoszeń">
       <Link href="/admin">Pulpit pracownika</Link>
+      <Link href="/admin/collections/innovations">Innowacje społeczne</Link>
       <Link href={`/admin/collections/users/${user.id}`}>Moje ustawienia</Link>
       {submissionInboxes.map((inbox) => (
         <Link
@@ -81,6 +82,10 @@ export async function StaffDashboard({ initPageResult }: AdminViewServerProps) {
   return (
     <Gutter className="staff-dashboard">
       <h1>Sprawy mieszkańców</h1>
+      <p>
+        <Link href="/admin/collections/innovations">Innowacje społeczne</Link>
+        {" — wspólna biblioteka wiedzy do edycji przez zespół."}
+      </p>
       <div className="staff-inbox-grid">
         {inboxes.map((inbox) => (
           <Link

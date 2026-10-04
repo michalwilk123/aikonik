@@ -5,6 +5,7 @@ import type { HistoryMessage } from "@/domain/chat/types";
 import type { innovationVideoSchema } from "@/domain/innovation-video";
 import type { ObservatoryVisualization } from "@/domain/observatory";
 import type { SupportOffer } from "@/domain/support-offer";
+import type { InnovationLoader } from "@/infrastructure/innovations/store";
 
 export type AgentModelAnswer = {
   message: string;
@@ -15,6 +16,7 @@ export type AgentModelAnswer = {
 };
 
 export type AgentToolContext = {
+  loadInnovations?: InnovationLoader;
   onSources: (sources: AgentSource[]) => void;
   onVisualization: (visualization: ObservatoryVisualization) => void;
 };
@@ -26,8 +28,12 @@ export type AgentConfiguration = {
   supportsArtifacts: boolean;
   createTools: (context: AgentToolContext) => ToolSet;
   prepareHistory: (history: HistoryMessage[]) => HistoryMessage[];
-  resolveHistorySources?: (ids: string[]) => AgentSource[];
+  resolveHistorySources?: (
+    ids: string[],
+    load?: InnovationLoader,
+  ) => Promise<AgentSource[]>;
   getVideos?: (
     sources: AgentSource[],
-  ) => z.infer<typeof innovationVideoSchema>[];
+    load?: InnovationLoader,
+  ) => Promise<z.infer<typeof innovationVideoSchema>[]>;
 };

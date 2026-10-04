@@ -69,6 +69,7 @@ export interface Config {
   collections: {
     submissions: Submission;
     users: User;
+    innovations: Innovation;
     conversations: Conversation;
     'prompt-versions': PromptVersion;
     turns: Turn;
@@ -86,6 +87,7 @@ export interface Config {
   collectionsSelect: {
     submissions: SubmissionsSelect<false> | SubmissionsSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
+    innovations: InnovationsSelect<false> | InnovationsSelect<true>;
     conversations: ConversationsSelect<false> | ConversationsSelect<true>;
     'prompt-versions': PromptVersionsSelect<false> | PromptVersionsSelect<true>;
     turns: TurnsSelect<false> | TurnsSelect<true>;
@@ -205,6 +207,61 @@ export interface User {
   updatedAt: string;
   createdAt: string;
   collection: 'users';
+}
+/**
+ * Wspólna biblioteka dla wszystkich pracowników i administratorów. Zapisane zmiany są używane przez asystentów.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "innovations".
+ */
+export interface Innovation {
+  id: string;
+  title: string;
+  categories: (
+    | 'Dla seniorów'
+    | 'Dla dzieci, młodzieży i rodziny'
+    | 'Dla osób o ograniczonej mobilności'
+    | 'Dla osób z niepełnosprawnością sensoryczną'
+    | 'Dla zdrowia i medycyny'
+    | 'Dla rynku pracy'
+    | 'Dla cudzoziemców'
+    | 'Dla osób w kryzysie bezdomności'
+    | 'Dla osób z niepełnosprawnością intelektualną'
+  )[];
+  /**
+   * Rozwiązanie, problem społeczny, odbiorcy, zastosowanie, wyniki testowania i autorzy.
+   */
+  description: string;
+  url: string;
+  videos?:
+    | {
+        url: string;
+        id?: string | null;
+      }[]
+    | null;
+  materials?:
+    | {
+        url: string;
+        id?: string | null;
+      }[]
+    | null;
+  licenses?:
+    | {
+        url: string;
+        id?: string | null;
+      }[]
+    | null;
+  pdfs?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  updatedAt: string;
+  createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -464,6 +521,38 @@ export interface UsersSelect<T extends boolean = true> {
   email?: T;
   emailVerified?: T;
   image?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "innovations_select".
+ */
+export interface InnovationsSelect<T extends boolean = true> {
+  id?: T;
+  title?: T;
+  categories?: T;
+  description?: T;
+  url?: T;
+  videos?:
+    | T
+    | {
+        url?: T;
+        id?: T;
+      };
+  materials?:
+    | T
+    | {
+        url?: T;
+        id?: T;
+      };
+  licenses?:
+    | T
+    | {
+        url?: T;
+        id?: T;
+      };
+  pdfs?: T;
   updatedAt?: T;
   createdAt?: T;
 }

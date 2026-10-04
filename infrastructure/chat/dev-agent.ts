@@ -7,11 +7,13 @@ import { readReport } from "@/infrastructure/chat/report-tool";
 import {
   readInnovation,
   readSocialChallenges,
+  videosForSources,
 } from "@/infrastructure/innovations/search";
+import { socialChallenges } from "@/infrastructure/innovations/source";
 import {
-  innovations,
-  socialChallenges,
-} from "@/infrastructure/innovations/source";
+  type InnovationLoader,
+  loadInnovations,
+} from "@/infrastructure/innovations/store";
 import { COUNTY_PATHS } from "@/infrastructure/observatory/geometry";
 
 function sampleVisualization(kind: "map" | "bar"): ObservatoryVisualization {
@@ -32,7 +34,10 @@ function sampleVisualization(kind: "map" | "bar"): ObservatoryVisualization {
 
 // Deterministic previews use the same answer contract, stream and D1 store as AI.
 // Only saved catalog/report reads run here; no provider or statistics network calls.
-export function makeDevChatAgent(agentId: AgentId = "odkrywaj"): ChatAgent {
+export function makeDevChatAgent(
+  agentId: AgentId = "odkrywaj",
+  load: InnovationLoader = loadInnovations,
+): ChatAgent {
   return async function* (history, signal) {
     signal.throwIfAborted();
     const text =
@@ -47,18 +52,17 @@ export function makeDevChatAgent(agentId: AgentId = "odkrywaj"): ChatAgent {
     };
 
     if (agentId === "odkrywaj" || agentId === "wdrazanie-innowacji") {
-      const project = innovations.find(
-        (entry) => entry.title === "BaWita" && entry.videos.length > 0,
-      );
+      const innovations = await load();
+      const project = innovations.find((entry) => entry.id === "bawita");
       if (!project)
-        throw new Error("No catalog video available for DEV preview");
+        throw new Error("Missing BaWita innovation for DEV preview");
       const evidence = readInnovation(innovations, project.id);
       const challenges = readSocialChallenges(
         socialChallenges,
         "samotność seniorów",
       );
       answer.sources = [...evidence.sources, ...challenges.sources].slice(0, 8);
-      answer.videos = config.getVideos?.(evidence.sources) ?? [];
+      answer.videos = videosForSources(innovations, evidence.sources);
       answer.message = `**${project.title}** to tablica rehabilitacyjna dla osób z demencją. Pomaga ćwiczyć pamięć i sprawność dłoni. Film pokazuje, jak działa rozwiązanie.`;
       if (agentId === "wdrazanie-innowacji") {
         answer.sources = evidence.sources.slice(0, 8);

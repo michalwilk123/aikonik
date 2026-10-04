@@ -7,12 +7,21 @@ import type { ChatAnswer } from "@/domain/chat/types";
 import type { ObservatoryVisualization } from "@/domain/observatory";
 import { getAgentConfiguration } from "@/infrastructure/chat/agent-config";
 
+import {
+  type InnovationLoader,
+  loadInnovations,
+} from "@/infrastructure/innovations/store";
+
 export function makeChatAgent(
   model: LanguageModel,
   agentId?: AgentId,
+  load: InnovationLoader = loadInnovations,
 ): ChatAgent {
   return async function* (history, signal, log) {
     const started = Date.now();
+    // One shared-library snapshot per response; refresh on the next request.
+    let projects: ReturnType<InnovationLoader> | undefined;
+    const loadLibrary: InnovationLoader = () => (projects ??= load());
     const config = getAgentConfiguration(agentId);
     const messages = compileHistory(config.prepareHistory(history));
     const availableSources = [...config.sources];
@@ -23,11 +32,12 @@ export function makeChatAgent(
           const previous = JSON.parse(message.content);
           if (Array.isArray(previous.sourceIds))
             availableSources.push(
-              ...config.resolveHistorySources(
+              ...(await config.resolveHistorySources(
                 previous.sourceIds.filter(
                   (id: unknown): id is string => typeof id === "string",
                 ),
-              ),
+                loadLibrary,
+              )),
             );
         } catch {
           // Older replies may be plain text rather than a persisted answer.
@@ -39,6 +49,7 @@ export function makeChatAgent(
     const toolEvents: Extract<AgentEvent, { type: "tool" }>[] = [];
     const visualizations: ObservatoryVisualization[] = [];
     const tools = config.createTools({
+      loadInnovations: loadLibrary,
       onSources(sources) {
         for (const source of sources) {
           const index = availableSources.findIndex(
@@ -167,7 +178,7 @@ export function makeChatAgent(
             availableSources.map((source) => [source.id, source]),
           ).values(),
         ]);
-        const videos = config.getVideos?.(sources) ?? [];
+        const videos = (await config.getVideos?.(sources, loadLibrary)) ?? [];
         answer = {
           message: generated.message,
           areaLabel: generated.areaLabel ?? "Małopolska",

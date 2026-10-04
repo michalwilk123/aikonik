@@ -141,3 +141,19 @@ Pushes to `main` run `.github/workflows/deploy.yml` (checks, build, D1
 migrations, deploy). Required GitHub secrets: `CLOUDFLARE_API_TOKEN`,
 `CLOUDFLARE_ACCOUNT_ID`. Set the runtime secret once:
 `bunx wrangler secret put OPENROUTER_API_KEY`.
+
+## Shared social innovation library
+
+The CMS **Innowacje społeczne** link opens `/admin/collections/innovations`.
+Workers (`cms`) and administrators can read and edit all entries in this shared
+library, independently of conversation assignments. Titles, categories,
+descriptions, source URLs, videos, additional materials and licence links are
+editable. Existing entry IDs and original PDF evidence remain immutable; creating
+and deleting entries are disabled. Charts and report data are outside this collection.
+
+Migration `0009_innovations.sql` imports the 115 entries from the versioned ROPS
+snapshot once. Apply local/remote D1 migrations before running/deploying this
+version. Subsequent CMS edits are authoritative: assistant searches, source cards
+and videos read D1, with one library snapshot per answer and fresh data on the
+next request. The original catalog remains an import/test fixture and retains the
+read-only social challenge map. Re-scraping it does not overwrite CMS edits.

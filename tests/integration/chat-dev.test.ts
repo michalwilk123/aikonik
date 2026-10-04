@@ -5,6 +5,7 @@ import { startTurn } from "@/application/chat/runtime";
 import { type ChatAnswer, chatEventSchema } from "@/domain/chat/types";
 import { makeDevChatAgent } from "@/infrastructure/chat/dev-agent";
 import { insertSubmission } from "@/infrastructure/cms/submissions";
+import { listInnovations } from "@/infrastructure/innovations/store";
 import { verifyAgentSubmission } from "@/infrastructure/submissions/agent";
 import { testDatabase } from "@/tests/helpers/d1";
 
@@ -21,7 +22,9 @@ test("DEV previews stream every agent's UI, persist without model calls and subm
       };
       const events = await startTurn(
         fixture.store,
-        makeDevChatAgent(agentId),
+        makeDevChatAgent(agentId, () =>
+          listInnovations(fixture.db as unknown as D1Database),
+        ),
         input,
         {},
         new AbortController().signal,

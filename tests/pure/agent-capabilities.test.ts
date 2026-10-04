@@ -6,6 +6,7 @@ import type { AgentEvent } from "@/application/chat/runtime";
 import { createChatModel, MODEL_ID } from "@/infrastructure/ai/openrouter";
 import { getAgentConfiguration } from "@/infrastructure/chat/agent-config";
 import { makeChatAgent } from "@/infrastructure/chat/openrouter-agent";
+import { innovations } from "@/tests/helpers/innovations";
 import { sseChunk, streamResponse } from "@/tests/helpers/openrouter-stream";
 
 const toolTable: Record<AgentId, string[]> = {
@@ -101,7 +102,11 @@ test("hostile provider calls cannot execute any tool missing from the role's reg
         });
         const events: AgentEvent[] = [];
         try {
-          for await (const event of makeChatAgent(model, id as AgentId)(
+          for await (const event of makeChatAgent(
+            model,
+            id as AgentId,
+            async () => innovations,
+          )(
             [
               {
                 id: "q",
@@ -230,10 +235,11 @@ test("read-only roles project legacy history and advertise no artifact output in
       ]);
     });
     const events: AgentEvent[] = [];
-    for await (const event of makeChatAgent(streaming, id)(
-      history,
-      new AbortController().signal,
-    ))
+    for await (const event of makeChatAgent(
+      streaming,
+      id,
+      async () => innovations,
+    )(history, new AbortController().signal))
       events.push(event);
     const final = events.at(-1);
     assert.equal(final?.type, "answer");
