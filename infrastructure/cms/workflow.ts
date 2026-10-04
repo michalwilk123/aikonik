@@ -12,25 +12,21 @@ export const submissionInboxes = [
   {
     source: "grant-application",
     label: "Wnioski o grant",
-    icon: "◇",
     color: "green",
   },
   {
     source: "contact",
     label: "Zgłoszenia kontaktowe",
-    icon: "✉",
     color: "blue",
   },
   {
     source: "dodaj-pomysl",
     label: "Pomysły mieszkańców",
-    icon: "✦",
     color: "red",
   },
   {
     source: "testuj-innowacje",
     label: "Zgłoszenia do testowania",
-    icon: "✓",
     color: "gold",
   },
 ] as const;

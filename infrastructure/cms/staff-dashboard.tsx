@@ -45,7 +45,7 @@ export function StaffInboxLinks({ user }: ServerProps) {
           key={inbox.source}
           href={inboxURL({ source: { equals: inbox.source } })}
         >
-          <span aria-hidden="true">{inbox.icon}</span> {inbox.label}
+          {inbox.label}
         </Link>
       ))}
     </nav>
