@@ -56,16 +56,20 @@ using the separate submission form; the model cannot send them itself.
 ## Staff panel
 
 Payload supplies the staff UI; Better Auth supplies email/password login.
-`/cms` opens the staff dashboard with three inboxes: contact, residents’ ideas
-and innovation testing. Staff can set a case status, assign any staff member and
-save internal notes. Visitor contact data and submitted content remain read-only.
-Ideas display the Social Canvas as twelve sections, including unanswered areas.
-The dashboard shows new-case counts, recent submissions and a link to the
-current user’s open cases. The `cms` role can read the staff directory for
-assignment and edit their own account settings; administration of other accounts
-and technical chat data remain restricted. `/admin` gives administrators access to
-submissions, staff accounts and all stored chat records. Public visitors do not
-need accounts. Registration and email password recovery are disabled.
+`/cms` opens the staff dashboard with contact, ideas, testing and grant inboxes.
+Workers see **Moje rozmowy** and can read/respond only to their assigned cases.
+Administrators see **Wszystkie rozmowy** and **Przypisz klienta do pracownika**;
+they assign or reassign each case using **Osoba prowadząca**. Access is enforced
+by collection APIs and conversation queries, not just dashboard filters.
+
+The case detail shows the submitted form as the first chat message. Contact
+metadata, status, assignment and private notes sit in the sidebar. Submitted
+content remains read-only for workers. Public replies display the worker’s
+**Imię** and **Nazwisko**; existing accounts can fill their surname in account
+settings. Internal chat notes and sidebar notes never appear to the customer.
+Workers can edit their own account settings; administration of other accounts
+and technical AI chat data remain restricted. Public visitors do not need accounts.
+Staff registration and password recovery remain disabled.
 
 Configure `PAYLOAD_SECRET` in `.dev.vars` locally and with `wrangler secret put
 PAYLOAD_SECRET` in production. `SITE_URL` in `wrangler.jsonc` is the canonical
@@ -99,7 +103,7 @@ also configure every account through **Użytkownicy**. Enable **Wysyłaj
 powiadomienia e-mail** and set **Adres e-mail do powiadomień** to receive new
 resident idea notifications. Both settings are required; the login address is
 never used as a fallback. Existing accounts start with notifications disabled.
-Contact and innovation-testing submissions do not trigger emails.
+These staff alerts are separate from customer conversation notifications.
 
 Delivery uses the [Resend SDK](https://github.com/resend/resend-node). Configure
 these Worker secrets for production (use a sender from a domain verified in Resend):
@@ -117,6 +121,43 @@ Worker `waitUntil` after the idea is saved. Each recipient gets a separate email
 linking to the authenticated panel. Repeated submission requests do not trigger
 another notification; provider failures are logged without blocking submissions.
 Failed deliveries are not automatically retried.
+
+Every submitted contact request, idea, testing form or grant application sends
+the customer a private conversation link. Every public staff reply creates a
+durable customer notification in the same D1 transaction as its message, then
+attempts Resend delivery. Retries reuse the message/provider idempotency key.
+Failures remain visible in the CMS chat with **Ponów powiadomienie**; there is no
+scheduled retry processor. Internal notes never generate customer email.
+The customer replies on the conversation page, not by replying to email.
+
+Email links use seven-day, single-use tokens in the URL fragment; D1 stores only
+token hashes. Opening a link creates a seven-day HttpOnly, SameSite session scoped
+to that request. Expired/used links can be renewed using the original contact email,
+with a generic response and rate limits. Staff access does not depend on customer
+links. Conversation records outlive link expiry and grant call closure.
+
+With `DEV=true` under `next dev`, **Kontakt** includes a hardcoded sample chat
+link, and submission receipts include a private preview link. These previews send
+no email and are unavailable in production. Test in a running local app with
+`bun run test:browser:requests`, `bun run test:browser:request-demo` and
+`bun run test:browser:grants`; the last script creates and cleans up temporary
+local staff accounts, a call and an application.
+
+## Grant calls
+
+Administrators configure **Nabory grantowe** in the CMS: title, rules, publication,
+opening/closing times, and questions with help text, required flags and character
+limits. `/nabory` lists published calls. `/nabory/[id]` enables its application
+generator only between opening (inclusive) and closing (exclusive), showing times
+in Europe/Warsaw. Applicants may fill the form themselves or ask AI to suggest
+answers; suggestions require explicit acceptance, editing and a separate final
+submission. Local DEV previews do not call the model.
+
+Application questions and call rules are snapshotted at submission. Changes to a
+call invalidate stale forms; the insert checks the active dates and call version
+atomically. A lost receipt can be retried using the saved snapshot after closure.
+Grant applications become ordinary staff conversations and use the same assignment
+and account-free communication flow. Apply migrations `0006`–`0008` before use.
 
 **Zmień hasło** opens a separate form with a new password and confirmation.
 CMS users must enter their current password; administrators can reset any

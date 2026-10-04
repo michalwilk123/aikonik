@@ -1,11 +1,19 @@
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import type { AgentArtifact } from "@/agents/types";
 import { ChatConflict } from "@/domain/chat/types";
+import { isDevMode } from "@/infrastructure/chat/dev-mode";
 import { notifyNewIdea } from "@/infrastructure/email/idea-notifications";
+import {
+  deliverCustomerNotification,
+  ensureCustomerNotification,
+  notificationURL,
+} from "@/infrastructure/email/request-notifications";
 
 export type SubmissionInput = {
   id: string;
-  source: "contact" | "dodaj-pomysl" | "testuj-innowacje";
+  source: "contact" | "dodaj-pomysl" | "testuj-innowacje" | "grant-application";
+  grantCallId?: number;
+  callSnapshot?: unknown;
   name: string;
   email: string;
   subject: string;
@@ -29,6 +37,9 @@ export async function insertSubmission(
     input.artifact ?? null,
     input.conversationId ?? null,
     input.sourceTurnId ?? null,
+    ...(input.grantCallId
+      ? [input.grantCallId, input.callSnapshot ?? null]
+      : []),
   ]);
   const fingerprint = Array.from(
     new Uint8Array(
@@ -45,12 +56,12 @@ export async function insertSubmission(
       .join("\n\n") ?? null;
   const result = await db
     .prepare(`
-    INSERT INTO submissions (id, submitted_at, source, name, email, subject, message, details, artifact, conversation_id, source_turn_id, fingerprint)
-    SELECT ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
-    WHERE ? IS NULL OR (
+    INSERT INTO submissions (id, submitted_at, source, name, email, subject, message, details, artifact, conversation_id, source_turn_id, fingerprint, grant_call_id, call_snapshot)
+    SELECT ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+    WHERE (? IS NULL OR (
       NOT EXISTS (SELECT 1 FROM turns WHERE conversation_id = ? AND status = 'running')
       AND ? = (SELECT id FROM turns WHERE conversation_id = ? ORDER BY ordinal DESC LIMIT 1)
-    )
+    )) AND (? IS NULL OR EXISTS (SELECT 1 FROM grant_calls WHERE id=? AND published=1 AND julianday(opens_at)<=julianday('now') AND julianday(closes_at)>julianday('now') AND updated_at=?))
     ON CONFLICT DO NOTHING
   `)
     .bind(
@@ -66,10 +77,17 @@ export async function insertSubmission(
       input.conversationId ?? null,
       input.sourceTurnId ?? null,
       fingerprint,
+      input.grantCallId ?? null,
+      input.callSnapshot ? JSON.stringify(input.callSnapshot) : null,
       input.sourceTurnId ?? null,
       input.conversationId ?? null,
       input.sourceTurnId ?? null,
       input.conversationId ?? null,
+      input.grantCallId ?? null,
+      input.grantCallId ?? null,
+      input.callSnapshot
+        ? ((input.callSnapshot as { updatedAt?: string }).updatedAt ?? null)
+        : null,
     )
     .run();
   if (result.meta.changes) {
@@ -96,7 +114,7 @@ export async function saveSubmission(
   requestURL: string,
 ) {
   const { env, ctx } = getCloudflareContext();
-  return insertSubmission(env.DB, input, () => {
+  const receipt = await insertSubmission(env.DB, input, () => {
     const notification = notifyNewIdea(env.DB, input, {
       apiKey: env.RESEND_API_KEY,
       from: env.RESEND_FROM_EMAIL,
@@ -110,4 +128,37 @@ export async function saveSubmission(
     });
     ctx.waitUntil(notification);
   });
+  const config = {
+    secret: env.PAYLOAD_SECRET,
+    apiKey: env.RESEND_API_KEY,
+    from: env.RESEND_FROM_EMAIL,
+    siteURL: env.SITE_URL || new URL(requestURL).origin,
+    production: process.env.NODE_ENV === "production",
+    dev: isDevMode(env.DEV),
+  };
+  const notificationId = await ensureCustomerNotification(
+    env.DB,
+    receipt.id,
+    "receipt",
+    config,
+  );
+  const notification = await deliverCustomerNotification(
+    env.DB,
+    notificationId,
+    config,
+  );
+  return {
+    ...receipt,
+    conversationURL: `/zgloszenia/${receipt.id}`,
+    notification,
+    ...(config.dev
+      ? {
+          devConversationURL: await notificationURL(
+            { ...config, siteURL: new URL(requestURL).origin },
+            notificationId,
+            receipt.id,
+          ),
+        }
+      : {}),
+  };
 }

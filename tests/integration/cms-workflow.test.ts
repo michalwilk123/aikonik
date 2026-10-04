@@ -4,7 +4,13 @@ import { sqliteD1Adapter } from "@payloadcms/db-d1-sqlite";
 import { hashPassword, verifyPassword } from "better-auth/crypto";
 import { buildConfig, createLocalReq, getPayload, type Payload } from "payload";
 import { staffAuthPlugins } from "@/infrastructure/cms/auth";
+import {
+  readSubmissionChat,
+  replySubmissionChat,
+  retrySubmissionNotification,
+} from "@/infrastructure/cms/chat-endpoints";
 import { submissions, users } from "@/infrastructure/cms/collections";
+import { grantCalls } from "@/infrastructure/cms/grant-calls";
 import { changeStaffPassword } from "@/infrastructure/cms/password-endpoint";
 import { insertSubmission } from "@/infrastructure/cms/submissions";
 import type { User } from "@/payload-types";
@@ -32,7 +38,7 @@ before(async () => {
     config: buildConfig({
       secret: "cms-integration-test-secret",
       routes: { api: "/api/cms" },
-      collections: [submissions, users],
+      collections: [submissions, users, grantCalls],
       plugins: staffAuthPlugins(
         "cms-integration-test-secret",
         "http://localhost:3000",
@@ -52,7 +58,7 @@ after(async () => {
   await fixture?.dispose();
 });
 
-test("staff manage every inbox while submitted contact data and Canvas remain immutable", async () => {
+test("workers manage only assigned conversations while submitted data remain immutable", async () => {
   const artifact = {
     title: "Pomoc sąsiedzka",
     fields: [{ label: "Odbiorcy", value: "Seniorzy" }],
@@ -71,6 +77,22 @@ test("staff manage every inbox while submitted contact data and Canvas remain im
       subject: "Sprawa mieszkańca",
       message: "Oryginalna wiadomość",
       artifact,
+    });
+    const admin = { ...colleague, role: "admin" as const };
+    await assert.rejects(
+      payload.findByID({
+        collection: "submissions",
+        id,
+        user: worker,
+        overrideAccess: false,
+      }),
+    );
+    await payload.update({
+      collection: "submissions",
+      id,
+      user: admin,
+      overrideAccess: false,
+      data: { assignedTo: worker.id },
     });
     const original = await payload.findByID({
       collection: "submissions",
@@ -103,7 +125,7 @@ test("staff manage every inbox while submitted contact data and Canvas remain im
       typeof updated.assignedTo === "object"
         ? updated.assignedTo?.id
         : updated.assignedTo,
-      colleague.id,
+      worker.id,
     );
     assert.equal(updated.internalNotes, "Kontakt w poniedziałek");
     for (const key of [
@@ -125,7 +147,7 @@ test("staff manage every inbox while submitted contact data and Canvas remain im
       where: {
         and: [
           { source: { equals: source } },
-          { assignedTo: { equals: colleague.id } },
+          { assignedTo: { equals: worker.id } },
         ],
       },
     });
@@ -144,7 +166,52 @@ test("staff manage every inbox while submitted contact data and Canvas remain im
       overrideAccess: false,
     });
     assert.equal(closed.status, "completed");
-    assert.equal(closed.assignedTo, null);
+    assert.equal(
+      typeof closed.assignedTo === "object"
+        ? closed.assignedTo?.id
+        : closed.assignedTo,
+      worker.id,
+    );
+    await assert.rejects(
+      payload.findByID({
+        collection: "submissions",
+        id,
+        user: colleague,
+        overrideAccess: false,
+      }),
+    );
+    await assert.rejects(
+      payload.update({
+        collection: "submissions",
+        id,
+        user: colleague,
+        overrideAccess: false,
+        data: { status: "waiting" },
+      }),
+    );
+    await payload.update({
+      collection: "submissions",
+      id,
+      user: admin,
+      overrideAccess: false,
+      data: { assignedTo: colleague.id },
+    });
+    await assert.rejects(
+      payload.findByID({
+        collection: "submissions",
+        id,
+        user: worker,
+        overrideAccess: false,
+      }),
+    );
+    assert.ok(
+      await payload.findByID({
+        collection: "submissions",
+        id,
+        user: colleague,
+        overrideAccess: false,
+      }),
+    );
     await assert.rejects(
       payload.delete({
         collection: "submissions",
@@ -156,7 +223,7 @@ test("staff manage every inbox while submitted contact data and Canvas remain im
   }
 });
 
-test("staff can choose a colleague but cannot change other accounts or expose submissions publicly", async () => {
+test("staff can see the staff directory but cannot change other accounts or expose submissions publicly", async () => {
   const directory = await payload.find({
     collection: "users",
     user: worker,
@@ -364,4 +431,142 @@ test("password changes require permission, confirmation and the current password
     200,
   );
   assert.equal((await payload.count({ collection: "accounts" })).totalDocs, 2);
+});
+
+test("chat endpoints reject anonymous, cross-origin and unassigned worker requests before accessing runtime", async () => {
+  const id = crypto.randomUUID();
+  await insertSubmission(fixture.db as unknown as D1Database, {
+    id,
+    source: "contact",
+    name: "Anna",
+    email: "anna@example.pl",
+    subject: "Private conversation",
+  });
+  async function req(user: User | undefined, origin = "http://localhost:3000") {
+    return createLocalReq(
+      {
+        user,
+        req: {
+          url: `http://localhost:3000/api/cms/submissions/${id}/chat`,
+          routeParams: { id },
+          headers: new Headers({ origin }),
+          json: async () => ({
+            id: crypto.randomUUID(),
+            body: "Odpowiedź",
+            notificationId: "reply:test",
+          }),
+        },
+      },
+      payload,
+    );
+  }
+  for (const handler of [
+    readSubmissionChat,
+    replySubmissionChat,
+    retrySubmissionNotification,
+  ]) {
+    assert.equal((await handler(await req(undefined))).status, 401);
+    assert.equal((await handler(await req(worker))).status, 404);
+  }
+  const admin = { ...colleague, role: "admin" as const };
+  await payload.update({
+    collection: "submissions",
+    id,
+    user: admin,
+    overrideAccess: false,
+    data: { assignedTo: worker.id },
+  });
+  assert.equal(
+    (await replySubmissionChat(await req(worker, "https://other.example")))
+      .status,
+    403,
+  );
+  assert.equal(
+    (
+      await retrySubmissionNotification(
+        await req(worker, "https://other.example"),
+      )
+    ).status,
+    403,
+  );
+});
+
+test("only administrators configure grant calls and both dates and questions validate on partial updates", async () => {
+  const admin = { ...colleague, role: "admin" as const };
+  const input = {
+    title: "Nabór testowy",
+    description: "Warunki naboru",
+    opensAt: "2026-01-01T00:00:00Z",
+    closesAt: "2026-12-01T00:00:00Z",
+    published: true,
+    questions: [
+      {
+        key: "problem",
+        label: "Problem",
+        help: "",
+        required: true,
+        maxLength: 500,
+      },
+    ],
+  };
+  await assert.rejects(
+    payload.create({
+      collection: "grant-calls",
+      user: worker,
+      overrideAccess: false,
+      data: input,
+    }),
+  );
+  const call = await payload.create({
+    collection: "grant-calls",
+    user: admin,
+    overrideAccess: false,
+    data: input,
+  });
+  await assert.rejects(
+    payload.update({
+      collection: "grant-calls",
+      id: call.id,
+      user: worker,
+      overrideAccess: false,
+      data: { published: false },
+    }),
+  );
+  await assert.rejects(
+    payload.update({
+      collection: "grant-calls",
+      id: call.id,
+      user: admin,
+      overrideAccess: false,
+      data: { closesAt: "2025-01-01T00:00:00Z" },
+    }),
+  );
+  await assert.rejects(
+    payload.update({
+      collection: "grant-calls",
+      id: call.id,
+      user: admin,
+      overrideAccess: false,
+      data: { questions: [input.questions[0], input.questions[0]] },
+    }),
+  );
+  await assert.rejects(
+    payload.update({
+      collection: "grant-calls",
+      id: call.id,
+      user: admin,
+      overrideAccess: false,
+      data: { questions: [{ ...input.questions[0], maxLength: 999999 }] },
+    }),
+  );
+  const changed = await payload.update({
+    collection: "grant-calls",
+    id: call.id,
+    user: admin,
+    overrideAccess: false,
+    data: { title: "Zmieniona nazwa naboru" },
+  });
+  assert.equal(changed.title, "Zmieniona nazwa naboru");
+  assert.equal((changed.questions as { key: string }[])[0].key, "problem");
+  assert.equal(changed.published, true);
 });

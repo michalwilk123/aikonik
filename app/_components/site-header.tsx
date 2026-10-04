@@ -4,6 +4,7 @@ import { Wordmark } from "@/app/_components/brand-mark";
 const links = [
   { href: "/", label: "O aplikacji" },
   { href: "/asystent", label: "Asystent" },
+  { href: "/nabory", label: "Nabory" },
   { href: "/kontakt", label: "Kontakt" },
 ] as const;
 

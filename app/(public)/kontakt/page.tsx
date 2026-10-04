@@ -1,9 +1,11 @@
+import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { Clock, Mail, MapPin, Phone } from "lucide-react";
 import type { Metadata } from "next";
 import { ContactPageScene } from "@/app/_components/scenes-steps";
 import { SiteFooter } from "@/app/_components/site-footer";
 import { SiteHeader } from "@/app/_components/site-header";
 import { ContactForm } from "@/app/(public)/kontakt/contact-form";
+import { isDevMode } from "@/infrastructure/chat/dev-mode";
 
 export const metadata: Metadata = {
   title: "Kontakt",
@@ -13,7 +15,8 @@ export const metadata: Metadata = {
 const link =
   "inline-flex min-h-11 items-center font-medium text-primary underline underline-offset-4 outline-none focus-visible:ring-3 focus-visible:ring-ring/50 rounded-md";
 
-export default function KontaktPage() {
+export default async function KontaktPage() {
+  const { env } = await getCloudflareContext({ async: true });
   return (
     <>
       <SiteHeader current="/kontakt" />
@@ -43,6 +46,11 @@ export default function KontaktPage() {
             Napisz do nas
           </h2>
           <ContactForm />
+          {isDevMode(env.DEV) && (
+            <a href="/zgloszenia/demo" className={link}>
+              Otwórz przykładowy czat
+            </a>
+          )}
         </section>
 
         <section

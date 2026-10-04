@@ -2,6 +2,10 @@
 
 import { Send } from "lucide-react";
 import { type FormEvent, useRef, useState } from "react";
+import {
+  SubmissionReceipt,
+  type SubmissionReceiptData,
+} from "@/components/submission-receipt";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -39,7 +43,7 @@ function FieldError({ id, text }: { id: string; text?: string }) {
 export function ContactForm() {
   const formRef = useRef<HTMLFormElement>(null);
   const [errors, setErrors] = useState<Errors>({});
-  const [sent, setSent] = useState(false);
+  const [receipt, setReceipt] = useState<SubmissionReceiptData | null>(null);
   const [pending, setPending] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const submissionId = useRef<string | null>(null);
@@ -48,7 +52,7 @@ export function ContactForm() {
     ev.preventDefault();
     if (pending) return;
     setSubmitError(null);
-    setSent(false);
+    setReceipt(null);
     const data = new FormData(ev.currentTarget);
     const values = {
       name: String(data.get("name") ?? ""),
@@ -60,7 +64,7 @@ export function ContactForm() {
     setErrors(found);
     const first = ORDER.find((k) => found[k]);
     if (first) {
-      setSent(false);
+      setReceipt(null);
       const el = formRef.current?.querySelector<HTMLElement>(
         `[name="${first}"]`,
       );
@@ -79,10 +83,12 @@ export function ContactForm() {
           source: "contact",
         }),
       });
-      const result = (await response.json()) as { id?: string; error?: string };
+      const result = (await response.json()) as SubmissionReceiptData & {
+        error?: string;
+      };
       if (!response.ok || !result.id)
         throw new Error(result.error ?? "Nie udało się wysłać wiadomości.");
-      setSent(true);
+      setReceipt(result);
       formRef.current?.reset();
       submissionId.current = null;
     } catch (error) {
@@ -98,14 +104,7 @@ export function ContactForm() {
 
   return (
     <div className="flex flex-col gap-4">
-      <div role="status">
-        {sent && (
-          <p className="rounded-2xl border border-gold bg-secondary-container p-4 font-medium text-on-surface">
-            Dziękujemy. Wiadomość została zapisana i jest dostępna dla
-            pracowników ROPS Kraków.
-          </p>
-        )}
-      </div>
+      {receipt && <SubmissionReceipt receipt={receipt} />}
       {submitError && (
         <p role="alert" className="text-sm font-medium text-error">
           {submitError}
@@ -121,7 +120,8 @@ export function ContactForm() {
         className="flex flex-col gap-5"
       >
         <p className="text-sm text-on-surface-variant">
-          Wszystkie pola są wymagane.
+          Wszystkie pola są wymagane. Po wysłaniu otrzymasz prywatny link do
+          rozmowy. Nie potrzebujesz konta.
         </p>
 
         <div className="flex flex-col gap-2">

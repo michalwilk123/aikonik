@@ -2,6 +2,10 @@
 
 import { type FormEvent, useId, useRef, useState } from "react";
 import type { AgentArtifact } from "@/agents/types";
+import {
+  SubmissionReceipt,
+  type SubmissionReceiptData,
+} from "@/components/submission-receipt";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -32,7 +36,7 @@ export function AgentSubmissionForm({
     consent: false,
   });
   const [pending, setPending] = useState(false);
-  const [receipt, setReceipt] = useState<string | null>(null);
+  const [receipt, setReceipt] = useState<SubmissionReceiptData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const submissionId = useRef<string | null>(null);
   const submitting = useRef(false);
@@ -66,10 +70,12 @@ export function AgentSubmissionForm({
           ...contact,
         }),
       });
-      const result = (await response.json()) as { id?: string; error?: string };
+      const result = (await response.json()) as SubmissionReceiptData & {
+        error?: string;
+      };
       if (!response.ok || !result.id)
         throw new Error(result.error ?? "Nie udało się wysłać zgłoszenia.");
-      setReceipt(result.id);
+      setReceipt(result);
       onSubmitted();
     } catch (error) {
       setError(
@@ -82,16 +88,7 @@ export function AgentSubmissionForm({
       setPending(false);
     }
   }
-  if (receipt)
-    return (
-      <p
-        role="status"
-        className="rounded-xl border border-green-200 bg-green-50 p-4 text-sm text-green-900"
-      >
-        Zgłoszenie zostało zapisane i jest dostępne dla pracowników ROPS Kraków.
-        Numer zgłoszenia: {receipt}.
-      </p>
-    );
+  if (receipt) return <SubmissionReceipt receipt={receipt} />;
   return (
     <section
       className="rounded-2xl border border-outline-variant bg-white p-5"

@@ -14,3 +14,10 @@ export const adminOrSelf: Access = ({ req }) => {
 export const ownSettingsField: FieldAccess = ({ req, id }) =>
   req.user?.role === "admin" ||
   (req.user?.role === "cms" && String(req.user.id) === String(id));
+
+// Collection access protects direct API reads as well as filtered CMS lists.
+export const assignedStaff: Access = ({ req }) => {
+  if (req.user?.role === "admin") return true;
+  if (req.user?.role === "cms") return { assignedTo: { equals: req.user.id } };
+  return false;
+};

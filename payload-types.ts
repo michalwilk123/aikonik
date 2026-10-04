@@ -69,6 +69,7 @@ export interface Config {
   collections: {
     submissions: Submission;
     users: User;
+    'grant-calls': GrantCall;
     innovations: Innovation;
     conversations: Conversation;
     'prompt-versions': PromptVersion;
@@ -87,6 +88,7 @@ export interface Config {
   collectionsSelect: {
     submissions: SubmissionsSelect<false> | SubmissionsSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
+    'grant-calls': GrantCallsSelect<false> | GrantCallsSelect<true>;
     innovations: InnovationsSelect<false> | InnovationsSelect<true>;
     conversations: ConversationsSelect<false> | ConversationsSelect<true>;
     'prompt-versions': PromptVersionsSelect<false> | PromptVersionsSelect<true>;
@@ -136,24 +138,26 @@ export interface UserAuthOperations {
   };
 }
 /**
- * Kontakt, pomysły mieszkańców i zgłoszenia do testowania. Filtruj według rodzaju, statusu i osoby prowadzącej.
- *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "submissions".
  */
 export interface Submission {
   status: 'new' | 'in-progress' | 'waiting' | 'completed' | 'rejected';
-  /**
-   * Wybierz pracownika zajmującego się sprawą.
-   */
   assignedTo?: (number | null) | User;
-  /**
-   * Ustalenia zespołu. Niewidoczne dla zgłaszającego.
-   */
   internalNotes?: string | null;
   id: string;
   submittedAt: string;
-  source: 'contact' | 'dodaj-pomysl' | 'testuj-innowacje';
+  source: 'grant-application' | 'contact' | 'dodaj-pomysl' | 'testuj-innowacje';
+  grantCall?: (number | null) | GrantCall;
+  callSnapshot?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
   subject: string;
   name: string;
   email: string;
@@ -183,6 +187,7 @@ export interface User {
    */
   newPassword?: string | null;
   name: string;
+  surname?: string | null;
   /**
    * Powiadomienia wymagają podania adresu poniżej. Lokalnie wiadomości nie są wysyłane.
    */
@@ -207,6 +212,32 @@ export interface User {
   updatedAt: string;
   createdAt: string;
   collection: 'users';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "grant-calls".
+ */
+export interface GrantCall {
+  id: number;
+  title: string;
+  description: string;
+  opensAt: string;
+  closesAt: string;
+  /**
+   * Generator przyjmuje wnioski od otwarcia do zamknięcia opublikowanego naboru.
+   */
+  published?: boolean | null;
+  questions:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  updatedAt: string;
+  createdAt: string;
 }
 /**
  * Wspólna biblioteka dla wszystkich pracowników i administratorów. Zapisane zmiany są używane przez asystentów.
@@ -498,6 +529,8 @@ export interface SubmissionsSelect<T extends boolean = true> {
   id?: T;
   submittedAt?: T;
   source?: T;
+  grantCall?: T;
+  callSnapshot?: T;
   subject?: T;
   name?: T;
   email?: T;
@@ -515,12 +548,27 @@ export interface SubmissionsSelect<T extends boolean = true> {
 export interface UsersSelect<T extends boolean = true> {
   newPassword?: T;
   name?: T;
+  surname?: T;
   emailNotifications?: T;
   notificationEmail?: T;
   role?: T;
   email?: T;
   emailVerified?: T;
   image?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "grant-calls_select".
+ */
+export interface GrantCallsSelect<T extends boolean = true> {
+  title?: T;
+  description?: T;
+  opensAt?: T;
+  closesAt?: T;
+  published?: T;
+  questions?: T;
   updatedAt?: T;
   createdAt?: T;
 }

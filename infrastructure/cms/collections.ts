@@ -3,10 +3,16 @@ import type { CollectionConfig, Field } from "payload";
 import {
   adminField,
   adminOrSelf,
+  assignedStaff,
   isAdmin,
   isStaff,
   ownSettingsField,
 } from "@/infrastructure/cms/access";
+import {
+  readSubmissionChat,
+  replySubmissionChat,
+  retrySubmissionNotification,
+} from "@/infrastructure/cms/chat-endpoints";
 import { changeStaffPassword } from "@/infrastructure/cms/password-endpoint";
 import {
   deleteStaffCredentials,
@@ -46,7 +52,7 @@ export const users: CollectionConfig = {
     useAsTitle: "name",
     group: "Administracja",
     hidden: ({ user }) => user?.role !== "admin",
-    defaultColumns: ["name", "email", "role"],
+    defaultColumns: ["name", "surname", "email", "role"],
   },
   fields: [
     {
@@ -69,7 +75,8 @@ export const users: CollectionConfig = {
         components: { Field: "@payloadcms/ui#PasswordField" },
       },
     },
-    { name: "name", label: "Nazwa", type: "text", required: true },
+    { name: "name", label: "Imię", type: "text", required: true },
+    { name: "surname", label: "Nazwisko", type: "text" },
     {
       name: "emailNotifications",
       label: "Wysyłaj powiadomienia e-mail",
@@ -118,12 +125,26 @@ export const users: CollectionConfig = {
 
 export const submissions: CollectionConfig = {
   slug: "submissions",
+  endpoints: [
+    { path: "/:id/chat", method: "get", handler: readSubmissionChat },
+    { path: "/:id/chat", method: "post", handler: replySubmissionChat },
+    {
+      path: "/:id/chat/retry",
+      method: "post",
+      handler: retrySubmissionNotification,
+    },
+  ],
   labels: { singular: "Zgłoszenie", plural: "Zgłoszenia" },
   timestamps: false,
   lockDocuments: false,
   disableDuplicate: true,
   defaultSort: "-submittedAt",
-  access: { create: isAdmin, read: isStaff, update: isStaff, delete: isAdmin },
+  access: {
+    create: isAdmin,
+    read: assignedStaff,
+    update: assignedStaff,
+    delete: isAdmin,
+  },
   admin: {
     useAsTitle: "subject",
     defaultColumns: [
@@ -134,8 +155,6 @@ export const submissions: CollectionConfig = {
       "name",
       "submittedAt",
     ],
-    description:
-      "Kontakt, pomysły mieszkańców i zgłoszenia do testowania. Filtruj według rodzaju, statusu i osoby prowadzącej.",
     pagination: { defaultLimit: 25, limits: [25, 50, 100] },
   },
   fields: [
@@ -154,9 +173,9 @@ export const submissions: CollectionConfig = {
       type: "relationship",
       relationTo: "users",
       filterOptions: { role: { in: ["cms", "admin"] } },
+      access: { create: adminField, update: adminField },
       admin: {
         position: "sidebar",
-        description: "Wybierz pracownika zajmującego się sprawą.",
       },
     },
     {
@@ -165,15 +184,24 @@ export const submissions: CollectionConfig = {
       type: "textarea",
       admin: {
         position: "sidebar",
-        description: "Ustalenia zespołu. Niewidoczne dla zgłaszającego.",
       },
     },
     {
       name: "submissionPreview",
       type: "ui",
       admin: {
+        condition: () => false,
         components: {
           Field: "@/infrastructure/cms/submission-preview#SubmissionPreview",
+        },
+      },
+    },
+    {
+      name: "customerChat",
+      type: "ui",
+      admin: {
+        components: {
+          Field: "@/infrastructure/cms/submission-chat#SubmissionChat",
         },
       },
     },
@@ -192,32 +220,66 @@ export const submissions: CollectionConfig = {
           type: "date",
           required: true,
           defaultValue: () => new Date().toISOString(),
-          admin: { date: { displayFormat: "dd.MM.yyyy HH:mm" } },
+          admin: {
+            position: "sidebar",
+            date: { displayFormat: "dd.MM.yyyy HH:mm" },
+          },
         },
         {
           name: "source",
           label: "Rodzaj zgłoszenia",
           type: "select",
           required: true,
+          admin: { position: "sidebar" },
           options: [
+            { label: "Wnioski o grant", value: "grant-application" },
             { label: "Zgłoszenia kontaktowe", value: "contact" },
             { label: "Pomysły mieszkańców", value: "dodaj-pomysl" },
             { label: "Zgłoszenia do testowania", value: "testuj-innowacje" },
           ],
         },
-        { name: "subject", label: "Temat", type: "text", required: true },
+        {
+          name: "grantCall",
+          label: "Nabór grantowy",
+          type: "relationship",
+          relationTo: "grant-calls",
+          admin: {
+            position: "sidebar",
+            condition: (data) => data.source === "grant-application",
+          },
+        },
+        {
+          name: "callSnapshot",
+          label: "Nabór w dniu zgłoszenia",
+          type: "json",
+          admin: { hidden: true },
+        },
+        {
+          name: "subject",
+          label: "Temat",
+          type: "text",
+          required: true,
+          admin: { position: "sidebar" },
+        },
         {
           name: "name",
           label: "Imię i nazwisko",
           type: "text",
           required: true,
+          admin: { position: "sidebar" },
         },
-        { name: "email", label: "Adres e-mail", type: "email", required: true },
+        {
+          name: "email",
+          label: "Adres e-mail",
+          type: "email",
+          required: true,
+          admin: { position: "sidebar" },
+        },
         {
           name: "message",
           label: "Wiadomość",
           type: "textarea",
-          admin: { condition: (data) => data.source === "contact" },
+          admin: { hidden: true },
         },
         {
           name: "details",

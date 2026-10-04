@@ -5,16 +5,29 @@ import {
   submissionInputSchema,
 } from "@/domain/submissions/input";
 import { saveSubmission } from "@/infrastructure/cms/submissions";
+import { guardWrite, rateLimit } from "@/infrastructure/requests/security";
 import { verifyAgentSubmission } from "@/infrastructure/submissions/agent";
 
 export async function POST(request: Request) {
   const headers = { "Cache-Control": "no-store" };
-  const origin = request.headers.get("origin");
-  if (origin && origin !== new URL(request.url).origin)
-    return Response.json(
-      { error: "Niedozwolone źródło żądania." },
-      { status: 403, headers },
+  try {
+    guardWrite(request);
+    await rateLimit(
+      getCloudflareContext().env.DB,
+      `submission:${request.headers.get("cf-connecting-ip") ?? "unknown"}`,
+      20,
     );
+  } catch (error) {
+    return Response.json(
+      {
+        error:
+          error instanceof ChatConflict
+            ? error.message
+            : "Nie udało się obsłużyć zgłoszenia.",
+      },
+      { status: error instanceof ChatConflict ? error.status : 503, headers },
+    );
+  }
   let input: SubmissionInput;
   try {
     const body = await request.text();

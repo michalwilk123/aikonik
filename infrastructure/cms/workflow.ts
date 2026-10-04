@@ -10,6 +10,12 @@ export const submissionStatuses = [
 
 export const submissionInboxes = [
   {
+    source: "grant-application",
+    label: "Wnioski o grant",
+    icon: "◇",
+    color: "green",
+  },
+  {
     source: "contact",
     label: "Zgłoszenia kontaktowe",
     icon: "✉",

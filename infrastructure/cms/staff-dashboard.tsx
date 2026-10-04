@@ -29,6 +29,17 @@ export function StaffInboxLinks({ user }: ServerProps) {
       <Link href="/admin">Pulpit pracownika</Link>
       <Link href="/admin/collections/innovations">Innowacje społeczne</Link>
       <Link href={`/admin/collections/users/${user.id}`}>Moje ustawienia</Link>
+      <Link href={inboxURL({ assignedTo: { equals: user.id } })}>
+        Moje rozmowy
+      </Link>
+      {user.role === "admin" && (
+        <>
+          <Link href="/admin/collections/submissions">Wszystkie rozmowy</Link>
+          <Link href={inboxURL({ assignedTo: { exists: false } })}>
+            Przypisz klienta do pracownika
+          </Link>
+        </>
+      )}
       {submissionInboxes.map((inbox) => (
         <Link
           key={inbox.source}
@@ -81,11 +92,21 @@ export async function StaffDashboard({ initPageResult }: AdminViewServerProps) {
   ]);
   return (
     <Gutter className="staff-dashboard">
-      <h1>Sprawy mieszkańców</h1>
+      <h1>
+        {req.user.role === "admin" ? "Wszystkie rozmowy" : "Moje rozmowy"}
+      </h1>
       <p>
         <Link href="/admin/collections/innovations">Innowacje społeczne</Link>
         {" — wspólna biblioteka wiedzy do edycji przez zespół."}
       </p>
+      {req.user.role === "admin" && (
+        <p>
+          Nowe sprawy czekają na przypisanie osoby prowadzącej.{" "}
+          <Link href={inboxURL({ assignedTo: { exists: false } })}>
+            Przypisz klienta do pracownika
+          </Link>
+        </p>
+      )}
       <div className="staff-inbox-grid">
         {inboxes.map((inbox) => (
           <Link
@@ -104,14 +125,17 @@ export async function StaffDashboard({ initPageResult }: AdminViewServerProps) {
       <section className="staff-recent" aria-labelledby="staff-recent-title">
         <div className="staff-section-heading">
           <h2 id="staff-recent-title">Ostatnie zgłoszenia</h2>
-          <Link href="/admin/collections/submissions">Zobacz wszystkie</Link>
+          <Link href="/admin/collections/submissions">
+            {req.user.role === "admin" ? "Wszystkie rozmowy" : "Moje rozmowy"}
+          </Link>
         </div>
         {recent.docs.length === 0 ? (
           <div className="staff-empty">
             <h3>Skrzynki są na razie puste</h3>
             <p>
-              Wysłane formularze kontaktowe, pomysły i zgłoszenia do testowania
-              pojawią się tutaj.
+              {req.user.role === "admin"
+                ? "Wnioski grantowe i zgłoszenia mieszkańców pojawią się tutaj."
+                : "Rozmowy pojawią się tutaj, gdy administrator przypisze Ci sprawę."}
             </p>
           </div>
         ) : (
