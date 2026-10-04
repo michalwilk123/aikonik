@@ -20,6 +20,10 @@ import {
   agentReplySchema,
 } from "@/agents/types";
 import { AgentWelcome } from "@/agents/welcome";
+import {
+  SubmissionReceipt,
+  type SubmissionReceiptData,
+} from "@/components/submission-receipt";
 import { MODEL_ID } from "@/domain/chat/model";
 import { readChatEvents } from "@/infrastructure/chat/transport";
 
@@ -30,6 +34,7 @@ type Session = {
   pending: boolean;
   error: string | null;
   revealing: string[];
+  receipt: SubmissionReceiptData | null;
   submission: {
     // Null for a form filled in by hand before the first reply.
     requestId: string | null;
@@ -44,6 +49,7 @@ const emptySession = (): Session => ({
   pending: false,
   error: null,
   revealing: [],
+  receipt: null,
   submission: null,
 });
 
@@ -162,6 +168,7 @@ export function AgentWorkspace({ devMode = false }: { devMode?: boolean }) {
       draft: "",
       pending: true,
       error: null,
+      receipt: null,
     }));
     try {
       const body = JSON.stringify({
@@ -302,6 +309,11 @@ export function AgentWorkspace({ devMode = false }: { devMode?: boolean }) {
             </div>
           </aside>
         )}
+        {session.receipt && (
+          <div className="pt-6">
+            <SubmissionReceipt receipt={session.receipt} />
+          </div>
+        )}
         {session.messages.length === 0 ? (
           !chatDisabled && (
             <AgentWelcome
@@ -401,6 +413,7 @@ export function AgentWorkspace({ devMode = false }: { devMode?: boolean }) {
               onClick={() =>
                 update(activeAgent, (current) => ({
                   ...current,
+                  receipt: null,
                   submission: {
                     requestId: lastReply?.requestId ?? null,
                     status: "open",
@@ -451,15 +464,25 @@ export function AgentWorkspace({ devMode = false }: { devMode?: boolean }) {
                   }));
                   requestAnimationFrame(() => inputRef.current?.focus());
                 }}
-                onSubmitted={() =>
+                onSubmitted={(receipt) => {
+                  if (id === "dodaj-pomysl") {
+                    identities.current.delete(id);
+                    update(id, () => ({ ...emptySession(), receipt }));
+                    if (activeAgent === id) {
+                      setFollow(true);
+                      window.scrollTo({ top: 0, behavior: "instant" });
+                      requestAnimationFrame(() => inputRef.current?.focus());
+                    }
+                    return;
+                  }
                   update(id, (current) => ({
                     ...current,
                     submission: {
                       requestId: submission.requestId,
                       status: "submitted",
                     },
-                  }))
-                }
+                  }));
+                }}
               />
             </div>
           );

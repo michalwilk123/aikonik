@@ -140,14 +140,14 @@ export default function HomePage() {
               <p className="intro-text mt-4 text-lg leading-relaxed text-on-surface-variant">
                 <span className="block">
                   <RevealText
-                    text="Opisz, z czym masz kłopot."
+                    text="Opisz swój problem lub pomysł —"
                     by="line"
                     delay={420}
                   />
                 </span>
                 <span className="block">
                   <RevealText
-                    text="Asystent pomoże Ci znaleźć wsparcie i sprawdzone rozwiązania w Małopolsce."
+                    text="AiKonik pomoże Ci znaleźć inicjatywy i aktywności społeczne dopasowane do Twoich potrzeb."
                     by="line"
                     delay={720}
                   />
@@ -274,7 +274,7 @@ export default function HomePage() {
                     render={<Link href={agentHref(f.agent)} />}
                     className="mt-5 h-12 self-start px-6 text-base"
                   >
-                    Otwórz asystenta
+                    Dalej
                   </Button>
                 </li>
               ))}

@@ -25,7 +25,7 @@ export function AgentSubmissionForm({
   artifact: AgentArtifact;
   identity: { conversationId: string; capability: string } | null;
   onCancel: () => void;
-  onSubmitted: () => void;
+  onSubmitted: (receipt: SubmissionReceiptData) => void;
 }) {
   const [step, setStep] = useState<"draft" | "contact">("draft");
   const [draft, setDraft] = useState(artifact);
@@ -76,7 +76,7 @@ export function AgentSubmissionForm({
       if (!response.ok || !result.id)
         throw new Error(result.error ?? "Nie udało się wysłać zgłoszenia.");
       setReceipt(result);
-      onSubmitted();
+      onSubmitted(result);
     } catch (error) {
       setError(
         error instanceof Error

@@ -25,8 +25,10 @@ test("new agents introduce separate project matching and statistical exploration
   const knowledge = renderToStaticMarkup(
     <AgentWelcome agentId="wiedza" onPick={() => {}} />,
   );
-  assert.ok(match.includes("dopyta o Twoją sytuację"));
-  assert.ok(match.includes("dokumentacją i filmami"));
+  assert.ok(match.includes("Szukasz czegoś, w co możesz się zaangażować?"));
+  assert.ok(
+    match.includes("aktywności i inicjatywy społeczne w Twojej okolicy"),
+  );
   assert.ok(knowledge.includes("dane statystyczne"));
   assert.ok(knowledge.includes("wykresach i mapach"));
   assert.ok(!knowledge.includes("biblioteka-innowacji-spolecznych/kategorie"));

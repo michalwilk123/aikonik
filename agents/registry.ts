@@ -8,7 +8,7 @@ export const agents = {
     step: "01",
     title: "Od potrzeby do możliwości.",
     description:
-      "Opowiedz, z czym potrzebujesz pomocy. Asystent dopyta o Twoją sytuację i dobierze pasujące projekty, wraz z dokumentacją i filmami.",
+      "Szukasz czegoś, w co możesz się zaangażować? Opowiedz nam, co Cię interesuje, a AiKonik pokaże Ci ciekawe aktywności i inicjatywy społeczne w Twojej okolicy.",
     placeholder: "Z czym potrzebujesz pomocy?",
     examples: [
       "Opiekuję się bliską osobą i potrzebuję wsparcia. Od czego zacząć?",
