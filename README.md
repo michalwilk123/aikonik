@@ -90,6 +90,22 @@ existing passwords and roles. Staff data APIs live under `/api/cms`; the public
 submission endpoint is `/api/submissions`. Drafts from earlier chats are not
 automatically submitted.
 
+For a judges' presentation, seed 16 fictional Małopolska cases (four per inbox)
+assigned to the existing `cms@hubmi.invalid` account:
+
+```sh
+bun run cms:seed:demo
+# Deployed Cloudflare database:
+bun run cms:seed:demo --remote
+```
+
+The demo includes Polish form content, varied statuses, customer/staff replies
+and internal notes. People and organisations are fictional; contact emails use
+`hubmi.invalid`, and sidebar notes mark every case as demonstration data. The
+example grant call is unpublished and closed, so it cannot accept real applications.
+Seeding sends no email, creates no users and preserves existing records and
+passwords. Re-running preserves edits to demo cases, using fixed demo IDs.
+
 Payload schema changes use additive SQL migrations in `drizzle/`, alongside the
 chat migrations. Automatic Payload schema push is disabled to preserve existing
 chat tables and indexes. Generate Payload types/import maps with

@@ -24,6 +24,7 @@
     "test:integration": "for f in tests/integration/*.test.ts; do bun test --timeout 30000 \"$f\" || exit 1; done",
     "eval:openrouter": "bun run evals/openrouter.ts",
     "cms:seed": "bun scripts/seed-staff.ts",
+    "cms:seed:demo": "bun scripts/seed-cms-demo.ts",
     "test:browser": "bun tests/browser/submission-flow.ts",
     "test:browser:requests": "bun tests/browser/request-conversation-flow.ts",
     "test:browser:request-demo": "bun tests/browser/request-demo-flow.ts",
