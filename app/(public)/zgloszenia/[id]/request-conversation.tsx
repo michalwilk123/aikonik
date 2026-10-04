@@ -102,6 +102,7 @@ export function RequestConversation({ id }: { id: string }) {
   const [email, setEmail] = useState("");
   const sending = useRef(false);
   const threadVersion = useRef(0);
+  const transcript = useRef<HTMLElement>(null);
   const retry = useRef<{ id: string; body: string } | null>(null);
   const endpoint = `/api/requests/${encodeURIComponent(id)}`;
 
@@ -160,6 +161,15 @@ export function RequestConversation({ id }: { id: string }) {
   }, [refresh]);
 
   const authenticated = Boolean(thread);
+  const messageCount = thread?.messages.length ?? -1;
+  const workerName = thread?.messages
+    .filter((message) => message.author === "staff")
+    .at(-1)?.authorName;
+  useEffect(() => {
+    if (messageCount < 0) return;
+    const container = transcript.current;
+    if (container) container.scrollTop = container.scrollHeight;
+  }, [messageCount]);
   useEffect(() => {
     if (!authenticated) return;
     const controller = new AbortController();
@@ -292,9 +302,18 @@ export function RequestConversation({ id }: { id: string }) {
   }
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="mx-auto flex h-full min-h-0 w-full max-w-3xl flex-col">
+      <header className="shrink-0 border-b border-outline-variant bg-background px-4 py-3 sm:px-6">
+        <p className="text-xs text-on-surface-variant">
+          Rozmowa z centrum wsparcia
+        </p>
+        <p className="font-semibold">{thread?.subject ?? "Twoje zgłoszenie"}</p>
+        {workerName && (
+          <p className="text-sm text-on-surface-variant">{workerName}</p>
+        )}
+      </header>
       {error && (
-        <p role="alert" className="text-sm text-error">
+        <p role="alert" className="shrink-0 px-4 pt-4 text-sm text-error">
           {error}
         </p>
       )}
@@ -320,8 +339,19 @@ export function RequestConversation({ id }: { id: string }) {
       )}
       {thread ? (
         <>
-          <ConversationMessages thread={thread} />
-          <form onSubmit={send} className="flex flex-col gap-3">
+          <section
+            ref={transcript}
+            className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4 sm:p-6"
+            // biome-ignore lint/a11y/noNoninteractiveTabindex: Scrollable history must support keyboard scrolling.
+            tabIndex={0}
+            aria-label="Historia rozmowy"
+          >
+            <ConversationMessages thread={thread} />
+          </section>
+          <form
+            onSubmit={send}
+            className="flex shrink-0 flex-col gap-3 border-t border-outline-variant bg-background p-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:px-6"
+          >
             <Label className="sr-only" htmlFor="reply-body">
               Twoja odpowiedź
             </Label>

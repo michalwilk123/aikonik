@@ -18,7 +18,7 @@ try {
     .getByRole("button", { name: "Otwórz rozmowę", exact: true })
     .click();
   await page
-    .getByRole("heading", { name: "Przykładowa rozmowa", exact: true })
+    .getByRole("heading", { name: "Sąsiedzka pomoc seniorom", exact: true })
     .waitFor();
   assert.equal(new URL(page.url()).hash, "");
   const id = new URL(page.url()).pathname.split("/").at(-1);
@@ -30,10 +30,46 @@ try {
     .getByRole("list", { name: "Wiadomości w rozmowie" })
     .locator("li")
     .first();
+  assert.ok(thread.artifact?.fields.length);
+  for (const field of thread.artifact.fields)
+    assert.equal(
+      await firstBubble.getByText(field.value, { exact: true }).count(),
+      1,
+    );
+  assert.equal(await page.locator("header").count(), 1);
   assert.equal(
-    await firstBubble.getByText(thread.message ?? "", { exact: true }).count(),
+    await page
+      .locator("header a, header button, header img, footer, nav")
+      .count(),
+    0,
+  );
+  assert.equal(
+    await page
+      .locator("header")
+      .getByText(thread.subject, { exact: true })
+      .count(),
     1,
   );
+  for (const viewport of [
+    { width: 1280, height: 900 },
+    { width: 390, height: 700 },
+  ]) {
+    await page.setViewportSize(viewport);
+    const dimensions = await page.evaluate(() => ({
+      mainHeight: document.querySelector("main")?.getBoundingClientRect()
+        .height,
+      pageHeight: document.documentElement.scrollHeight,
+      viewportHeight: window.innerHeight,
+      composerBottom: document.querySelector("form")?.getBoundingClientRect()
+        .bottom,
+    }));
+    assert.equal(dimensions.mainHeight, dimensions.viewportHeight);
+    assert.equal(dimensions.pageHeight, dimensions.viewportHeight);
+    assert.ok(
+      (dimensions.composerBottom ?? Infinity) <= dimensions.viewportHeight,
+    );
+  }
+  await page.setViewportSize({ width: 1280, height: 900 });
   const staffReply = thread.messages.find(
     (message) => message.author === "staff",
   );
@@ -42,9 +78,23 @@ try {
     "demo staff should have a full name",
   );
   assert.equal(
-    await page.getByText(staffReply.authorName, { exact: true }).count(),
+    await firstBubble
+      .locator("..")
+      .getByText(staffReply.authorName, { exact: true })
+      .count(),
     1,
   );
+  assert.equal(
+    await page
+      .locator("header")
+      .getByText(staffReply.authorName, { exact: true })
+      .count(),
+    1,
+  );
+  await page.screenshot({
+    path: "/tmp/hubmi-request-demo.png",
+    fullPage: true,
+  });
   await page
     .getByLabel("Twoja odpowiedź")
     .fill("Dziękuję, to test przykładowej rozmowy.");
@@ -64,10 +114,6 @@ try {
   );
   assert.equal((await polled).status(), 200);
   assert.deepEqual(errors, []);
-  await page.screenshot({
-    path: "/tmp/hubmi-request-demo.png",
-    fullPage: true,
-  });
   process.stdout.write("Real DEV demo conversation flow passed.\n");
 } finally {
   await browser.close();

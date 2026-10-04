@@ -250,15 +250,50 @@ export async function createDevConversation(
   if (!config.dev || process.env.NODE_ENV !== "development")
     throw new ChatConflict(404, "Nie znaleziono strony.");
   const id = crypto.randomUUID();
+  const submittedAt = new Date(Date.now() - 3600000).toISOString();
+  const artifact = {
+    title: "Sąsiedzka pomoc seniorom",
+    fields: [
+      {
+        label: "Opis pomysłu",
+        value:
+          "Chcę stworzyć sieć sąsiadów, którzy pomogą seniorom w zakupach i drobnych sprawach.",
+      },
+      {
+        label: "Problem",
+        value:
+          "Osoby starsze mieszkające samotnie często nie mają kogo poprosić o codzienną pomoc.",
+      },
+      {
+        label: "Odbiorcy",
+        value: "Seniorzy mieszkający na osiedlu w Krakowie.",
+      },
+      {
+        label: "Rozwiązanie",
+        value:
+          "Dyżury pięciu wolontariuszy i telefon, pod którym można zgłosić potrzebę pomocy.",
+      },
+      {
+        label: "Cel",
+        value:
+          "Pomóc dziesięciu seniorom i sprawdzić, czy taki sposób wsparcia odpowiada ich potrzebom.",
+      },
+    ],
+  };
   await db
     .prepare(
-      "INSERT INTO submissions(id,submitted_at,source,name,email,subject,message,fingerprint) VALUES(?,?,'contact','Jan Nowak','demo@example.invalid','Przykładowa rozmowa','Chcę dowiedzieć się więcej o naborze.','dev-demo')",
+      "INSERT INTO submissions(id,submitted_at,source,name,email,subject,artifact,fingerprint) VALUES(?,?,'dodaj-pomysl','Jan Nowak','demo@example.invalid',?,?,'dev-demo')",
     )
-    .bind(id, new Date().toISOString())
+    .bind(id, submittedAt, artifact.title, JSON.stringify(artifact))
+    .run();
+  await db
+    .prepare(
+      "INSERT INTO users(name,surname,email,role) VALUES('Anna','Kowalska','chat-demo-worker@hubmi.invalid','cms') ON CONFLICT(email) DO NOTHING",
+    )
     .run();
   const demoStaff = await db
     .prepare(
-      "SELECT id FROM users WHERE role IN ('cms','admin') ORDER BY id LIMIT 1",
+      "SELECT id FROM users WHERE email='chat-demo-worker@hubmi.invalid'",
     )
     .first<{ id: number }>();
   if (demoStaff) {
@@ -268,7 +303,7 @@ export async function createDevConversation(
         .bind(demoStaff.id, id),
       db
         .prepare(
-          "INSERT INTO request_messages(id,submission_id,author,staff_id,body,created_at) VALUES(?,?,'staff',?,'Dzień dobry! Chętnie pomożemy przygotować wniosek. Opisz krótko swój pomysł.',?)",
+          "INSERT INTO request_messages(id,submission_id,author,staff_id,body,created_at) VALUES(?,?,'staff',?,'Dzień dobry, Panie Janie. Przeczytałam zgłoszenie dotyczące sąsiedzkiej pomocy seniorom. Na początek proponuję ustalić jedną osobę koordynującą dyżury wolontariuszy. Czy może Pan pełnić tę rolę? Chętnie pomogę przygotować pierwszy test z grupą dziesięciu seniorów.',?)",
         )
         .bind(crypto.randomUUID(), id, demoStaff.id, new Date().toISOString()),
     ]);
