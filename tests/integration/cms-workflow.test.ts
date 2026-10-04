@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { after, before, test } from "node:test";
 import { sqliteD1Adapter } from "@payloadcms/db-d1-sqlite";
+import { getVisibleEntities } from "@payloadcms/ui/shared";
 import { hashPassword, verifyPassword } from "better-auth/crypto";
 import { buildConfig, createLocalReq, getPayload, type Payload } from "payload";
 import { staffAuthPlugins } from "@/infrastructure/cms/auth";
@@ -56,6 +57,19 @@ before(async () => {
 after(async () => {
   await payload?.destroy();
   await fixture?.dispose();
+});
+
+test("workers can open their own user settings in the admin UI", async () => {
+  const req = await createLocalReq({ user: worker }, payload);
+  assert.ok(getVisibleEntities({ req }).collections.includes("users"));
+  assert.ok(
+    await payload.findByID({
+      collection: "users",
+      id: worker.id,
+      user: worker,
+      overrideAccess: false,
+    }),
+  );
 });
 
 test("workers manage only assigned conversations while submitted data remain immutable", async () => {

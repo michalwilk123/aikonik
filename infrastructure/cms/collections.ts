@@ -51,7 +51,7 @@ export const users: CollectionConfig = {
   admin: {
     useAsTitle: "name",
     group: "Administracja",
-    hidden: ({ user }) => user?.role !== "admin",
+    // StaffNav hides the directory for workers; admin.hidden also blocks their own settings page.
     defaultColumns: ["name", "surname", "email", "role"],
   },
   fields: [

@@ -7,7 +7,8 @@
     "scripts/*.ts",
     "db/client.ts",
     "components/ui/*.tsx",
-    "tests/integration/*.test.ts"
+    "tests/integration/*.test.ts",
+    "tests/browser/staff-settings.ts"
   ],
   "ignoreDependencies": [],
   "ignore": ["payload-types.ts"],
