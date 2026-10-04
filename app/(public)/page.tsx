@@ -147,7 +147,7 @@ export default function HomePage() {
                 </span>
                 <span className="block">
                   <RevealText
-                    text="AiKonik pomoże Ci znaleźć inicjatywy i aktywności społeczne dopasowane do Twoich potrzeb."
+                    text="AiKonik pomoże Ci znaleźć inicjatywy i aktywności społeczne lub stworzyć własne"
                     by="line"
                     delay={720}
                   />
