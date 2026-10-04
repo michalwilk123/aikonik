@@ -116,7 +116,7 @@ function Bulb({ x, y, s = 1 }: { x: number; y: number; s?: number }) {
 // Waving Lajkonik pointing the way with a signpost.
 export function SupportScene({ className, title }: Props) {
   return (
-    <Svg className={className} title={title} viewBox="4 0 232 200">
+    <Svg className={className} title={title} viewBox="4 0 246 200">
       <ellipse cx="120" cy="186" rx="112" ry="8" fill={C.beige} />
       <g transform="translate(66 62) scale(-1 1)">
         <Signpost />

@@ -12,7 +12,7 @@ export function HeroArt({
 }) {
   return (
     <svg
-      viewBox="58 -4 292 450"
+      viewBox="58 -4 334 450"
       className={className}
       role="img"
       focusable="false"

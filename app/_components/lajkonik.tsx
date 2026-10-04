@@ -60,7 +60,8 @@ function Spark({ x, y, r = 1 }: { x: number; y: number; r?: number }) {
   );
 }
 
-/** Mascot shapes without an <svg> wrapper (native box: x 58-350, y -4-446), for composing scenes. */
+/** Mascot shapes without an <svg> wrapper (native box: x 58-392, y -4-446), for composing scenes.
+ * A man on his own legs wearing the hobby horse around his waist, not a rider on a horse. */
 export function LajkonikShapes({ waving = false }: { waving?: boolean }) {
   return (
     <g>
@@ -73,22 +74,29 @@ export function LajkonikShapes({ waving = false }: { waving?: boolean }) {
         `}</style>
       ) : null}
 
-      <ellipse cx="212" cy="436" rx="125" ry="9" fill={C.beige} />
-      {/* back legs */}
-      <Poly p="272,350 306,350 306,420 276,420" f={C.grey} />
-      <Poly p="276,420 306,420 306,436 272,436" f={C.dark} />
-      <Poly p="236,356 266,356 266,412 240,412" f={C.white} />
-      <Poly p="240,412 266,412 268,428 236,428" f={C.dark} />
-      {/* front legs */}
-      <Poly p="196,356 226,356 226,414 200,414" f={C.grey} />
-      <Poly p="200,414 226,414 230,430 194,430" f={C.dark} />
-      <Poly p="152,356 192,356 188,418 150,418" f={C.white} />
-      <Poly p="150,418 188,418 192,434 142,434" f={C.dark} />
+      <ellipse cx="250" cy="437" rx="72" ry="7" fill={C.beige} />
+      {/* rider's own legs: trousers and boots below the hobby-horse skirt */}
+      <Poly p="218,350 242,350 240,416 220,416" f={C.navy} />
+      <Poly p="218,350 226,350 226,416 220,416" f="#2E3A63" />
+      <Poly p="256,350 280,350 278,416 258,416" f={C.navy} />
+      <Poly p="272,350 280,350 278,416 272,416" f="#121830" />
+      <Poly p="220,414 242,414 244,434 202,434 206,424" f={C.dark} />
+      <Poly p="220,414 228,414 226,428 206,426" f={C.furLight} />
+      <Poly p="256,414 278,414 294,424 296,434 254,434" f={C.dark} />
+      <Poly p="256,414 264,414 264,434 254,434" f={C.furLight} />
 
-      {/* horse neck + mane */}
-      <Poly p="118,236 164,206 210,300 152,314" f={C.white} />
-      <Poly p="164,206 210,300 188,306" f={C.grey} />
-      <Poly p="156,202 172,196 214,296 202,300" f={C.dark} />
+      {/* rider robe (the hobby-horse frame hides it from the waist down) */}
+      <Poly p="208,176 292,176 306,300 198,300" f={C.red} />
+      <Poly p="208,176 248,176 244,300 198,300" f={C.redLight} />
+      <Poly p="278,176 292,176 306,300 272,300" f={C.redShade} />
+      {/* gold collar */}
+      <Poly p="200,170 296,170 262,208 244,200" f={C.gold} />
+      <Poly p="200,170 244,200 218,212" f={C.goldLight} />
+
+      {/* horse neck + mane, rising from the front of the frame */}
+      <Poly p="118,236 164,206 210,296 160,306" f={C.white} />
+      <Poly p="164,206 210,296 188,300" f={C.grey} />
+      <Poly p="156,202 172,196 214,292 202,296" f={C.dark} />
       {/* horse head in profile, facing left */}
       <Poly
         p="160,208 122,214 72,252 66,288 82,300 124,286 150,270"
@@ -107,32 +115,46 @@ export function LajkonikShapes({ waving = false }: { waving?: boolean }) {
       <Poly p="86,254 98,252 104,292 92,296" f={C.red} />
       <circle cx="96" cy="274" r="5.5" fill={C.gold} />
 
-      {/* caparison */}
-      <Poly p="148,296 336,268 342,372 158,384" f={C.red} />
-      <Poly p="148,296 232,284 238,380 158,384" f={C.redLight} />
-      <Poly p="290,274 336,268 342,372 296,376" f={C.redShade} />
-      <Poly p="158,360 342,348 342,372 158,384" f={C.redShade} />
-      <polygon points="150,306 336,278 336,284 150,312" fill={C.gold} />
-      {[172, 206, 240, 274, 308].map((x, i) => (
+      {/* caparison skirt hanging from the rider's waist */}
+      <Poly p="144,280 340,264 348,376 148,388" f={C.red} />
+      <Poly p="144,280 230,273 234,383 148,388" f={C.redLight} />
+      <Poly p="292,268 340,264 348,376 296,379" f={C.redShade} />
+      <Poly p="148,364 348,352 348,376 148,388" f={C.redShade} />
+      <polygon points="144,288 340,272 340,278 144,294" fill={C.gold} />
+      {[166, 202, 238, 274, 310].map((x, i) => (
         <rect
           key={x}
           x={x}
-          y={346 - i * 1.5}
+          y={364.5 - i * 2.2}
           width="16"
           height="16"
           fill={i % 2 ? C.goldLight : C.gold}
         />
       ))}
+      {/* gold fringe along the hem */}
+      {[156, 179, 202, 225, 248, 271, 294, 317, 340].map((x) => {
+        const y = 388 - (x - 148) * 0.06;
+        return (
+          <polygon
+            key={x}
+            points={`${x - 5},${y - 1} ${x + 5},${y - 1.6} ${x},${y + 9}`}
+            fill={C.gold}
+          />
+        );
+      })}
+      {/* hobby-horse tail, flowing out behind the skirt */}
+      <Poly
+        p="338,270 360,262 384,288 390,340 376,356 368,314 346,292"
+        f={C.dark}
+      />
+      <Poly p="338,270 360,262 380,286 364,298 346,292" f={C.furLight} />
+      <Poly p="372,300 384,296 390,340 380,350" f={C.fur} />
 
-      {/* rider robe */}
-      <Poly p="208,176 292,176 306,300 198,300" f={C.red} />
-      <Poly p="208,176 248,176 244,300 198,300" f={C.redLight} />
-      <Poly p="278,176 292,176 306,300 272,300" f={C.redShade} />
-      {/* gold collar and sash */}
-      <Poly p="200,170 296,170 262,208 244,200" f={C.gold} />
-      <Poly p="200,170 244,200 218,212" f={C.goldLight} />
-      <Poly p="262,208 286,214 262,290 240,284" f={C.gold} />
-      <Poly p="240,284 262,290 258,304 238,298" f={C.goldLight} />
+      {/* other arm, hand resting on the hobby-horse frame */}
+      <Poly p="282,186 302,180 324,262 302,268" f={C.red} />
+      <Poly p="302,180 308,184 328,258 324,262" f={C.redShade} />
+      <Poly p="298,262 324,256 330,276 304,282" f={C.orange} />
+      <Poly p="318,257 324,256 330,276 322,278" f={C.orangeShade} />
 
       {/* waving arm */}
       <g className="lj-wave">
